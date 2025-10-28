@@ -72,18 +72,4 @@ public enum SwifTea {
         }
     }
 }
-public extension SwifTea {
-        static func testRender<App: TUIApp>(_ app: App) -> String {
-                app.view(model: app.model).render()
-        }
-}
 
-public extension TUIApp where Model == Self {
-    var model: Self { self }
-}
-
-public extension TUIApp where Action == Never {
-        mutating func update(action: Action) {}
-        func mapKeyToAction(_ key:KeyEvent) -> Action? { nil }
-        func shouldExit(for action: Action) -> Bool { false }
-    }
