@@ -1,14 +1,25 @@
 @propertyWrapper
 public struct State<Value> {
-    private var value: Value
+    final class Storage {
+        var value: Value
+        init(_ value: Value) { self.value = value }
+    }
+
+    private var storage: Storage
 
     public init(wrappedValue: Value) {
-        self.value = wrappedValue
+        self.storage = Storage(wrappedValue)
     }
 
     public var wrappedValue: Value {
-        get { value }
-        set { value = newValue }
+        get { storage.value }
+        mutating set { storage.value = newValue }
+    }
+
+    public var projectedValue: Binding<Value> {
+        Binding(
+            get: { storage.value },
+            set: { storage.value = $0 }
+        )
     }
 }
-
