@@ -18,3 +18,18 @@ public struct Binding<Value> {
         setter(value)
     }
 }
+
+public extension Binding {
+    func map<Subject>(_ keyPath: WritableKeyPath<Value, Subject>) -> Binding<Subject> {
+        Binding<Subject>(
+            get: {
+                self.wrappedValue[keyPath: keyPath]
+            },
+            set: { newValue in
+                self.update { value in
+                    value[keyPath: keyPath] = newValue
+                }
+            }
+        )
+    }
+}
