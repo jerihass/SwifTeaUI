@@ -38,13 +38,100 @@ public struct VStack: TUIView {
 
 public struct HStack: TUIView {
     let children: [TUIView]
+    let spacing: Int
 
-    public init(@TUIBuilder _ content: () -> [TUIView]) {
+    public init(spacing: Int = 3, @TUIBuilder _ content: () -> [TUIView]) {
         self.children = content()
+        self.spacing = max(0, spacing)
     }
 
     public func render() -> String {
-        children.map { $0.render() }.joined(separator: " ")
+        guard !children.isEmpty else { return "" }
+
+        let renderedColumns = children.map { $0.render().splitLinesPreservingEmpty() }
+        let columnWidths = renderedColumns.map { $0.map(Self.visibleWidth(of:)).max() ?? 0 }
+        let maxRows = renderedColumns.map(\.count).max() ?? 0
+        let spacingString = String(repeating: " ", count: spacing)
+
+        var rows: [String] = []
+        rows.reserveCapacity(maxRows)
+
+        for row in 0..<maxRows {
+            var pieces: [String] = []
+            pieces.reserveCapacity(children.count)
+
+            for (index, lines) in renderedColumns.enumerated() {
+                let line = row < lines.count ? lines[row] : ""
+                let padded = Self.pad(line, toVisibleWidth: columnWidths[index])
+                pieces.append(padded)
+            }
+
+            rows.append(pieces.joined(separator: spacingString))
+        }
+
+        return rows.joined(separator: "\n")
+    }
+
+    private static func visibleWidth(of string: String) -> Int {
+        var width = 0
+        var index = string.startIndex
+        var inEscape = false
+
+        while index < string.endIndex {
+            let character = string[index]
+
+            if inEscape {
+                if character.isANSISequenceTerminator {
+                    inEscape = false
+                }
+            } else if character == "\u{001B}" {
+                inEscape = true
+            } else {
+                width += 1
+            }
+
+            index = string.index(after: index)
+        }
+
+        return width
+    }
+
+    private static func pad(_ line: String, toVisibleWidth width: Int) -> String {
+        let currentWidth = visibleWidth(of: line)
+        guard currentWidth < width else { return line }
+        let padding = String(repeating: " ", count: width - currentWidth)
+        return line + padding
+    }
+}
+
+private extension String {
+    func splitLinesPreservingEmpty() -> [String] {
+        if isEmpty { return [""] }
+        var lines: [String] = []
+        lines.reserveCapacity(count / 8)
+
+        var current = ""
+        for character in self {
+            if character == "\n" {
+                lines.append(current)
+                current = ""
+            } else {
+                current.append(character)
+            }
+        }
+        lines.append(current)
+        return lines
+    }
+}
+
+private extension Character {
+    var isANSISequenceTerminator: Bool {
+        switch self {
+        case "a"..."z", "A"..."Z":
+            return true
+        default:
+            return false
+        }
     }
 }
 
@@ -53,4 +140,3 @@ public struct HStack: TUIView {
 public struct TUIBuilder {
     public static func buildBlock(_ components: TUIView...) -> [TUIView] { components }
 }
-
