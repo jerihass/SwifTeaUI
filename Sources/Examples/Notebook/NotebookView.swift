@@ -13,7 +13,16 @@ struct NotebookView: TUIView {
         let sidebarLines = state.notes.enumerated().map { index, note -> String in
             let pointer = (index == state.selectedIndex) ? ">" : " "
             let focusMarker = (focus == .sidebar && index == state.selectedIndex) ? "▌" : " "
-            return "\(pointer)\(focusMarker) \(note.title)"
+            let lineContent = "\(pointer)\(focusMarker) \(note.title)"
+
+            let color: ANSIColor
+            if index == state.selectedIndex {
+                color = (focus == .sidebar) ? .cyan : .yellow
+            } else {
+                color = .green
+            }
+
+            return color.rawValue + lineContent + ANSIColor.reset.rawValue
         }
         let sidebarBlock = sidebarLines.joined(separator: "\n")
 
