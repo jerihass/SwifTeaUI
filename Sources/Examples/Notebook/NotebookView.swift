@@ -42,15 +42,11 @@ struct NotebookView: TUIView {
             Text("Status: \(state.statusMessage)").foreground(.cyan)
         }
 
-        let header = VStack(spacing: 1, alignment: .center, verticalAlignment: .center, height: 4) {
+        return VStack(spacing: 1, alignment: .center) {
             Text("SwifTea Notebook").foreground(.yellow).bolded()
             Text("[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body").foreground(.cyan)
-        }
-
-        return VStack(spacing: 1, alignment: .center, verticalAlignment: .top) {
-            header
             Text("")
-            HStack(spacing: 6, horizontalAlignment: .leading, verticalAlignment: .center) {
+            HStack(spacing: 6, horizontalAlignment: .leading, verticalAlignment: .top) {
                 sidebar
                 editor
             }
