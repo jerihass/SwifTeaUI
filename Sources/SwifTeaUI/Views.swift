@@ -37,12 +37,24 @@ public struct VStack: TUIView {
 }
 
 public struct HStack: TUIView {
+    public enum Alignment {
+        case leading
+        case center
+        case trailing
+    }
+
     let children: [TUIView]
     let spacing: Int
+    let alignment: Alignment
 
-    public init(spacing: Int = 3, @TUIBuilder _ content: () -> [TUIView]) {
+    public init(
+        spacing: Int = 3,
+        alignment: Alignment = .leading,
+        @TUIBuilder _ content: () -> [TUIView]
+    ) {
         self.children = content()
         self.spacing = max(0, spacing)
+        self.alignment = alignment
     }
 
     public func render() -> String {
@@ -62,7 +74,11 @@ public struct HStack: TUIView {
 
             for (index, lines) in renderedColumns.enumerated() {
                 let line = row < lines.count ? lines[row] : ""
-                let padded = Self.pad(line, toVisibleWidth: columnWidths[index])
+                let padded = Self.pad(
+                    line,
+                    toVisibleWidth: columnWidths[index],
+                    alignment: alignment
+                )
                 pieces.append(padded)
             }
 
@@ -96,11 +112,25 @@ public struct HStack: TUIView {
         return width
     }
 
-    private static func pad(_ line: String, toVisibleWidth width: Int) -> String {
+    private static func pad(
+        _ line: String,
+        toVisibleWidth width: Int,
+        alignment: Alignment
+    ) -> String {
         let currentWidth = visibleWidth(of: line)
         guard currentWidth < width else { return line }
-        let padding = String(repeating: " ", count: width - currentWidth)
-        return line + padding
+
+        let padding = width - currentWidth
+        switch alignment {
+        case .leading:
+            return line + String(repeating: " ", count: padding)
+        case .trailing:
+            return String(repeating: " ", count: padding) + line
+        case .center:
+            let leading = padding / 2
+            let trailing = padding - leading
+            return String(repeating: " ", count: leading) + line + String(repeating: " ", count: trailing)
+        }
     }
 }
 
