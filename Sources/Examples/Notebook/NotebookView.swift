@@ -36,7 +36,7 @@ struct NotebookView: TUIView {
             Text("Title:").foreground(focus == .editorTitle ? .cyan : .yellow)
             TextField("Title...", text: titleBinding, focus: titleFocusBinding)
             Text("Body:").foreground(focus == .editorBody ? .cyan : .yellow)
-            TextField("Body...", text: bodyBinding, focus: bodyFocusBinding)
+            TextArea("Body...", text: bodyBinding, focus: bodyFocusBinding, width: 60)
             Text("")
             Text("Saved note: \(state.notes[state.selectedIndex].title)").foreground(.green)
             Text("Status: \(state.statusMessage)").foreground(.cyan)

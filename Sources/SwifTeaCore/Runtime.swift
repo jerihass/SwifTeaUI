@@ -75,16 +75,12 @@ public enum SwifTea {
             restoreMode(originalMode)
         }
         var running = true
-        var lastFrame: String? = nil
         while running {
             // Render
             let frame = app.view(model: app.model).render()
-            if frame != lastFrame {
-                clearScreenAndHome()
-                print(frame)
-                fflush(stdout)
-                lastFrame = frame
-            }
+            clearScreenAndHome()
+            print(frame)
+            fflush(stdout)
 
             // Input → Action
             if let ke = readKeyEvent(), let action = app.mapKeyToAction(ke) {

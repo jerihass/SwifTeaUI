@@ -26,7 +26,9 @@ struct NotebookSnapshotTests {
             "",
             "                                    Body:",
             "",
-            "                                    Use Tab to focus fields on the right, Shift+Tab to return here. This long introduction should stay visible even when the bottom of the screen is busy.",
+            "                                    Use Tab to focus fields on the right, Shift+Tab to return",
+            "                                    here. This long introduction should stay visible even when",
+            "                                    the bottom of the screen is busy.",
             "",
             "",
             "",
@@ -69,7 +71,9 @@ struct NotebookSnapshotTests {
             "",
             "                                    Body:",
             "",
-            "                                    Use Tab to focus fields on the right, Shift+Tab to return here. This long introduction should stay visible even when the bottom of the screen is busy.",
+            "                                    Use Tab to focus fields on the right, Shift+Tab to return",
+            "                                    here. This long introduction should stay visible even when",
+            "                                    the bottom of the screen is busy.",
             "",
             "",
             "",
@@ -112,7 +116,9 @@ struct NotebookSnapshotTests {
             "",
             "                                    Body:",
             "",
-            "                                    Use Tab to focus fields on the right, Shift+Tab to return here. This long introduction should stay visible even when the bottom of the screen is busy.|",
+            "                                    Use Tab to focus fields on the right, Shift+Tab to return",
+            "                                    here. This long introduction should stay visible even when",
+            "                                    the bottom of the screen is busy.|",
             "",
             "",
             "",
@@ -155,7 +161,9 @@ struct NotebookSnapshotTests {
             "",
             "                                    Body:",
             "",
-            "                                    ↑/↓ move between notes when the sidebar is focused. Enter while editing the body saves. Longer descriptions ensure we validate vertical layout spacing.",
+            "                                    ↑/↓ move between notes when the sidebar is focused. Enter",
+            "                                    while editing the body saves. Longer descriptions ensure we",
+            "                                    validate vertical layout spacing.",
             "",
             "",
             "",
@@ -171,6 +179,27 @@ struct NotebookSnapshotTests {
         let expected = expectedLines.joined(separator: "\n")
 
         #expect(sanitized.removingTrailingSpacesPerLine() == expected)
+    }
+
+    @Test("Notebook frame output stays stable across consecutive renders and selection changes")
+    func testNotebookRenderStabilityAcrossFrames() {
+        var app = NotebookApp()
+        let initial = renderNotebook(app)
+
+        for _ in 0..<500 {
+            #expect(renderNotebook(app) == initial)
+        }
+
+        app.update(action: .selectNext)
+        let afterSelection = renderNotebook(app)
+
+        for _ in 0..<500 {
+            #expect(renderNotebook(app) == afterSelection)
+        }
+
+        app.update(action: .selectPrevious)
+        let backToFirst = renderNotebook(app)
+        #expect(backToFirst == initial)
     }
 
     private func renderInitialNotebook() -> String {
