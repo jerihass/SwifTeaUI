@@ -26,9 +26,9 @@ struct NotebookView: TUIView {
         }
         let sidebarBlock = sidebarLines.joined(separator: "\n")
 
-        let sidebar = VStack(alignment: .center) {
+        let sidebar = VStack(alignment: .leading) {
             Text("Notes").foreground(.yellow)
-            Text(sidebarBlock).foreground(.green)
+            Text(sidebarBlock)
         }
 
         let editor = VStack(spacing: 1, alignment: .leading) {
@@ -42,7 +42,7 @@ struct NotebookView: TUIView {
             Text("Status: \(state.statusMessage)").foreground(.cyan)
         }
 
-        return VStack(spacing: 1, alignment: .center) {
+        return VStack(spacing: 1, alignment: .leading) {
             Text("SwifTea Notebook").foreground(.yellow).bolded()
             Text("[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body").foreground(.cyan)
             Text("")

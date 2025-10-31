@@ -9,34 +9,34 @@ struct NotebookSnapshotTests {
         let snapshot = renderInitialNotebook()
         let sanitized = snapshot.strippingANSI()
 
-        #expect(snapshot.contains(ANSIColor.cyan.rawValue + ">▌ Welcome" + ANSIColor.reset.rawValue))
+        #expect(snapshot.contains(ANSIColor.cyan.rawValue + ">▌ Welcome to SwifTeaUI" + ANSIColor.reset.rawValue))
 
         let expectedLines = [
-            "                                SwifTea Notebook",
+            "SwifTea Notebook",
             "",
-            " [Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body",
-            "",
-            "",
-            "",
-            "   Notes          Editor",
-            " >▌ Welcome",
-            "   Shortcuts      Title:",
-            "     Ideas",
-            "                  Welcome",
-            "",
-            "                  Body:",
-            "",
-            "                  Use Tab to focus fields on the right, Shift+Tab to return here.",
+            "[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body",
             "",
             "",
             "",
-            "                  Saved note: Welcome",
+            "Notes                               Editor",
+            ">▌ Welcome to SwifTeaUI",
+            "   Keyboard Shortcuts Overview      Title:",
+            "   Ideas and Enhancements",
+            "                                    Welcome to SwifTeaUI",
             "",
-            "                  Status: Tab to edit the welcome note.",
+            "                                    Body:",
+            "",
+            "                                    Use Tab to focus fields on the right, Shift+Tab to return here. This long introduction should stay visible even when the bottom of the screen is busy.",
             "",
             "",
             "",
-            "                                 Focus: sidebar"
+            "                                    Saved note: Welcome to SwifTeaUI",
+            "",
+            "                                    Status: Tab to edit the welcome note and confirm longer content renders cleanly.",
+            "",
+            "",
+            "",
+            "Focus: sidebar"
         ]
 
         let expected = expectedLines.joined(separator: "\n")
@@ -55,31 +55,31 @@ struct NotebookSnapshotTests {
         #expect(snapshot.contains(ANSIColor.cyan.rawValue + "Title:" + ANSIColor.reset.rawValue))
 
         let expectedLines = [
-            "                                SwifTea Notebook",
+            "SwifTea Notebook",
             "",
-            " [Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body",
-            "",
-            "",
-            "",
-            "   Notes          Editor",
-            " >  Welcome",
-            "   Shortcuts      Title:",
-            "     Ideas",
-            "                  Welcome|",
-            "",
-            "                  Body:",
-            "",
-            "                  Use Tab to focus fields on the right, Shift+Tab to return here.",
+            "[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body",
             "",
             "",
             "",
-            "                  Saved note: Welcome",
+            "Notes                               Editor",
+            ">  Welcome to SwifTeaUI",
+            "   Keyboard Shortcuts Overview      Title:",
+            "   Ideas and Enhancements",
+            "                                    Welcome to SwifTeaUI|",
             "",
-            "                  Status: Tab to edit the welcome note.",
+            "                                    Body:",
+            "",
+            "                                    Use Tab to focus fields on the right, Shift+Tab to return here. This long introduction should stay visible even when the bottom of the screen is busy.",
             "",
             "",
             "",
-            "                               Focus: editor.title"
+            "                                    Saved note: Welcome to SwifTeaUI",
+            "",
+            "                                    Status: Tab to edit the welcome note and confirm longer content renders cleanly.",
+            "",
+            "",
+            "",
+            "Focus: editor.title"
         ]
 
         let expected = expectedLines.joined(separator: "\n")
@@ -98,31 +98,31 @@ struct NotebookSnapshotTests {
         #expect(snapshot.contains(ANSIColor.cyan.rawValue + "Body:" + ANSIColor.reset.rawValue))
 
         let expectedLines = [
-            "                                 SwifTea Notebook",
+            "SwifTea Notebook",
             "",
-            " [Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body",
-            "",
-            "",
-            "",
-            "   Notes          Editor",
-            " >  Welcome",
-            "   Shortcuts      Title:",
-            "     Ideas",
-            "                  Welcome",
-            "",
-            "                  Body:",
-            "",
-            "                  Use Tab to focus fields on the right, Shift+Tab to return here.|",
+            "[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body",
             "",
             "",
             "",
-            "                  Saved note: Welcome",
+            "Notes                               Editor",
+            ">  Welcome to SwifTeaUI",
+            "   Keyboard Shortcuts Overview      Title:",
+            "   Ideas and Enhancements",
+            "                                    Welcome to SwifTeaUI",
             "",
-            "                  Status: Tab to edit the welcome note.",
+            "                                    Body:",
+            "",
+            "                                    Use Tab to focus fields on the right, Shift+Tab to return here. This long introduction should stay visible even when the bottom of the screen is busy.|",
             "",
             "",
             "",
-            "                                Focus: editor.body"
+            "                                    Saved note: Welcome to SwifTeaUI",
+            "",
+            "                                    Status: Tab to edit the welcome note and confirm longer content renders cleanly.",
+            "",
+            "",
+            "",
+            "Focus: editor.body"
         ]
 
         let expected = expectedLines.joined(separator: "\n")
@@ -138,34 +138,34 @@ struct NotebookSnapshotTests {
         let snapshot = renderNotebook(app)
         let sanitized = snapshot.strippingANSI()
 
-        #expect(snapshot.contains(ANSIColor.cyan.rawValue + ">▌ Shortcuts" + ANSIColor.reset.rawValue))
+        #expect(snapshot.contains(ANSIColor.cyan.rawValue + ">▌ Keyboard Shortcuts Overview" + ANSIColor.reset.rawValue))
 
         let expectedLines = [
-            "                                       SwifTea Notebook",
+            "SwifTea Notebook",
             "",
-            "       [Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body",
-            "",
-            "",
-            "",
-            "   Notes          Editor",
-            "    Welcome",
-            ">▌ Shortcuts      Title:",
-            "     Ideas",
-            "                  Shortcuts",
-            "",
-            "                  Body:",
-            "",
-            "                  ↑/↓ move between notes when the sidebar is focused. Enter on the body saves.",
+            "[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body",
             "",
             "",
             "",
-            "                  Saved note: Shortcuts",
+            "Notes                               Editor",
+            "   Welcome to SwifTeaUI",
+            ">▌ Keyboard Shortcuts Overview      Title:",
+            "   Ideas and Enhancements",
+            "                                    Keyboard Shortcuts Overview",
             "",
-            "                  Status: Tab to edit the welcome note.",
+            "                                    Body:",
+            "",
+            "                                    ↑/↓ move between notes when the sidebar is focused. Enter while editing the body saves. Longer descriptions ensure we validate vertical layout spacing.",
             "",
             "",
             "",
-            "                                        Focus: sidebar"
+            "                                    Saved note: Keyboard Shortcuts Overview",
+            "",
+            "                                    Status: Tab to edit the welcome note and confirm longer content renders cleanly.",
+            "",
+            "",
+            "",
+            "Focus: sidebar"
         ]
 
         let expected = expectedLines.joined(separator: "\n")
