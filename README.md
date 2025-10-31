@@ -61,6 +61,6 @@ Written in Swift.
 
 ### Layout Primitives
 
-- `VStack(spacing:alignment:)` stacks views vertically; spacing defaults to `0`, alignment accepts `.leading`, `.center`, or `.trailing` and pads multi-line content accordingly (only non-leading alignments add horizontal padding).
+- `VStack(spacing:alignment:verticalAlignment:height:)` stacks views vertically; spacing defaults to `0`. Alignment accepts `.leading`, `.center`, or `.trailing` (only non-leading alignments pad). Optional `verticalAlignment` (`.top/.center/.bottom`) pairs with an optional `height` to insert blank rows before or after the stack—useful when centering content inside a taller column.
 - `HStack(spacing:horizontalAlignment:verticalAlignment:)` arranges columns and measures ANSI-safe widths. Horizontal alignment mirrors `VStack` while vertical alignment supports `.top`, `.center`, and `.bottom` for shorter columns.
-- The notebook example centers the header `VStack` and top-aligns the sidebar/editor `HStack` to showcase the options.
+- The notebook example centers its header `VStack` within a fixed height and uses a center-aligned `HStack` to demonstrate the options.

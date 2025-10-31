@@ -31,18 +31,34 @@ public struct VStack: TUIView {
         case trailing
     }
 
+    public enum VerticalAlignment {
+        case top
+        case center
+        case bottom
+    }
+
     let children: [TUIView]
     let spacing: Int
     let alignment: Alignment
+    let verticalAlignment: VerticalAlignment
+    let height: Int?
 
     public init(
         spacing: Int = 0,
         alignment: Alignment = .leading,
+        verticalAlignment: VerticalAlignment = .top,
+        height: Int? = nil,
         @TUIBuilder _ content: () -> [TUIView]
     ) {
         self.children = content()
         self.spacing = max(0, spacing)
         self.alignment = alignment
+        self.verticalAlignment = verticalAlignment
+        if let height, height >= 0 {
+            self.height = height
+        } else {
+            self.height = nil
+        }
     }
 
     public func render() -> String {
@@ -67,7 +83,26 @@ public struct VStack: TUIView {
             }
         }
 
-        return lines.joined(separator: "\n")
+        let adjusted = applyVerticalAlignment(to: lines)
+        return adjusted.joined(separator: "\n")
+    }
+
+    private func applyVerticalAlignment(to lines: [String]) -> [String] {
+        guard let targetHeight = height, targetHeight > lines.count else {
+            return lines
+        }
+
+        let missing = targetHeight - lines.count
+        switch verticalAlignment {
+        case .top:
+            return lines + Array(repeating: "", count: missing)
+        case .bottom:
+            return Array(repeating: "", count: missing) + lines
+        case .center:
+            let leading = missing / 2
+            let trailing = missing - leading
+            return Array(repeating: "", count: leading) + lines + Array(repeating: "", count: trailing)
+        }
     }
 
     private static func pad(
