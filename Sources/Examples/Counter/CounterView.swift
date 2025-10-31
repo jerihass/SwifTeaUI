@@ -1,7 +1,7 @@
 import SwifTeaCore
 import SwifTeaUI
 
-struct CounterView: TUIView {
+struct CounterView: DeclarativeTUIView {
     let state: CounterState
     let focus: CounterFocusField?
     let titleBinding: Binding<String>
@@ -9,7 +9,7 @@ struct CounterView: TUIView {
     let titleFocusBinding: Binding<Bool>
     let bodyFocusBinding: Binding<Bool>
 
-    func render() -> String {
+    var body: some TUIView {
         VStack(spacing: 1, alignment: .leading) {
             Text("SwifTea Counter").foreground(.yellow).bolded()
             Text("Count: \(state.count)").foreground(.green)
@@ -24,7 +24,7 @@ struct CounterView: TUIView {
             Text("Draft body: \(state.noteBody)").foreground(.green)
             Text("Last submitted -> title: \(state.lastSubmittedTitle), body: \(state.lastSubmittedBody)").foreground(.cyan)
             Text("Focus: \(focusDescription)").foreground(.yellow)
-        }.render()
+        }
     }
 
     private var focusDescription: String {

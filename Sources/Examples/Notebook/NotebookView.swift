@@ -1,7 +1,7 @@
 import SwifTeaCore
 import SwifTeaUI
 
-struct NotebookView: TUIView {
+struct NotebookView: DeclarativeTUIView {
     let state: NotebookState
     let focus: NotebookFocusField?
     let titleBinding: Binding<String>
@@ -9,7 +9,7 @@ struct NotebookView: TUIView {
     let titleFocusBinding: Binding<Bool>
     let bodyFocusBinding: Binding<Bool>
 
-    func render() -> String {
+    var body: some TUIView {
         let sidebarLines = state.notes.enumerated().map { index, note -> String in
             let pointer = (index == state.selectedIndex) ? ">" : " "
             let focusMarker = (focus == .sidebar && index == state.selectedIndex) ? "▌" : " "
@@ -42,7 +42,7 @@ struct NotebookView: TUIView {
             Text("Status: \(state.statusMessage)").foreground(.cyan)
         }
 
-        let header = VStack(spacing: 1, alignment: .center, verticalAlignment: .center, height: 6) {
+        let header = VStack(spacing: 1, alignment: .center, verticalAlignment: .center, height: 4) {
             Text("SwifTea Notebook").foreground(.yellow).bolded()
             Text("[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body").foreground(.cyan)
         }
@@ -56,7 +56,7 @@ struct NotebookView: TUIView {
             }
             Text("")
             Text("Focus: \(focusDescription)").foreground(.yellow)
-        }.render()
+        }
     }
 
     private var focusDescription: String {

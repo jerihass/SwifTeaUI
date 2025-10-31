@@ -64,3 +64,4 @@ Written in Swift.
 - `VStack(spacing:alignment:verticalAlignment:height:)` stacks views vertically; spacing defaults to `0`. Alignment accepts `.leading`, `.center`, or `.trailing` (only non-leading alignments pad). Optional `verticalAlignment` (`.top/.center/.bottom`) pairs with an optional `height` to insert blank rows before or after the stack—useful when centering content inside a taller column.
 - `HStack(spacing:horizontalAlignment:verticalAlignment:)` arranges columns and measures ANSI-safe widths. Horizontal alignment mirrors `VStack` while vertical alignment supports `.top`, `.center`, and `.bottom` for shorter columns.
 - The notebook example centers its header `VStack` within a fixed height and uses a center-aligned `HStack` to demonstrate the options.
+- Views can conform to `DeclarativeTUIView` so `render()` is synthesized; just return a `VStack`/`HStack` from `var body: some TUIView` without calling `.render()` manually.
