@@ -10,7 +10,7 @@ struct CounterView: TUIView {
     let bodyFocusBinding: Binding<Bool>
 
     func render() -> String {
-        VStack {
+        VStack(spacing: 1, alignment: .leading) {
             Text("SwifTea Counter").foreground(.yellow).bolded()
             Text("Count: \(state.count)").foreground(.green)
             Text("[u] up | [d] down | [←/→] also work | [q]/[Esc]/[Ctrl-C] quit").foreground(.cyan)

@@ -58,3 +58,9 @@ Written in Swift.
 
 - `swift run SwifTeaCounterExample` shows the basics: counter controls alongside a focused text field.
 - `swift run SwifTeaNotebookExample` demonstrates two panes with scoped focus rings, arrow-key navigation, and text entry across multiple fields.
+
+### Layout Primitives
+
+- `VStack(spacing:alignment:)` stacks views vertically; spacing defaults to `0`, alignment accepts `.leading`, `.center`, or `.trailing` and pads multi-line content accordingly (only non-leading alignments add horizontal padding).
+- `HStack(spacing:horizontalAlignment:verticalAlignment:)` arranges columns and measures ANSI-safe widths. Horizontal alignment mirrors `VStack` while vertical alignment supports `.top`, `.center`, and `.bottom` for shorter columns.
+- The notebook example centers the header `VStack` and top-aligns the sidebar/editor `HStack` to showcase the options.
