@@ -44,8 +44,140 @@ struct NotebookSnapshotTests {
         #expect(sanitized.removingTrailingSpacesPerLine() == expected)
     }
 
+    @Test("Title field focus snapshot shows cursor in title")
+    func testTitleFieldFocusSnapshot() {
+        var app = NotebookApp()
+        app.update(action: .setFocus(.editorTitle))
+
+        let snapshot = renderNotebook(app)
+        let sanitized = snapshot.strippingANSI()
+
+        #expect(snapshot.contains(ANSIColor.cyan.rawValue + "Title:" + ANSIColor.reset.rawValue))
+
+        let expectedLines = [
+            "                                SwifTea Notebook",
+            "",
+            " [Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body",
+            "",
+            "",
+            "",
+            "   Notes          Editor",
+            " >  Welcome",
+            "   Shortcuts      Title:",
+            "     Ideas",
+            "                  Welcome|",
+            "",
+            "                  Body:",
+            "",
+            "                  Use Tab to focus fields on the right, Shift+Tab to return here.",
+            "",
+            "",
+            "",
+            "                  Saved note: Welcome",
+            "",
+            "                  Status: Tab to edit the welcome note.",
+            "",
+            "",
+            "",
+            "                               Focus: editor.title"
+        ]
+
+        let expected = expectedLines.joined(separator: "\n")
+
+        #expect(sanitized.removingTrailingSpacesPerLine() == expected)
+    }
+
+    @Test("Body field focus snapshot shows cursor in body")
+    func testBodyFieldFocusSnapshot() {
+        var app = NotebookApp()
+        app.update(action: .setFocus(.editorBody))
+
+        let snapshot = renderNotebook(app)
+        let sanitized = snapshot.strippingANSI()
+
+        #expect(snapshot.contains(ANSIColor.cyan.rawValue + "Body:" + ANSIColor.reset.rawValue))
+
+        let expectedLines = [
+            "                                 SwifTea Notebook",
+            "",
+            " [Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body",
+            "",
+            "",
+            "",
+            "   Notes          Editor",
+            " >  Welcome",
+            "   Shortcuts      Title:",
+            "     Ideas",
+            "                  Welcome",
+            "",
+            "                  Body:",
+            "",
+            "                  Use Tab to focus fields on the right, Shift+Tab to return here.|",
+            "",
+            "",
+            "",
+            "                  Saved note: Welcome",
+            "",
+            "                  Status: Tab to edit the welcome note.",
+            "",
+            "",
+            "",
+            "                                Focus: editor.body"
+        ]
+
+        let expected = expectedLines.joined(separator: "\n")
+
+        #expect(sanitized.removingTrailingSpacesPerLine() == expected)
+    }
+
+    @Test("Sidebar selection snapshot highlights second note")
+    func testSidebarSelectionSnapshot() {
+        var app = NotebookApp()
+        app.update(action: .selectNext)
+
+        let snapshot = renderNotebook(app)
+        let sanitized = snapshot.strippingANSI()
+
+        #expect(snapshot.contains(ANSIColor.cyan.rawValue + ">▌ Shortcuts" + ANSIColor.reset.rawValue))
+
+        let expectedLines = [
+            "                                       SwifTea Notebook",
+            "",
+            "       [Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body",
+            "",
+            "",
+            "",
+            "   Notes          Editor",
+            "    Welcome",
+            ">▌ Shortcuts      Title:",
+            "     Ideas",
+            "                  Shortcuts",
+            "",
+            "                  Body:",
+            "",
+            "                  ↑/↓ move between notes when the sidebar is focused. Enter on the body saves.",
+            "",
+            "",
+            "",
+            "                  Saved note: Shortcuts",
+            "",
+            "                  Status: Tab to edit the welcome note.",
+            "",
+            "",
+            "",
+            "                                        Focus: sidebar"
+        ]
+
+        let expected = expectedLines.joined(separator: "\n")
+
+        #expect(sanitized.removingTrailingSpacesPerLine() == expected)
+    }
+
     private func renderInitialNotebook() -> String {
-        let app = NotebookApp()
+        renderNotebook(NotebookApp())
+    }
+
+    private func renderNotebook(_ app: NotebookApp) -> String {
         let view = app.view(model: app)
         return view.render()
     }
