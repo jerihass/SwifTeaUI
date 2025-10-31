@@ -25,16 +25,94 @@ public struct Text: TUIView {
 }
 
 public struct VStack: TUIView {
-    let children: [TUIView]
+    public enum Alignment {
+        case leading
+        case center
+        case trailing
+    }
 
-    public init(@TUIBuilder _ content: () -> [TUIView]) {
+    let children: [TUIView]
+    let spacing: Int
+    let alignment: Alignment
+
+    public init(
+        spacing: Int = 0,
+        alignment: Alignment = .leading,
+        @TUIBuilder _ content: () -> [TUIView]
+    ) {
         self.children = content()
+        self.spacing = max(0, spacing)
+        self.alignment = alignment
     }
 
     public func render() -> String {
-        children.map { $0.render() }.joined(separator: "\n")
+        guard !children.isEmpty else { return "" }
+
+        let rendered = children.map { $0.render() }
+        let widths = rendered.map { string -> Int in
+            string.splitLinesPreservingEmpty().map { HStack.visibleWidth(of: $0) }.max() ?? 0
+        }
+        let maxWidth = widths.max() ?? 0
+
+        var lines: [String] = []
+        lines.reserveCapacity(children.count * (spacing + 1))
+
+        for (index, output) in rendered.enumerated() {
+            let padded = Self.pad(output, toVisibleWidth: maxWidth, alignment: alignment)
+            lines.append(padded)
+            if spacing > 0 && index < rendered.count - 1 {
+                for _ in 0..<spacing {
+                    lines.append("")
+                }
+            }
+        }
+
+        return lines.joined(separator: "\n")
+    }
+
+    private static func pad(
+        _ string: String,
+        toVisibleWidth width: Int,
+        alignment: Alignment
+    ) -> String {
+        guard width > 0 else { return string }
+        if alignment == .leading { return string }
+
+        let lines = string.splitLinesPreservingEmpty()
+        if lines.isEmpty {
+            return Self.paddedLine("", width: width, alignment: alignment)
+        }
+
+        let padded = lines.map { line in
+            Self.paddedLine(line, width: width, alignment: alignment)
+        }
+
+        return padded.joined(separator: "\n")
+    }
+
+    private static func paddedLine(
+        _ line: String,
+        width: Int,
+        alignment: Alignment
+    ) -> String {
+        if alignment == .leading { return line }
+        let currentWidth = HStack.visibleWidth(of: line)
+        guard currentWidth < width else { return line }
+        let padding = width - currentWidth
+
+        switch alignment {
+        case .leading:
+            return line + String(repeating: " ", count: padding)
+        case .trailing:
+            return String(repeating: " ", count: padding) + line
+        case .center:
+            let leading = padding / 2
+            let trailing = padding - leading
+            return String(repeating: " ", count: leading) + line + String(repeating: " ", count: trailing)
+        }
     }
 }
+
 
 public struct HStack: TUIView {
     public enum Alignment {
@@ -88,7 +166,7 @@ public struct HStack: TUIView {
         return rows.joined(separator: "\n")
     }
 
-    private static func visibleWidth(of string: String) -> Int {
+    static func visibleWidth(of string: String) -> Int {
         var width = 0
         var index = string.startIndex
         var inEscape = false
