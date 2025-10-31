@@ -69,7 +69,11 @@ public enum SwifTea {
         let frameDelay = useconds_t(1_000_000 / max(1, fps))
 
         let originalMode = setRawMode()
-        defer { restoreMode(originalMode) }
+        hideCursor()
+        defer {
+            showCursor()
+            restoreMode(originalMode)
+        }
 
         var running = true
         while running {

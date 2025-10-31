@@ -37,6 +37,19 @@ func restoreMode(_ original: termios) {
 func clearScreenAndHome() {
     // ESC[2J = clear screen; ESC[H = cursor home
     print("\u{001B}[2J\u{001B}[H", terminator: "")
+    fflush(stdout)
+}
+
+@inline(__always)
+func hideCursor() {
+    print("\u{001B}[?25l", terminator: "")
+    fflush(stdout)
+}
+
+@inline(__always)
+func showCursor() {
+    print("\u{001B}[?25h", terminator: "")
+    fflush(stdout)
 }
 
 @inline(__always)
