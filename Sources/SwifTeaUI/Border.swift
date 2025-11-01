@@ -8,22 +8,30 @@ public struct Border<Content: TUIView>: TUIView {
     }
 
     private let content: Content
+    private let padding: Int
 
     public init(_ content: Content) {
+        self.init(padding: 1, content)
+    }
+
+    public init(padding: Int, _ content: Content) {
+        precondition(padding >= 0, "Border padding must be non-negative.")
         self.content = content
+        self.padding = padding
     }
 
     public func render() -> String {
         let inner = content.render()
         let lines = inner.splitLinesPreservingEmpty()
         let width = lines.map { Self.visibleWidth(of: $0) }.max() ?? 0
-        let horizontal = String(repeating: "─", count: width + 2)
+        let paddingString = String(repeating: " ", count: padding)
+        let horizontal = String(repeating: "─", count: width + padding * 2)
         let top = "┌" + horizontal + "┐"
         let bottom = "└" + horizontal + "┘"
 
         let body = lines.map { line -> String in
             let padded = Self.pad(line, toVisibleWidth: width)
-            return "│ " + padded + " │"
+            return "│" + paddingString + padded + paddingString + "│"
         }
 
         return ([top] + body + [bottom]).joined(separator: "\n")
@@ -54,6 +62,12 @@ public struct Border<Content: TUIView>: TUIView {
         guard current < width else { return line }
         let padding = width - current
         return line + String(repeating: " ", count: padding)
+    }
+}
+
+public extension TUIView {
+    func border(padding: Int = 1) -> some TUIView {
+        Border(padding: padding, self)
     }
 }
 
