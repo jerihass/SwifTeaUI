@@ -17,9 +17,4 @@ struct NotebookRenderDiffTests {
         let frame4 = renderNotebook(app)
         #expect(frame3 == frame4)
     }
-
-    private func renderNotebook(_ app: NotebookApp) -> String {
-        let view = app.view(model: app)
-        return view.render()
-    }
 }

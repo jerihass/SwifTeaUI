@@ -7,183 +7,37 @@ struct NotebookSnapshotTests {
 
     @Test("Initial layout renders expected snapshot")
     func testInitialLayoutSnapshot() {
-        let snapshot = renderInitialNotebook()
-        let sanitized = snapshot.strippingANSI()
-
-        #expect(snapshot.contains(ANSIColor.cyan.rawValue + ">▌ Welcome to SwifTeaUI" + ANSIColor.reset.rawValue))
-
-        let expected = """
-SwifTea Notebook
-
-[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body
-
-
-
-┌────────────────────────────────┐      ┌──────────────────────────────────────────────────────────────────────────────────┐
-│ Notes                          │      │ Editor                                                                           │
-│ >▌ Welcome to SwifTeaUI        │      │                                                                                  │
-│    Keyboard Shortcuts Overview │      │ Title:                                                                           │
-│    Ideas and Enhancements      │      │                                                                                  │
-└────────────────────────────────┘      │ Welcome to SwifTeaUI                                                             │
-                                       │                                                                                  │
-                                       │ Body:                                                                            │
-                                       │                                                                                  │
-                                       │ Use Tab to focus fields on the right, Shift+Tab to return                        │
-                                       │ here. This long introduction should stay visible even when                       │
-                                       │ the bottom of the screen is busy.                                                │
-                                       │                                                                                  │
-                                       │                                                                                  │
-                                       │                                                                                  │
-                                       │ Saved note: Welcome to SwifTeaUI                                                 │
-                                       │                                                                                  │
-                                       │ Status: Tab to edit the welcome note and confirm longer content renders cleanly. │
-                                       └──────────────────────────────────────────────────────────────────────────────────┘
-
-
-
-Focus: sidebar
-""".removingTrailingSpacesPerLine()
-
-        let processed = sanitized.removingTrailingSpacesPerLine().collapsingRepeatedSpaces()
-        #expect(processed == expected.collapsingRepeatedSpaces())
+        assertSnapshot(
+            contains: ANSIColor.cyan.rawValue + ">▌ Welcome to SwifTeaUI" + ANSIColor.reset.rawValue,
+            expected: NotebookSnapshotFixtures.initial
+        )
     }
 
     @Test("Title field focus snapshot shows cursor in title")
     func testTitleFieldFocusSnapshot() {
-        var app = NotebookApp()
-        app.update(action: .setFocus(.editorTitle))
-
-        let snapshot = renderNotebook(app)
-        let sanitized = snapshot.strippingANSI()
-
-        #expect(snapshot.contains(ANSIColor.cyan.rawValue + "Title:" + ANSIColor.reset.rawValue))
-
-        let expected = """
-SwifTea Notebook
-
-[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body
-
-
-
-┌────────────────────────────────┐      ┌──────────────────────────────────────────────────────────────────────────────────┐
-│ Notes                          │      │ Editor                                                                           │
-│ >  Welcome to SwifTeaUI        │      │                                                                                  │
-│    Keyboard Shortcuts Overview │      │ Title:                                                                           │
-│    Ideas and Enhancements      │      │                                                                                  │
-└────────────────────────────────┘      │ Welcome to SwifTeaUI|                                                            │
-                                       │                                                                                  │
-                                       │ Body:                                                                            │
-                                       │                                                                                  │
-                                       │ Use Tab to focus fields on the right, Shift+Tab to return                        │
-                                       │ here. This long introduction should stay visible even when                       │
-                                       │ the bottom of the screen is busy.                                                │
-                                       │                                                                                  │
-                                       │                                                                                  │
-                                       │                                                                                  │
-                                       │ Saved note: Welcome to SwifTeaUI                                                 │
-                                       │                                                                                  │
-                                       │ Status: Tab to edit the welcome note and confirm longer content renders cleanly. │
-                                       └──────────────────────────────────────────────────────────────────────────────────┘
-
-
-
-Focus: editor.title
-""".removingTrailingSpacesPerLine()
-
-        let processed = sanitized.removingTrailingSpacesPerLine().collapsingRepeatedSpaces()
-        #expect(processed == expected.collapsingRepeatedSpaces())
+        assertSnapshot(
+            mutate: { $0.update(action: .setFocus(.editorTitle)) },
+            contains: ANSIColor.cyan.rawValue + "Title:" + ANSIColor.reset.rawValue,
+            expected: NotebookSnapshotFixtures.titleFocus
+        )
     }
 
     @Test("Body field focus snapshot shows cursor in body")
     func testBodyFieldFocusSnapshot() {
-        var app = NotebookApp()
-        app.update(action: .setFocus(.editorBody))
-
-        let snapshot = renderNotebook(app)
-        let sanitized = snapshot.strippingANSI()
-
-        #expect(snapshot.contains(ANSIColor.cyan.rawValue + "Body:" + ANSIColor.reset.rawValue))
-
-        let expected = """
-SwifTea Notebook
-
-[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body
-
-
-
-┌────────────────────────────────┐      ┌──────────────────────────────────────────────────────────────────────────────────┐
-│ Notes                          │      │ Editor                                                                           │
-│ >  Welcome to SwifTeaUI        │      │                                                                                  │
-│    Keyboard Shortcuts Overview │      │ Title:                                                                           │
-│    Ideas and Enhancements      │      │                                                                                  │
-└────────────────────────────────┘      │ Welcome to SwifTeaUI                                                             │
-                                       │                                                                                  │
-                                       │ Body:                                                                            │
-                                       │                                                                                  │
-                                       │ Use Tab to focus fields on the right, Shift+Tab to return                        │
-                                       │ here. This long introduction should stay visible even when                       │
-                                       │ the bottom of the screen is busy.|                                               │
-                                       │                                                                                  │
-                                       │                                                                                  │
-                                       │                                                                                  │
-                                       │ Saved note: Welcome to SwifTeaUI                                                 │
-                                       │                                                                                  │
-                                       │ Status: Tab to edit the welcome note and confirm longer content renders cleanly. │
-                                       └──────────────────────────────────────────────────────────────────────────────────┘
-
-
-
-Focus: editor.body
-""".removingTrailingSpacesPerLine()
-
-        let processed = sanitized.removingTrailingSpacesPerLine().collapsingRepeatedSpaces()
-        #expect(processed == expected.collapsingRepeatedSpaces())
+        assertSnapshot(
+            mutate: { $0.update(action: .setFocus(.editorBody)) },
+            contains: ANSIColor.cyan.rawValue + "Body:" + ANSIColor.reset.rawValue,
+            expected: NotebookSnapshotFixtures.bodyFocus
+        )
     }
 
     @Test("Sidebar selection snapshot highlights second note")
     func testSidebarSelectionSnapshot() {
-        var app = NotebookApp()
-        app.update(action: .selectNext)
-
-        let snapshot = renderNotebook(app)
-        let sanitized = snapshot.strippingANSI()
-
-        #expect(snapshot.contains(ANSIColor.cyan.rawValue + ">▌ Keyboard Shortcuts Overview" + ANSIColor.reset.rawValue))
-
-        let expected = """
-SwifTea Notebook
-
-[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body
-
-
-
-┌────────────────────────────────┐      ┌──────────────────────────────────────────────────────────────────────────────────┐
-│ Notes                          │      │ Editor                                                                           │
-│    Welcome to SwifTeaUI        │      │                                                                                  │
-│ >▌ Keyboard Shortcuts Overview │      │ Title:                                                                           │
-│    Ideas and Enhancements      │      │                                                                                  │
-└────────────────────────────────┘      │ Keyboard Shortcuts Overview                                                      │
-                                       │                                                                                  │
-                                       │ Body:                                                                            │
-                                       │                                                                                  │
-                                       │ ↑/↓ move between notes when the sidebar is focused. Enter                        │
-                                       │ while editing the body saves. Longer descriptions ensure we                      │
-                                       │ validate vertical layout spacing.                                                │
-                                       │                                                                                  │
-                                       │                                                                                  │
-                                       │                                                                                  │
-                                       │ Saved note: Keyboard Shortcuts Overview                                          │
-                                       │                                                                                  │
-                                       │ Status: Tab to edit the welcome note and confirm longer content renders cleanly. │
-                                       └──────────────────────────────────────────────────────────────────────────────────┘
-
-
-
-Focus: sidebar
-""".removingTrailingSpacesPerLine()
-
-        let processed = sanitized.removingTrailingSpacesPerLine().collapsingRepeatedSpaces()
-        #expect(processed == expected.collapsingRepeatedSpaces())
+        assertSnapshot(
+            mutate: { $0.update(action: .selectNext) },
+            contains: ANSIColor.cyan.rawValue + ">▌ Keyboard Shortcuts Overview" + ANSIColor.reset.rawValue,
+            expected: NotebookSnapshotFixtures.secondNote
+        )
     }
 
     @Test("Notebook frame output stays stable across consecutive renders and selection changes")
@@ -205,15 +59,6 @@ Focus: sidebar
         app.update(action: .selectPrevious)
         let backToFirst = renderNotebook(app)
         #expect(backToFirst == initial)
-    }
-
-    private func renderInitialNotebook() -> String {
-        renderNotebook(NotebookApp())
-    }
-
-    private func renderNotebook(_ app: NotebookApp) -> String {
-        let view = app.view(model: app)
-        return view.render()
     }
 }
 
@@ -290,4 +135,159 @@ private extension Character {
             return false
         }
     }
+}
+
+private func assertSnapshot(
+    mutate: (inout NotebookApp) -> Void = { _ in },
+    contains substring: String? = nil,
+    expected expectedSnapshot: String
+) {
+    var app = NotebookApp()
+    mutate(&app)
+
+    let snapshot = renderNotebook(app)
+    if let substring {
+        #expect(snapshot.contains(substring))
+    }
+
+    let processed = snapshot
+        .strippingANSI()
+        .removingTrailingSpacesPerLine()
+        .collapsingRepeatedSpaces()
+
+    let expectedProcessed = expectedSnapshot
+        .removingTrailingSpacesPerLine()
+        .collapsingRepeatedSpaces()
+
+    #expect(processed == expectedProcessed)
+}
+
+private enum NotebookSnapshotFixtures {
+    static let initial = """
+SwifTea Notebook
+
+[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body
+
+
+
+┌────────────────────────────────┐      ┌──────────────────────────────────────────────────────────────────────────────────┐
+│ Notes                          │      │ Editor                                                                           │
+│ >▌ Welcome to SwifTeaUI        │      │                                                                                  │
+│    Keyboard Shortcuts Overview │      │ Title:                                                                           │
+│    Ideas and Enhancements      │      │                                                                                  │
+└────────────────────────────────┘      │ Welcome to SwifTeaUI                                                             │
+                                       │                                                                                  │
+                                       │ Body:                                                                            │
+                                       │                                                                                  │
+                                       │ Use Tab to focus fields on the right, Shift+Tab to return                        │
+                                       │ here. This long introduction should stay visible even when                       │
+                                       │ the bottom of the screen is busy.                                                │
+                                       │                                                                                  │
+                                       │                                                                                  │
+                                       │                                                                                  │
+                                       │ Saved note: Welcome to SwifTeaUI                                                 │
+                                       │                                                                                  │
+                                       │ Status: Tab to edit the welcome note and confirm longer content renders cleanly. │
+                                       └──────────────────────────────────────────────────────────────────────────────────┘
+
+
+
+Focus: sidebar
+"""
+
+    static let titleFocus = """
+SwifTea Notebook
+
+[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body
+
+
+
+┌────────────────────────────────┐      ┌──────────────────────────────────────────────────────────────────────────────────┐
+│ Notes                          │      │ Editor                                                                           │
+│ >  Welcome to SwifTeaUI        │      │                                                                                  │
+│    Keyboard Shortcuts Overview │      │ Title:                                                                           │
+│    Ideas and Enhancements      │      │                                                                                  │
+└────────────────────────────────┘      │ Welcome to SwifTeaUI|                                                            │
+                                       │                                                                                  │
+                                       │ Body:                                                                            │
+                                       │                                                                                  │
+                                       │ Use Tab to focus fields on the right, Shift+Tab to return                        │
+                                       │ here. This long introduction should stay visible even when                       │
+                                       │ the bottom of the screen is busy.                                                │
+                                       │                                                                                  │
+                                       │                                                                                  │
+                                       │                                                                                  │
+                                       │ Saved note: Welcome to SwifTeaUI                                                 │
+                                       │                                                                                  │
+                                       │ Status: Tab to edit the welcome note and confirm longer content renders cleanly. │
+                                       └──────────────────────────────────────────────────────────────────────────────────┘
+
+
+
+Focus: editor.title
+"""
+
+    static let bodyFocus = """
+SwifTea Notebook
+
+[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body
+
+
+
+┌────────────────────────────────┐      ┌──────────────────────────────────────────────────────────────────────────────────┐
+│ Notes                          │      │ Editor                                                                           │
+│ >  Welcome to SwifTeaUI        │      │                                                                                  │
+│    Keyboard Shortcuts Overview │      │ Title:                                                                           │
+│    Ideas and Enhancements      │      │                                                                                  │
+└────────────────────────────────┘      │ Welcome to SwifTeaUI                                                             │
+                                       │                                                                                  │
+                                       │ Body:                                                                            │
+                                       │                                                                                  │
+                                       │ Use Tab to focus fields on the right, Shift+Tab to return                        │
+                                       │ here. This long introduction should stay visible even when                       │
+                                       │ the bottom of the screen is busy.|                                               │
+                                       │                                                                                  │
+                                       │                                                                                  │
+                                       │                                                                                  │
+                                       │ Saved note: Welcome to SwifTeaUI                                                 │
+                                       │                                                                                  │
+                                       │ Status: Tab to edit the welcome note and confirm longer content renders cleanly. │
+                                       └──────────────────────────────────────────────────────────────────────────────────┘
+
+
+
+Focus: editor.body
+"""
+
+    static let secondNote = """
+SwifTea Notebook
+
+[Tab] next focus | [Shift+Tab] previous | [↑/↓] choose note | [Enter] save body
+
+
+
+┌────────────────────────────────┐      ┌──────────────────────────────────────────────────────────────────────────────────┐
+│ Notes                          │      │ Editor                                                                           │
+│    Welcome to SwifTeaUI        │      │                                                                                  │
+│ >▌ Keyboard Shortcuts Overview │      │ Title:                                                                           │
+│    Ideas and Enhancements      │      │                                                                                  │
+└────────────────────────────────┘      │ Keyboard Shortcuts Overview                                                      │
+                                       │                                                                                  │
+                                       │ Body:                                                                            │
+                                       │                                                                                  │
+                                       │ ↑/↓ move between notes when the sidebar is focused. Enter                        │
+                                       │ while editing the body saves. Longer descriptions ensure we                      │
+                                       │ validate vertical layout spacing.                                                │
+                                       │                                                                                  │
+                                       │                                                                                  │
+                                       │                                                                                  │
+                                       │ Saved note: Keyboard Shortcuts Overview                                          │
+                                       │                                                                                  │
+                                       │ Status: Tab to edit the welcome note and confirm longer content renders cleanly. │
+                                       └──────────────────────────────────────────────────────────────────────────────────┘
+
+
+
+Focus: sidebar
+"""
 }
