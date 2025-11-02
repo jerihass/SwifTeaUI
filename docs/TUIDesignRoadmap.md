@@ -27,5 +27,6 @@ This document tracks upcoming terminal UI design paradigms for SwifTeaUI. Each e
 - Consider documenting keybindings alongside UI so components surface expected inputs (e.g., Tab order, shortcut hints).
 - API polish: align surface naming with SwiftUI (e.g., `.foregroundColor`, `.bold`, `.focused` modifiers, rename `TextArea` → `TextEditor`), expand `TUIBuilder` with `buildOptional/buildEither/buildArray` for familiar control flow, and expose sizing helpers via modifiers (`.padding`, `.frame`) instead of bespoke initialiser params.
 - Unify example layouts under shared containers so padding/borders read as a single frame (e.g., notebook panes sharing one border with internal padding, counter header wrapped in a bordered stack).
+- Add a lightweight spinner/status indicator component so long-running actions surface progress inside the status bar.
 
 Add new sections as patterns move into design or implementation, including links to PRs, commits, and demos.
