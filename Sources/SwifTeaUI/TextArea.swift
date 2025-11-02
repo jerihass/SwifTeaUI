@@ -13,6 +13,7 @@ public struct TextArea: TUIView {
     private let cursorSymbol: String
     private let wrapWidth: Int
     private let focusStyle: FocusStyle
+    private let blinkingCursor: Bool
 
     public init(
         _ placeholder: String = "",
@@ -20,7 +21,8 @@ public struct TextArea: TUIView {
         focus: Binding<Bool>? = nil,
         width: Int = 60,
         cursor: String = "|",
-        focusStyle: FocusStyle = .default
+        focusStyle: FocusStyle = .default,
+        blinkingCursor: Bool = false
     ) {
         self.placeholder = placeholder
         self.text = text
@@ -28,6 +30,7 @@ public struct TextArea: TUIView {
         self.cursorSymbol = cursor
         self.wrapWidth = max(1, width)
         self.focusStyle = focusStyle
+        self.blinkingCursor = blinkingCursor
     }
 
     public func render() -> String {
@@ -37,10 +40,13 @@ public struct TextArea: TUIView {
         var lines = wrap(display, width: wrapWidth)
 
         if isFocused {
+            let cursor = blinkingCursor
+                ? CursorBlinker.shared.cursor(for: cursorSymbol)
+                : cursorSymbol
             if lines.isEmpty {
-                lines = [cursorSymbol]
+                lines = [cursor]
             } else {
-                lines[lines.count - 1] += cursorSymbol
+                lines[lines.count - 1] += cursor
             }
             lines[lines.count - 1] = focusStyle.apply(to: lines.last ?? "")
         }
@@ -123,7 +129,20 @@ public struct TextArea: TUIView {
             focus: focus,
             width: wrapWidth,
             cursor: cursorSymbol,
-            focusStyle: style
+            focusStyle: style,
+            blinkingCursor: blinkingCursor
+        )
+    }
+
+    public func blinkingCursor(_ enabled: Bool = true) -> TextArea {
+        TextArea(
+            placeholder,
+            text: text,
+            focus: focus,
+            width: wrapWidth,
+            cursor: cursorSymbol,
+            focusStyle: focusStyle,
+            blinkingCursor: enabled
         )
     }
 }

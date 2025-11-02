@@ -180,4 +180,32 @@ struct TextFieldTests {
         #expect(!exitHandled)
         #expect(harness.field == .title)
     }
+
+    @Test("Blinking cursor toggles visibility based on cursor blinker")
+    func testBlinkingCursorBehavior() {
+        let previousBlinker = CursorBlinker.shared
+        defer { CursorBlinker.shared = previousBlinker }
+
+        var blinker = CursorBlinker.shared
+        blinker.isEnabled = true
+        blinker.forcedVisibility = nil
+        blinker.timeProvider = { 0 }
+        CursorBlinker.shared = blinker
+
+        let harness = Harness()
+        let field = TextField("Prompt", text: harness.binding, cursor: "|")
+            .blinkingCursor()
+            .focusStyle(FocusStyle(indicator: "", color: .cyan, bold: false))
+
+        let visible = field.render().strippingANSI()
+        #expect(visible.hasSuffix("|"))
+
+        let hiddenInterval = CursorBlinker.shared.interval
+        blinker = CursorBlinker.shared
+        blinker.timeProvider = { hiddenInterval }
+        CursorBlinker.shared = blinker
+
+        let hidden = field.render().strippingANSI()
+        #expect(hidden.hasSuffix(" "))
+    }
 }

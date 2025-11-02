@@ -31,15 +31,20 @@ struct NotebookView: TUIView {
         let mode = layoutMode(for: size)
         let editorWidth = preferredEditorWidth(for: size, mode: mode)
 
-        let focusStyle = FocusStyle.default
+        let focusRingStyle = FocusStyle.default
         let editorIsFocused = focus == .editorTitle || focus == .editorBody
+        let textInputFocusStyle = FocusStyle(indicator: "", color: .cyan, bold: false)
 
         let editorContent = VStack(spacing: 1, alignment: .leading) {
             editorTitleView
             Text("Title:").foreground(focus == .editorTitle ? .cyan : .yellow)
             TextField("Title...", text: titleBinding, focus: titleFocusBinding)
+                .focusStyle(textInputFocusStyle)
+                .blinkingCursor()
             Text("Body:").foreground(focus == .editorBody ? .cyan : .yellow)
             TextArea("Body...", text: bodyBinding, focus: bodyFocusBinding, width: editorWidth)
+                .focusStyle(textInputFocusStyle)
+                .blinkingCursor()
             Text("")
             Text("Saved note: \(state.notes[state.selectedIndex].title)").foreground(.green)
             Text("Status: \(state.statusMessage)").foreground(.cyan)
@@ -47,7 +52,7 @@ struct NotebookView: TUIView {
         let editor = FocusRingBorder(
             padding: 1,
             isFocused: editorIsFocused,
-            style: focusStyle,
+            style: focusRingStyle,
             editorContent
         )
 

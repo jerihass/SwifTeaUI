@@ -12,19 +12,22 @@ public struct TextField: TUIView {
     private let focus: Binding<Bool>?
     private let cursorSymbol: String
     private let focusStyle: FocusStyle
+    private let blinkingCursor: Bool
 
     public init(
         _ placeholder: String = "",
         text: Binding<String>,
         focus: Binding<Bool>? = nil,
         cursor: String = "|",
-        focusStyle: FocusStyle = .default
+        focusStyle: FocusStyle = .default,
+        blinkingCursor: Bool = false
     ) {
         self.placeholder = placeholder
         self.text = text
         self.focus = focus
         self.cursorSymbol = cursor
         self.focusStyle = focusStyle
+        self.blinkingCursor = blinkingCursor
     }
 
     public func render() -> String {
@@ -32,7 +35,10 @@ public struct TextField: TUIView {
         let body = value.isEmpty ? placeholder : value
         let isFocused = focus?.wrappedValue ?? true
         guard isFocused else { return body }
-        return focusStyle.apply(to: body + cursorSymbol)
+        let cursor = blinkingCursor
+            ? CursorBlinker.shared.cursor(for: cursorSymbol)
+            : cursorSymbol
+        return focusStyle.apply(to: body + cursor)
     }
 
     public func focusStyle(_ style: FocusStyle) -> TextField {
@@ -42,9 +48,21 @@ public struct TextField: TUIView {
             text: text,
             focus: focus,
             cursor: cursorSymbol,
-            focusStyle: style
+            focusStyle: style,
+            blinkingCursor: blinkingCursor
         )
         return copy
+    }
+
+    public func blinkingCursor(_ enabled: Bool = true) -> TextField {
+        TextField(
+            placeholder,
+            text: text,
+            focus: focus,
+            cursor: cursorSymbol,
+            focusStyle: focusStyle,
+            blinkingCursor: enabled
+        )
     }
 }
 
