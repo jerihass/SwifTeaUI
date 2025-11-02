@@ -33,4 +33,18 @@ struct TerminalTests {
 
         #expect(output == "\u{001B}[?25l\u{001B}[?25h")
     }
+
+    @Test("TerminalDimensions override temporary size within closure")
+    func testTerminalSizeOverride() {
+        let baseline = TerminalDimensions.current
+        let custom = TerminalSize(columns: baseline.columns + 7, rows: baseline.rows + 3)
+
+        TerminalDimensions.withTemporarySize(custom) {
+            #expect(TerminalDimensions.current == custom)
+            #expect(TerminalDimensions.refresh() == custom)
+        }
+
+        #expect(TerminalDimensions.current != TerminalSize.zero)
+        #expect(TerminalDimensions.current != custom)
+    }
 }

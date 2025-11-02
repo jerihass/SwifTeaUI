@@ -7,6 +7,60 @@ import Darwin
 private let STDIN_FILENO_: Int32 = STDIN_FILENO
 #endif
 
+public struct TerminalSize: Equatable, Sendable {
+    public var columns: Int
+    public var rows: Int
+
+    public init(columns: Int, rows: Int) {
+        self.columns = max(0, columns)
+        self.rows = max(0, rows)
+    }
+
+    public static let zero = TerminalSize(columns: 0, rows: 0)
+}
+
+public enum TerminalDimensions {
+    private static var currentSize = TerminalSize(columns: 80, rows: 24)
+    private static var overrideStack: [TerminalSize] = []
+
+    public static var current: TerminalSize {
+        overrideStack.last ?? currentSize
+    }
+
+    @discardableResult
+    public static func refresh() -> TerminalSize {
+        if let override = overrideStack.last {
+            return override
+        }
+        let queried = queryTerminalSize()
+        currentSize = queried
+        return queried
+    }
+
+    public static func withTemporarySize<T>(
+        _ size: TerminalSize,
+        _ perform: () throws -> T
+    ) rethrows -> T {
+        let previous = current
+        overrideStack.append(size)
+        currentSize = size
+        let result = try perform()
+        overrideStack.removeLast()
+        currentSize = overrideStack.last ?? previous
+        return result
+    }
+
+    private static func queryTerminalSize() -> TerminalSize {
+        var ws = winsize()
+        if ioctl(STDIN_FILENO_, TIOCGWINSZ, &ws) == 0 {
+            let cols = ws.ws_col > 0 ? Int(ws.ws_col) : 80
+            let rows = ws.ws_row > 0 ? Int(ws.ws_row) : 24
+            return TerminalSize(columns: cols, rows: rows)
+        }
+        return currentSize
+    }
+}
+
 @discardableResult
 func setNonBlocking(_ fd: Int32, enabled: Bool) -> Int32 {
     let flags = fcntl(fd, F_GETFL)

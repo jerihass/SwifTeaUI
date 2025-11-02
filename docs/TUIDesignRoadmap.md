@@ -15,7 +15,7 @@ This document tracks upcoming terminal UI design paradigms for SwifTeaUI. Each e
 | **Status & Command Bar** | Persistent footer for live state, modes, and shortcut hints. | Implemented | Harden `StatusBar` width handling, roll out to additional demos, document customization knobs. |
 | **Focus & Navigation Cues** | Unifies how focused panes, selected rows, and cursor locations render. | Planned | Audit existing cues (TextField, Sidebar), extract shared styling helpers, add focus ring component. |
 | **Adaptive Panels** | Resizable or responsive layout primitives that collapse/expand with terminal width. | Planned | Explore width observation hooks, specify API for min/max widths, create demo with HStack resizing. |
-| **Terminal Size Awareness** | Detect window resizing, enforce minimum sizes, and adapt rendering gracefully. | Planned | Hook into terminal size signals, surface dimensions in SwifTeaCore, render resize-required messaging or compact layout when too small. |
+| **Terminal Size Awareness** | Detect window resizing, enforce minimum sizes, and adapt rendering gracefully. | In Progress | Expand terminal metrics access beyond runtime, share minimum-size helpers with more demos, explore automatic layout compaction. |
 | **Modal Overlays** | Blocking dialogs or help palettes with dimmed background and keyboard dismissal. | Planned | Draft overlay container view, decide on focus trapping, design animation-free presentation. |
 | **Notification Toasts** | Non-blocking alerts stacked near header/footer with auto-dismiss timing. | Planned | Specify queueing model and default duration, build view that composes with existing layout stacks. |
 

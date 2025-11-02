@@ -76,11 +76,13 @@ public enum SwifTea {
             restoreMode(originalMode)
         }
         clearScreenAndHome()
+        TerminalDimensions.refresh()
         var running = true
         var lastFrame: String? = nil
         var staticFrameStreak = 0
         let maxStaticFrames = 5
         while running {
+            TerminalDimensions.refresh()
             // Render
             let frame = app.view(model: app.model).render()
             let changed = frame != lastFrame

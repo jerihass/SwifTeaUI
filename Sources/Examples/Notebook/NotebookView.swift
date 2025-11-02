@@ -2,6 +2,10 @@ import SwifTeaCore
 import SwifTeaUI
 
 struct NotebookView: TUIView {
+    typealias Body = Never
+
+    private static let minimumSize = TerminalSize(columns: 125, rows: 24)
+
     let state: NotebookState
     let focus: NotebookFocusField?
     let titleBinding: Binding<String>
@@ -9,7 +13,11 @@ struct NotebookView: TUIView {
     let titleFocusBinding: Binding<Bool>
     let bodyFocusBinding: Binding<Bool>
 
-    var body: some TUIView {
+    var body: Never {
+        fatalError("NotebookView has no body")
+    }
+
+    private func renderMainLayout() -> String {
         let editorContent = VStack(spacing: 1, alignment: .leading) {
             Text("Editor").foreground(.yellow)
             Text("Title:").foreground(focus == .editorTitle ? .cyan : .yellow)
@@ -31,7 +39,7 @@ struct NotebookView: TUIView {
             note.title
         }
 
-        return VStack(spacing: 1, alignment: .leading) {
+        let layout = VStack(spacing: 1, alignment: .leading) {
             Text("SwifTea Notebook").foreground(.yellow).bolded()
             Text("")
             HStack(spacing: 6, horizontalAlignment: .leading, verticalAlignment: .top) {
@@ -52,6 +60,38 @@ struct NotebookView: TUIView {
                 ]
             )
         }
+
+        return layout.render()
+    }
+
+    private func renderResizeMessage(for size: TerminalSize) -> String {
+        let header = Text("SwifTea Notebook").foreground(.yellow).bolded()
+        let message = Border(
+            VStack(spacing: 1, alignment: .leading) {
+                Text("Terminal too small").foreground(.yellow)
+                Text("Minimum required: \(Self.minimumSize.columns)×\(Self.minimumSize.rows)").foreground(.cyan)
+                Text("Current: \(size.columns)×\(size.rows)").foreground(.cyan)
+                Text("Resize the window to continue.").foreground(.green)
+            }
+        )
+
+        let layout = VStack(spacing: 1, alignment: .leading) {
+            header
+            Text("")
+            message
+        }
+
+        return layout.render()
+    }
+
+    func render() -> String {
+        let size = TerminalDimensions.current
+        guard size.columns >= Self.minimumSize.columns,
+              size.rows >= Self.minimumSize.rows else {
+            return renderResizeMessage(for: size)
+        }
+
+        return renderMainLayout()
     }
 
     private var focusDescription: String {

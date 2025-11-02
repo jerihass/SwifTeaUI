@@ -13,6 +13,14 @@ struct NotebookSnapshotTests {
         )
     }
 
+    @Test("Notebook renders resize prompt when terminal too small")
+    func testResizePromptSnapshot() {
+        assertSnapshot(
+            expected: NotebookSnapshotFixtures.resizePrompt,
+            size: TerminalSize(columns: 80, rows: 20)
+        )
+    }
+
     @Test("Title field focus snapshot shows cursor in title")
     func testTitleFieldFocusSnapshot() {
         assertSnapshot(
@@ -132,12 +140,16 @@ private extension Character {
 private func assertSnapshot(
     mutate: (inout NotebookApp) -> Void = { _ in },
     contains substring: String? = nil,
-    expected expectedSnapshot: String
+    expected expectedSnapshot: String,
+    size overrideSize: TerminalSize? = nil
 ) {
     var app = NotebookApp()
     mutate(&app)
 
-    let snapshot = renderNotebook(app)
+    let snapshot = renderNotebook(
+        app,
+        size: overrideSize ?? defaultSnapshotSize
+    )
     if let substring {
         #expect(snapshot.contains(substring))
     }
@@ -271,5 +283,21 @@ SwifTea Notebook
 
 
 Focus: sidebar  Tab next  Shift+Tab prev  ↑/↓ choose note  Enter save
+"""
+
+    static let resizePrompt = """
+SwifTea Notebook
+
+
+
+┌────────────────────────────────┐
+│ Terminal too small             │
+│                                │
+│ Minimum required: 125×24       │
+│                                │
+│ Current: 80×20                 │
+│                                │
+│ Resize the window to continue. │
+└────────────────────────────────┘
 """
 }
