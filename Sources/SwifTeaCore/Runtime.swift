@@ -81,12 +81,17 @@ public enum SwifTea {
         var lastFrame: String? = nil
         var staticFrameStreak = 0
         let maxStaticFrames = 5
+        var lastSize = TerminalDimensions.current
         while running {
-            TerminalDimensions.refresh()
+            let size = TerminalDimensions.refresh()
+            let sizeChanged = size != lastSize
+            if sizeChanged {
+                clearScreenAndHome()
+            }
             // Render
             let frame = app.view(model: app.model).render()
             let changed = frame != lastFrame
-            let forceRefresh = !changed ? (staticFrameStreak >= maxStaticFrames) : false
+            let forceRefresh = sizeChanged || (!changed ? (staticFrameStreak >= maxStaticFrames) : false)
             frameLogger?.log(frame, changed: changed, forced: forceRefresh)
             if changed || forceRefresh {
                 renderFrame(frame)
@@ -95,6 +100,7 @@ public enum SwifTea {
             } else {
                 staticFrameStreak += 1
             }
+            lastSize = size
 
             // Input → Action
             if let ke = readKeyEvent(), let action = app.mapKeyToAction(ke) {
