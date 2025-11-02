@@ -2,6 +2,32 @@ import Testing
 @testable import SwifTeaCore
 @testable import SwifTeaUI
 
+private extension String {
+    func strippingANSI() -> String {
+        var result = ""
+        var iterator = makeIterator()
+        var inEscape = false
+
+        while let character = iterator.next() {
+            if inEscape {
+                if ("a"..."z").contains(character) || ("A"..."Z").contains(character) {
+                    inEscape = false
+                }
+                continue
+            }
+
+            if character == "\u{001B}" {
+                inEscape = true
+                continue
+            }
+
+            result.append(character)
+        }
+
+        return result
+    }
+}
+
 struct TextFieldTests {
 
     private struct Harness {
@@ -28,10 +54,10 @@ struct TextFieldTests {
         let binding = harness.binding
         let field = TextField("Prompt", text: binding, cursor: "|")
 
-        #expect(field.render() == "Prompt|")
+        #expect(field.render().strippingANSI() == "Prompt|")
 
         binding.apply(.insert("X"))
-        #expect(field.render() == "X|")
+        #expect(field.render().strippingANSI() == "X|")
     }
 
     @Test("Text field removes cursor when focus binding is false")
@@ -45,10 +71,10 @@ struct TextFieldTests {
         )
 
         let field = TextField("Placeholder", text: binding, focus: focus, cursor: "|")
-        #expect(field.render() == "Placeholder")
+        #expect(field.render().strippingANSI() == "Placeholder")
 
         isFocused = true
-        #expect(field.render() == "Placeholder|")
+        #expect(field.render().strippingANSI() == "Placeholder|")
     }
 
     @Test("Key events map to text field events")

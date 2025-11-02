@@ -29,7 +29,8 @@ public struct TextField: TUIView {
         let body = value.isEmpty ? placeholder : value
         let isFocused = focus?.wrappedValue ?? true
         guard isFocused else { return body }
-        return body + cursorSymbol
+        let style = FocusStyle(indicator: "", color: .cyan, bold: true)
+        return style.apply(to: body + cursorSymbol)
     }
 }
 

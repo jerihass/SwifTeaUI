@@ -39,6 +39,8 @@ public struct TextArea: TUIView {
             } else {
                 lines[lines.count - 1] += cursorSymbol
             }
+            let style = FocusStyle(indicator: "", color: .cyan, bold: true)
+            lines[lines.count - 1] = style.apply(to: lines.last ?? "")
         }
 
         return lines.joined(separator: "\n")
