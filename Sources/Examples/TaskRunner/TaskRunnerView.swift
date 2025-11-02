@@ -61,9 +61,8 @@ struct TaskRunnerView: TUIView {
 
         let meter = ProgressMeter(
             value: state.progressFraction,
-            width: 16,
-            fill: "#",
-            empty: " "
+            width: 20,
+            style: .tinted(.cyan)
         ).render()
         segments.append(.init(meter))
 

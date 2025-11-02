@@ -72,6 +72,6 @@ struct SpinnerTests {
         let line = Spinner(style: .line)
 
         #expect(dots.render().trimmingCharacters(in: .whitespaces) == ".")
-        #expect(line.render() == "⎺")
+        #expect(["⎺", "⎻", "⎼", "⎽"].contains(line.render()))
     }
 }

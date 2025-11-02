@@ -1,4 +1,5 @@
 import SwifTeaCore
+import SwifTeaUI
 
 struct TaskRunnerState {
     struct Step: Equatable {
@@ -17,12 +18,6 @@ struct TaskRunnerState {
         var status: Status
     }
 
-    struct Toast: Equatable {
-        var text: String
-        var color: ANSIColor
-        var ttl: Int
-    }
-
     var steps: [Step] = [
         Step(title: "Fetch configuration", status: .pending),
         Step(title: "Run analysis", status: .pending),
@@ -30,8 +25,7 @@ struct TaskRunnerState {
         Step(title: "Publish artifacts", status: .pending)
     ]
 
-    private let maxToasts = 3
-    var toasts: [Toast] = []
+    var toastQueue = StatusToastQueue(maxCount: 3, defaultTTL: 6)
 }
 
 extension TaskRunnerState {
@@ -67,31 +61,24 @@ extension TaskRunnerState {
         return Double(completedCount) / Double(totalCount)
     }
 
-    mutating func enqueueToast(_ text: String, color: ANSIColor, ttl: Int = 6, atFront: Bool = true) {
-        let message = Toast(text: text, color: color, ttl: ttl)
-        if atFront {
-            toasts.insert(message, at: 0)
-        } else {
-            toasts.append(message)
-        }
-        if toasts.count > maxToasts {
-            toasts.removeLast()
-        }
-    }
-
     mutating func tickToasts() {
-        guard !toasts.isEmpty else { return }
-        for index in toasts.indices {
-            toasts[index].ttl -= 1
-        }
-        toasts.removeAll { $0.ttl <= 0 }
+        toastQueue.tick()
     }
 
     mutating func clearToasts() {
-        toasts.removeAll()
+        toastQueue.clear()
     }
 
-    var activeToast: Toast? {
-        toasts.first
+    var activeToast: StatusToast? {
+        toastQueue.activeToast
+    }
+
+    mutating func enqueueToast(
+        _ text: String,
+        color: ANSIColor,
+        ttl: Int? = nil,
+        atFront: Bool = true
+    ) {
+        toastQueue.enqueue(text, color: color, ttl: ttl, atFront: atFront)
     }
 }

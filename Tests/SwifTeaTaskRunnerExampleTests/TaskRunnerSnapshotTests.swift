@@ -48,7 +48,7 @@ struct TaskRunnerSnapshotTests {
             .strippingANSI()
             .removingTrailingSpacesPerLine()
 
-        #expect(processed.contains("[####            ]  25%"))
+        #expect(processed.contains("[#####               ]  25%"))
         #expect(processed.contains("• Completed Fetch configuration"))
     }
 }
@@ -67,7 +67,7 @@ private enum TaskRunnerSnapshotFixtures {
  │ •  4. Publish artifacts pending                                            │
  └────────────────────────────────────────────────────────────────────────────┘
 
- Task Runner Press Enter to start [                ]   0%  [Enter] advance [f] fail [r] reset [q] quit
+ Task Runner Press Enter to start [                    ]   0%  [Enter] advance [f] fail [r] reset [q] quit
 
 """
 
@@ -84,7 +84,7 @@ private enum TaskRunnerSnapshotFixtures {
  │ •  4. Publish artifacts pending                                            │
  └────────────────────────────────────────────────────────────────────────────┘
 
- Task Runner - Step 1/4 (ASCII) [                ]   0%  [Enter] advance [f] fail [r] reset [q] quit • Started Fetch configuration
+ Task Runner - Step 1/4 (ASCII) [                    ]   0%  [Enter] advance [f] fail [r] reset [q] quit • Started Fetch configuration
 
 """
 }
