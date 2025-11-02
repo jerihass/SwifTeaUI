@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import SwifTeaCore
 @testable import SwifTeaUI
@@ -56,5 +57,21 @@ struct SpinnerTests {
 
         let spinner = Spinner(style: .ascii, isSpinning: false)
         #expect(spinner.render() == " ")
+    }
+
+    @Test("Additional spinner styles render distinct frames")
+    func testAdditionalStyles() {
+        let previousTimeline = SpinnerTimeline.shared
+        defer { SpinnerTimeline.shared = previousTimeline }
+
+        var timeline = SpinnerTimeline.shared
+        timeline.timeProvider = { 0 }
+        SpinnerTimeline.shared = timeline
+
+        let dots = Spinner(style: .dots)
+        let line = Spinner(style: .line)
+
+        #expect(dots.render().trimmingCharacters(in: .whitespaces) == ".")
+        #expect(line.render() == "⎺")
     }
 }

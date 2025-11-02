@@ -16,6 +16,8 @@ public struct Spinner: TUIView {
 
         public static let ascii = Style(frames: ["-", "\\", "|", "/"])
         public static let braille = Style(frames: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"])
+        public static let dots = Style(frames: [".  ", ".. ", "...", " ..", "  ."], idle: "   ")
+        public static let line = Style(frames: ["⎺", "⎻", "⎼", "⎽"], idle: " ")
     }
 
     public typealias Body = Never

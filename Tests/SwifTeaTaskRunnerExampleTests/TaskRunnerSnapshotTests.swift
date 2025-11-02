@@ -28,8 +28,8 @@ struct TaskRunnerSnapshotTests {
             .strippingANSI()
             .removingTrailingSpacesPerLine()
 
-        #expect(processed.contains("- Step 1/3"))
-        #expect(processed.contains("-  1. Fetch configuration running"))
+        #expect(processed.contains("- Step 1/3 (ASCII)"))
+        #expect(processed.contains("running (ASCII)"))
         #expect(
             processed.splitLinesPreservingEmpty()
             == TaskRunnerSnapshotFixtures.running.splitLinesPreservingEmpty()
@@ -61,12 +61,12 @@ private enum TaskRunnerSnapshotFixtures {
  ┌────────────────────────────────────────────────────────────────────────────┐
  │ Press Enter to simulate long-running steps; spinner marks the active task. │
  │                                                                            │
- │ -  1. Fetch configuration running                                          │
+ │ -  1. Fetch configuration running (ASCII)                                  │
  │ •  2. Run analysis pending                                                 │
  │ •  3. Write summary pending                                                │
  └────────────────────────────────────────────────────────────────────────────┘
 
- Task Runner - Step 1/3  [Enter] advance [f] fail [r] reset [q] quit
+ Task Runner - Step 1/3 (ASCII)  [Enter] advance [f] fail [r] reset [q] quit
 
 """
 }

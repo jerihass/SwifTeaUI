@@ -25,7 +25,7 @@ This document tracks upcoming terminal UI design paradigms for SwifTeaUI. Each e
 - Color constants should support fallback to monochrome terminals; investigate environment-driven palette selection.
 - Focus management primitives (`FocusRing`, `FocusScope`) can feed into visual cues when a view registers for focus updates.
 - Focus ring helper and snapshot utilities landed; migrate remaining demos as they gain focus cues.
-- Spinner component (`Spinner`) and TaskRunner demo cover animated progress; capture additional glyph styles and timer customisation guidance.
+- Spinner component (`Spinner`) and TaskRunner demo cover animated progress; gather feedback on additional glyph sets (especially ASCII-safe variants) and expand timer customization guidance.
 - Consider documenting keybindings alongside UI so components surface expected inputs (e.g., Tab order, shortcut hints).
 - API polish: align surface naming with SwiftUI (e.g., `.foregroundColor`, `.bold`, `.focused` modifiers, rename `TextArea` → `TextEditor`), expand `TUIBuilder` with `buildOptional/buildEither/buildArray` for familiar control flow, and expose sizing helpers via modifiers (`.padding`, `.frame`) instead of bespoke initialiser params.
 - Unify example layouts under shared containers so padding/borders read as a single frame (e.g., notebook panes sharing one border with internal padding, counter header wrapped in a bordered stack).

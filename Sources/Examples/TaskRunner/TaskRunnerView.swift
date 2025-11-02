@@ -27,16 +27,28 @@ struct TaskRunnerView: TUIView {
         .padding(1)
     }
 
+    private let spinnerVariants: [(style: Spinner.Style, label: String)] = [
+        (.ascii, "ASCII"),
+        (.braille, "Braille"),
+        (.dots, "Dots"),
+        (.line, "Line")
+    ]
+
+    private func spinnerVariant(for index: Int) -> (style: Spinner.Style, label: String) {
+        spinnerVariants[index % spinnerVariants.count]
+    }
+
     private var statusLeadingSegments: [StatusBar.Segment] {
         var segments: [StatusBar.Segment] = [
             .init("Task Runner", color: .yellow)
         ]
 
         if let activeIndex = state.activeIndex {
-            let label = "Step \(activeIndex + 1)/\(state.totalCount)"
+            let variant = spinnerVariant(for: activeIndex)
+            let label = "Step \(activeIndex + 1)/\(state.totalCount) (\(variant.label))"
             let spinnerText = Spinner(
                 label: label,
-                style: .ascii,
+                style: variant.style,
                 color: .cyan,
                 isBold: true
             ).render()
@@ -61,25 +73,26 @@ struct TaskRunnerView: TUIView {
 
     private func renderSteps() -> String {
         state.steps.enumerated().map { index, step in
-            let indicator = indicator(for: step.status)
+            let indicator = indicator(for: step.status, index: index)
             let title = colorize(
                 "\(index + 1). \(step.title)",
                 color: titleColor(for: step.status)
             )
             let status = colorize(
-                statusText(for: step.status),
+                statusText(for: step.status, index: index),
                 color: statusColor(for: step.status)
             )
             return "\(indicator)  \(title) \(status)"
         }.joined(separator: "\n")
     }
 
-    private func indicator(for status: TaskRunnerState.Step.Status) -> String {
+    private func indicator(for status: TaskRunnerState.Step.Status, index: Int) -> String {
         switch status {
         case .pending:
             return colorize("•", color: .yellow)
         case .running:
-            return Spinner(style: .ascii, color: .cyan, isBold: true).render()
+            let variant = spinnerVariant(for: index)
+            return Spinner(style: variant.style, color: .cyan, isBold: true).render()
         case .completed(.success):
             return colorize("✓", color: .green, bold: true)
         case .completed(.failure):
@@ -98,12 +111,13 @@ struct TaskRunnerView: TUIView {
         }
     }
 
-    private func statusText(for status: TaskRunnerState.Step.Status) -> String {
+    private func statusText(for status: TaskRunnerState.Step.Status, index: Int) -> String {
         switch status {
         case .pending:
             return "pending"
         case .running:
-            return "running"
+            let variant = spinnerVariant(for: index)
+            return "running (\(variant.label))"
         case .completed(.success):
             return "completed"
         case .completed(.failure):
