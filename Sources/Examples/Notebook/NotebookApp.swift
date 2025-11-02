@@ -70,7 +70,12 @@ struct NotebookApp: TUIApp {
             if focusedField == .sidebar {
                 return .setFocus(.editorTitle)
             }
-        case .char("q"), .ctrlC:
+        case .char("q"), .char("Q"):
+            let canQuit = (focusedField == .sidebar || focusedField == nil)
+            if canQuit {
+                return .quit
+            }
+        case .ctrlC:
             return .quit
         default:
             break
