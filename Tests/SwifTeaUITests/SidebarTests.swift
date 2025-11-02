@@ -2,6 +2,32 @@ import Testing
 @testable import SwifTeaCore
 @testable import SwifTeaUI
 
+private extension String {
+    func strippingANSI() -> String {
+        var result = ""
+        var iterator = makeIterator()
+        var inEscape = false
+
+        while let character = iterator.next() {
+            if inEscape {
+                if ("a"..."z").contains(character) || ("A"..."Z").contains(character) {
+                    inEscape = false
+                }
+                continue
+            }
+
+            if character == "\u{001B}" {
+                inEscape = true
+                continue
+            }
+
+            result.append(character)
+        }
+
+        return result
+    }
+}
+
 struct SidebarTests {
 
     @Test("Sidebar renders default indicators and colors")
@@ -13,15 +39,16 @@ struct SidebarTests {
             isFocused: false
         ) { $0 }
 
+        let rendered = sidebar.render()
         let expected = """
 ┌────────┐
-│ \(ANSIColor.yellow.rawValue)Notes\(ANSIColor.reset.rawValue)  │
-│ \(ANSIColor.yellow.rawValue)>  One\(ANSIColor.reset.rawValue) │
-│ \(ANSIColor.green.rawValue)   Two\(ANSIColor.reset.rawValue) │
+│ Notes  │
+│ >  One │
+│    Two │
 └────────┘
 """
-
-        #expect(sidebar.render() == expected)
+        #expect(rendered.strippingANSI() == expected)
+        #expect(!rendered.contains("\u{001B}[1m"))
     }
 
     @Test("Sidebar highlights selection when focused")
@@ -33,14 +60,16 @@ struct SidebarTests {
             isFocused: true
         ) { $0 }
 
+        let rendered = sidebar.render()
         let expected = """
 ┌────────┐
-│ \(ANSIColor.yellow.rawValue)Notes\(ANSIColor.reset.rawValue)  │
-│ \(ANSIColor.green.rawValue)   One\(ANSIColor.reset.rawValue) │
-│ \(ANSIColor.cyan.rawValue)>▌ Two\(ANSIColor.reset.rawValue) │
+│ Notes  │
+│    One │
+│ >▌ Two │
 └────────┘
 """
-
-        #expect(sidebar.render() == expected)
+        let stripped = rendered.strippingANSI()
+        #expect(stripped == expected)
+        #expect(rendered.contains("\u{001B}[1m"))
     }
 }

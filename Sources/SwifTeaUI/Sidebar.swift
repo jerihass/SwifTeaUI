@@ -16,6 +16,7 @@ public struct Sidebar<Item>: TUIView {
         public var focusIndicator: String
         public var unfocusedIndicator: String
         public var borderPadding: Int
+        public var focusStyle: FocusStyle
 
         public init(
             titleColor: ANSIColor = .yellow,
@@ -26,7 +27,8 @@ public struct Sidebar<Item>: TUIView {
             unselectedIndicator: String = " ",
             focusIndicator: String = "▌",
             unfocusedIndicator: String = " ",
-            borderPadding: Int = 1
+            borderPadding: Int = 1,
+            focusStyle: FocusStyle = FocusStyle(indicator: "", color: .cyan, bold: true)
         ) {
             self.titleColor = titleColor
             self.selectedColor = selectedColor
@@ -37,6 +39,7 @@ public struct Sidebar<Item>: TUIView {
             self.focusIndicator = focusIndicator
             self.unfocusedIndicator = unfocusedIndicator
             self.borderPadding = max(0, borderPadding)
+            self.focusStyle = focusStyle
         }
     }
 
@@ -70,7 +73,11 @@ public struct Sidebar<Item>: TUIView {
             let focusMarker = (isSelected && isFocused) ? style.focusIndicator : style.unfocusedIndicator
             let line = "\(indicator)\(focusMarker) \(label(element))"
             let color = color(forSelected: isSelected, focused: isFocused && isSelected)
-            return color.rawValue + line + ANSIColor.reset.rawValue
+            let base = color.rawValue + line + ANSIColor.reset.rawValue
+            if isSelected && isFocused {
+                return style.focusStyle.apply(to: base)
+            }
+            return base
         }
 
         let listBlock = coloredLines.joined(separator: "\n")
