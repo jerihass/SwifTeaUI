@@ -53,5 +53,23 @@ public extension TUIView {
     }
 }
 
+public struct AnyTUIView: TUIView {
+    public typealias Body = Never
+
+    private let renderer: () -> String
+
+    public init<V: TUIView>(_ view: V) {
+        renderer = view.render
+    }
+
+    public var body: Never {
+        fatalError("AnyTUIView has no body")
+    }
+
+    public func render() -> String {
+        renderer()
+    }
+}
+
 // TODO: padding, borders, centers, width/height constraints, etc.
 // For now left minimal to keep the example lean.

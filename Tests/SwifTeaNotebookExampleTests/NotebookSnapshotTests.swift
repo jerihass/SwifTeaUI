@@ -1,18 +1,26 @@
 import Foundation
 import Testing
-import SnapshotTestSupport
 @testable import SwifTeaNotebookExample
 import SwifTeaCore
 
-private let focusRing = FocusRingSnapshotAsserter()
-private enum NotebookFocusRingFragments {
-    static let sidebarTop = "┌────────────────────────────────┐"
-    static let editorTop = "┌──────────────────────────────────────────────────────────────────────────────────┐"
-    static let vertical = "│"
-}
+private let focusHighlightPrefix = ANSIColor.cyan.rawValue + "\u{001B}[1m"
 
 @Suite(.serialized)
 struct NotebookSnapshotTests {
+
+    private func expectSidebarFocus(in snapshot: String) {
+        let notesHighlight = focusHighlightPrefix + "Notes"
+        let editorHighlight = focusHighlightPrefix + "Editor"
+        #expect(snapshot.contains(notesHighlight))
+        #expect(!snapshot.contains(editorHighlight))
+    }
+
+    private func expectEditorFocus(in snapshot: String) {
+        let editorHighlight = focusHighlightPrefix + "Editor"
+        let notesHighlight = focusHighlightPrefix + "Notes"
+        #expect(snapshot.contains(editorHighlight))
+        #expect(!snapshot.contains(notesHighlight))
+    }
 
     @Test("Initial layout renders expected snapshot")
     func testInitialLayoutSnapshot() {
@@ -20,14 +28,7 @@ struct NotebookSnapshotTests {
             contains: ANSIColor.cyan.rawValue + ">▌ Welcome to SwifTeaUI" + ANSIColor.reset.rawValue,
             expected: NotebookSnapshotFixtures.initial
         )
-        focusRing.expect(
-            in: snapshot,
-            contains: [
-                NotebookFocusRingFragments.sidebarTop,
-                NotebookFocusRingFragments.vertical
-            ],
-            excludes: [NotebookFocusRingFragments.editorTop]
-        )
+        expectSidebarFocus(in: snapshot)
     }
 
     @Test("Notebook stacks panes when width constrained")
@@ -36,14 +37,7 @@ struct NotebookSnapshotTests {
             expected: NotebookSnapshotFixtures.stacked,
             size: TerminalSize(columns: 110, rows: 40)
         )
-        focusRing.expect(
-            in: snapshot,
-            contains: [
-                NotebookFocusRingFragments.sidebarTop,
-                NotebookFocusRingFragments.vertical
-            ],
-            excludes: [NotebookFocusRingFragments.editorTop]
-        )
+        expectSidebarFocus(in: snapshot)
     }
 
     @Test("Notebook renders resize prompt when terminal too small")
@@ -61,14 +55,7 @@ struct NotebookSnapshotTests {
             contains: ANSIColor.cyan.rawValue + "Title:" + ANSIColor.reset.rawValue,
             expected: NotebookSnapshotFixtures.titleFocus
         )
-        focusRing.expect(
-            in: snapshot,
-            contains: [
-                NotebookFocusRingFragments.editorTop,
-                NotebookFocusRingFragments.vertical
-            ],
-            excludes: [NotebookFocusRingFragments.sidebarTop]
-        )
+        expectEditorFocus(in: snapshot)
     }
 
     @Test("Body field focus snapshot shows cursor in body")
@@ -78,14 +65,7 @@ struct NotebookSnapshotTests {
             contains: ANSIColor.cyan.rawValue + "Body:" + ANSIColor.reset.rawValue,
             expected: NotebookSnapshotFixtures.bodyFocus
         )
-        focusRing.expect(
-            in: snapshot,
-            contains: [
-                NotebookFocusRingFragments.editorTop,
-                NotebookFocusRingFragments.vertical
-            ],
-            excludes: [NotebookFocusRingFragments.sidebarTop]
-        )
+        expectEditorFocus(in: snapshot)
     }
 
     @Test("Sidebar selection snapshot highlights second note")
@@ -95,14 +75,7 @@ struct NotebookSnapshotTests {
             contains: ANSIColor.cyan.rawValue + ">▌ Keyboard Shortcuts Overview" + ANSIColor.reset.rawValue,
             expected: NotebookSnapshotFixtures.secondNote
         )
-        focusRing.expect(
-            in: snapshot,
-            contains: [
-                NotebookFocusRingFragments.sidebarTop,
-                NotebookFocusRingFragments.vertical
-            ],
-            excludes: [NotebookFocusRingFragments.editorTop]
-        )
+        expectSidebarFocus(in: snapshot)
     }
 
     @Test("Notebook frame output stays stable across consecutive renders and selection changes")
@@ -218,25 +191,27 @@ SwifTea Notebook
 
 
 
-┌────────────────────────────────┐      ┌──────────────────────────────────────────────────────────────────────────────────┐
-│ Notes                          │      │ Editor                                                                           │
-│ >▌ Welcome to SwifTeaUI        │      │                                                                                  │
-│    Keyboard Shortcuts Overview │      │ Title:                                                                           │
-│    Ideas and Enhancements      │      │                                                                                  │
-└────────────────────────────────┘      │ Welcome to SwifTeaUI                                                             │
-                                        │                                                                                  │
-                                        │ Body:                                                                            │
-                                        │                                                                                  │
-                                        │ Use Tab to focus fields on the right, Shift+Tab to return                        │
-                                        │ here. This long introduction should stay visible even when                       │
-                                        │ the bottom of the screen is busy.                                                │
-                                        │                                                                                  │
-                                        │                                                                                  │
-                                        │                                                                                  │
-                                        │ Saved note: Welcome to SwifTeaUI                                                 │
-                                        │                                                                                  │
-                                        │ Status: Tab to edit the welcome note and confirm longer content renders cleanly. │
-                                        └──────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                                                      │
+│  Notes                             Editor                                                                            │
+│  >▌ Welcome to SwifTeaUI                                                                                             │
+│     Keyboard Shortcuts Overview    Title:                                                                            │
+│     Ideas and Enhancements                                                                                           │
+│                                    Welcome to SwifTeaUI                                                              │
+│                                                                                                                      │
+│                                    Body:                                                                             │
+│                                                                                                                      │
+│                                    Use Tab to focus fields on the right, Shift+Tab to return                         │
+│                                    here. This long introduction should stay visible even when                        │
+│                                    the bottom of the screen is busy.                                                 │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                    Saved note: Welcome to SwifTeaUI                                                  │
+│                                                                                                                      │
+│                                    Status: Tab to edit the welcome note and confirm longer content renders cleanly.  │
+│                                                                                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 
 
@@ -248,25 +223,27 @@ SwifTea Notebook
 
 
 
-┌────────────────────────────────┐      ┌──────────────────────────────────────────────────────────────────────────────────┐
-│ Notes                          │      │ Editor                                                                           │
-│ >  Welcome to SwifTeaUI        │      │                                                                                  │
-│    Keyboard Shortcuts Overview │      │ Title:                                                                           │
-│    Ideas and Enhancements      │      │                                                                                  │
-└────────────────────────────────┘      │ Welcome to SwifTeaUI|                                                            │
-                                        │                                                                                  │
-                                        │ Body:                                                                            │
-                                        │                                                                                  │
-                                        │ Use Tab to focus fields on the right, Shift+Tab to return                        │
-                                        │ here. This long introduction should stay visible even when                       │
-                                        │ the bottom of the screen is busy.                                                │
-                                        │                                                                                  │
-                                        │                                                                                  │
-                                        │                                                                                  │
-                                        │ Saved note: Welcome to SwifTeaUI                                                 │
-                                        │                                                                                  │
-                                        │ Status: Tab to edit the welcome note and confirm longer content renders cleanly. │
-                                        └──────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                                                      │
+│  Notes                             Editor                                                                            │
+│  >  Welcome to SwifTeaUI                                                                                             │
+│     Keyboard Shortcuts Overview    Title:                                                                            │
+│     Ideas and Enhancements                                                                                           │
+│                                    Welcome to SwifTeaUI|                                                             │
+│                                                                                                                      │
+│                                    Body:                                                                             │
+│                                                                                                                      │
+│                                    Use Tab to focus fields on the right, Shift+Tab to return                         │
+│                                    here. This long introduction should stay visible even when                        │
+│                                    the bottom of the screen is busy.                                                 │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                    Saved note: Welcome to SwifTeaUI                                                  │
+│                                                                                                                      │
+│                                    Status: Tab to edit the welcome note and confirm longer content renders cleanly.  │
+│                                                                                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 
 
@@ -278,25 +255,27 @@ SwifTea Notebook
 
 
 
-┌────────────────────────────────┐      ┌──────────────────────────────────────────────────────────────────────────────────┐
-│ Notes                          │      │ Editor                                                                           │
-│ >  Welcome to SwifTeaUI        │      │                                                                                  │
-│    Keyboard Shortcuts Overview │      │ Title:                                                                           │
-│    Ideas and Enhancements      │      │                                                                                  │
-└────────────────────────────────┘      │ Welcome to SwifTeaUI                                                             │
-                                        │                                                                                  │
-                                        │ Body:                                                                            │
-                                        │                                                                                  │
-                                        │ Use Tab to focus fields on the right, Shift+Tab to return                        │
-                                        │ here. This long introduction should stay visible even when                       │
-                                        │ the bottom of the screen is busy.|                                               │
-                                        │                                                                                  │
-                                        │                                                                                  │
-                                        │                                                                                  │
-                                        │ Saved note: Welcome to SwifTeaUI                                                 │
-                                        │                                                                                  │
-                                        │ Status: Tab to edit the welcome note and confirm longer content renders cleanly. │
-                                        └──────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                                                      │
+│  Notes                             Editor                                                                            │
+│  >  Welcome to SwifTeaUI                                                                                             │
+│     Keyboard Shortcuts Overview    Title:                                                                            │
+│     Ideas and Enhancements                                                                                           │
+│                                    Welcome to SwifTeaUI                                                              │
+│                                                                                                                      │
+│                                    Body:                                                                             │
+│                                                                                                                      │
+│                                    Use Tab to focus fields on the right, Shift+Tab to return                         │
+│                                    here. This long introduction should stay visible even when                        │
+│                                    the bottom of the screen is busy.|                                                │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                    Saved note: Welcome to SwifTeaUI                                                  │
+│                                                                                                                      │
+│                                    Status: Tab to edit the welcome note and confirm longer content renders cleanly.  │
+│                                                                                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 
 
@@ -308,25 +287,27 @@ SwifTea Notebook
 
 
 
-┌────────────────────────────────┐      ┌──────────────────────────────────────────────────────────────────────────────────┐
-│ Notes                          │      │ Editor                                                                           │
-│    Welcome to SwifTeaUI        │      │                                                                                  │
-│ >▌ Keyboard Shortcuts Overview │      │ Title:                                                                           │
-│    Ideas and Enhancements      │      │                                                                                  │
-└────────────────────────────────┘      │ Keyboard Shortcuts Overview                                                      │
-                                        │                                                                                  │
-                                        │ Body:                                                                            │
-                                        │                                                                                  │
-                                        │ ↑/↓ move between notes when the sidebar is focused. Enter                        │
-                                        │ while editing the body saves. Longer descriptions ensure we                      │
-                                        │ validate vertical layout spacing.                                                │
-                                        │                                                                                  │
-                                        │                                                                                  │
-                                        │                                                                                  │
-                                        │ Saved note: Keyboard Shortcuts Overview                                          │
-                                        │                                                                                  │
-                                        │ Status: Tab to edit the welcome note and confirm longer content renders cleanly. │
-                                        └──────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                                                      │
+│  Notes                             Editor                                                                            │
+│     Welcome to SwifTeaUI                                                                                             │
+│  >▌ Keyboard Shortcuts Overview    Title:                                                                            │
+│     Ideas and Enhancements                                                                                           │
+│                                    Keyboard Shortcuts Overview                                                       │
+│                                                                                                                      │
+│                                    Body:                                                                             │
+│                                                                                                                      │
+│                                    ↑/↓ move between notes when the sidebar is focused. Enter                         │
+│                                    while editing the body saves. Longer descriptions ensure we                       │
+│                                    validate vertical layout spacing.                                                 │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                    Saved note: Keyboard Shortcuts Overview                                           │
+│                                                                                                                      │
+│                                    Status: Tab to edit the welcome note and confirm longer content renders cleanly.  │
+│                                                                                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 
 
@@ -354,34 +335,34 @@ SwifTea Notebook
 
 
 
-┌────────────────────────────────┐
-│ Notes                          │
-│ >▌ Welcome to SwifTeaUI        │
-│    Keyboard Shortcuts Overview │
-│    Ideas and Enhancements      │
-└────────────────────────────────┘
-
-
-
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│ Editor                                                                           │
-│                                                                                  │
-│ Title:                                                                           │
-│                                                                                  │
-│ Welcome to SwifTeaUI                                                             │
-│                                                                                  │
-│ Body:                                                                            │
-│                                                                                  │
-│ Use Tab to focus fields on the right, Shift+Tab to return here. This             │
-│ long introduction should stay visible even when the bottom of the                │
-│ screen is busy.                                                                  │
-│                                                                                  │
-│                                                                                  │
-│                                                                                  │
-│ Saved note: Welcome to SwifTeaUI                                                 │
-│                                                                                  │
-│ Status: Tab to edit the welcome note and confirm longer content renders cleanly. │
-└──────────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                    │
+│  Notes                                                                             │
+│  >▌ Welcome to SwifTeaUI                                                           │
+│     Keyboard Shortcuts Overview                                                    │
+│     Ideas and Enhancements                                                         │
+│                                                                                    │
+│                                                                                    │
+│                                                                                    │
+│  Editor                                                                            │
+│                                                                                    │
+│  Title:                                                                            │
+│                                                                                    │
+│  Welcome to SwifTeaUI                                                              │
+│                                                                                    │
+│  Body:                                                                             │
+│                                                                                    │
+│  Use Tab to focus fields on the right, Shift+Tab to return here. This              │
+│  long introduction should stay visible even when the bottom of the                 │
+│  screen is busy.                                                                   │
+│                                                                                    │
+│                                                                                    │
+│                                                                                    │
+│  Saved note: Welcome to SwifTeaUI                                                  │
+│                                                                                    │
+│  Status: Tab to edit the welcome note and confirm longer content renders cleanly.  │
+│                                                                                    │
+└────────────────────────────────────────────────────────────────────────────────────┘
 
 
 

@@ -31,8 +31,6 @@ struct NotebookView: TUIView {
         let mode = layoutMode(for: size)
         let editorWidth = preferredEditorWidth(for: size, mode: mode)
 
-        let focusRingStyle = FocusStyle.default
-        let editorIsFocused = focus == .editorTitle || focus == .editorBody
         let textInputFocusStyle = FocusStyle(indicator: "", color: nil, bold: false)
 
         let editorContent = VStack(spacing: 1, alignment: .leading) {
@@ -51,13 +49,6 @@ struct NotebookView: TUIView {
             Text("Saved note: \(state.notes[state.selectedIndex].title)").foregroundColor(.green)
             Text("Status: \(state.statusMessage)").foregroundColor(.cyan)
         }
-        let editor = FocusRingBorder(
-            padding: 1,
-            isFocused: editorIsFocused,
-            style: focusRingStyle,
-            editorContent
-        )
-
         let sidebar = Sidebar(
             title: "Notes",
             items: state.notes,
@@ -68,28 +59,34 @@ struct NotebookView: TUIView {
             note.title
         }
 
-        switch mode {
-        case .dualColumn:
-            return VStack(spacing: 1, alignment: .leading) {
-                Text("SwifTea Notebook").foregroundColor(.yellow).bold()
-                Text("")
-                HStack(spacing: 6, horizontalAlignment: .leading, verticalAlignment: .top) {
-                    sidebar
-                    editor
-                }
-                Text("")
-                statusBar
+        let sidebarColumn = sidebar.padding(1)
+        let editorColumn = editorContent.padding(1)
+
+        let combined: AnyTUIView = {
+            switch mode {
+            case .dualColumn:
+                return AnyTUIView(
+                    Border(padding: 1, HStack(spacing: 2, horizontalAlignment: .leading, verticalAlignment: .top) {
+                        sidebarColumn
+                        editorColumn
+                    })
+                )
+            case .stacked:
+                return AnyTUIView(
+                    Border(padding: 1, VStack(spacing: 1, alignment: .leading) {
+                        sidebarColumn
+                        editorColumn
+                    })
+                )
             }
-        case .stacked:
-            return VStack(spacing: 1, alignment: .leading) {
-                Text("SwifTea Notebook").foregroundColor(.yellow).bold()
-                Text("")
-                sidebar
-                Text("")
-                editor
-                Text("")
-                statusBar
-            }
+        }()
+
+        return VStack(spacing: 1, alignment: .leading) {
+            Text("SwifTea Notebook").foregroundColor(.yellow).bold()
+            Text("")
+            combined
+            Text("")
+            statusBar
         }
     }
 
@@ -153,6 +150,7 @@ struct NotebookView: TUIView {
         if focus == .sidebar {
             style.titleColor = .cyan
         }
+        style.showsBorder = false
         return style
     }
 

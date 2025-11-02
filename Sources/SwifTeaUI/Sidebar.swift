@@ -17,6 +17,7 @@ public struct Sidebar<Item>: TUIView {
         public var unfocusedIndicator: String
         public var borderPadding: Int
         public var focusStyle: FocusStyle
+        public var showsBorder: Bool
 
         public init(
             titleColor: ANSIColor = .yellow,
@@ -28,7 +29,8 @@ public struct Sidebar<Item>: TUIView {
             focusIndicator: String = "▌",
             unfocusedIndicator: String = " ",
             borderPadding: Int = 1,
-            focusStyle: FocusStyle = .default
+            focusStyle: FocusStyle = .default,
+            showsBorder: Bool = true
         ) {
             self.titleColor = titleColor
             self.selectedColor = selectedColor
@@ -40,6 +42,7 @@ public struct Sidebar<Item>: TUIView {
             self.unfocusedIndicator = unfocusedIndicator
             self.borderPadding = max(0, borderPadding)
             self.focusStyle = focusStyle
+            self.showsBorder = showsBorder
         }
     }
 
@@ -95,13 +98,17 @@ public struct Sidebar<Item>: TUIView {
             Text(listBlock)
         }
 
-        return content
-            .focusRing(
-                padding: style.borderPadding,
-                isFocused: isFocused,
-                style: style.focusStyle
-            )
-            .render()
+        if style.showsBorder {
+            return content
+                .focusRing(
+                    padding: style.borderPadding,
+                    isFocused: isFocused,
+                    style: style.focusStyle
+                )
+                .render()
+        }
+
+        return content.render()
     }
 
     private func color(forSelected selected: Bool, focused: Bool) -> ANSIColor {
