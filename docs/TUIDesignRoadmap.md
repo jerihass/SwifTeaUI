@@ -13,7 +13,7 @@ This document tracks upcoming terminal UI design paradigms for SwifTeaUI. Each e
 | Pattern | Purpose | Status | Next Steps |
 | --- | --- | --- | --- |
 | **Status & Command Bar** | Persistent footer for live state, modes, and shortcut hints. | Implemented | Harden `StatusBar` width handling, roll out to additional demos, document customization knobs. |
-| **Focus & Navigation Cues** | Unifies how focused panes, selected rows, and cursor locations render. | In Progress | Extract reusable focus-ring border wrapper, migrate Notebook panes to it, share snapshot helpers for focus expectations. |
+| **Focus & Navigation Cues** | Unifies how focused panes, selected rows, and cursor locations render. | Implemented | Roll focus ring helper into future demos, expand snapshot helpers for additional layouts, document cursor customization knobs. |
 | **Adaptive Panels** | Resizable or responsive layout primitives that collapse/expand with terminal width. | Planned | Explore width observation hooks, specify API for min/max widths, create demo with HStack resizing. |
 | **Terminal Size Awareness** | Detect window resizing, enforce minimum sizes, and adapt rendering gracefully. | In Progress | Expand terminal metrics access beyond runtime, share minimum-size helpers with more demos, explore automatic layout compaction. |
 | **Modal Overlays** | Blocking dialogs or help palettes with dimmed background and keyboard dismissal. | Planned | Draft overlay container view, decide on focus trapping, design animation-free presentation. |
@@ -23,7 +23,7 @@ This document tracks upcoming terminal UI design paradigms for SwifTeaUI. Each e
 
 - Color constants should support fallback to monochrome terminals; investigate environment-driven palette selection.
 - Focus management primitives (`FocusRing`, `FocusScope`) can feed into visual cues when a view registers for focus updates.
-- Introduce a `FocusRingBorder` helper so panes reuse the ring styling and align snapshot expectations across demos.
+- Focus ring helper and snapshot utilities landed; migrate remaining demos as they gain focus cues.
 - Consider documenting keybindings alongside UI so components surface expected inputs (e.g., Tab order, shortcut hints).
 
 Add new sections as patterns move into design or implementation, including links to PRs, commits, and demos.
