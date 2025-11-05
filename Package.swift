@@ -80,5 +80,5 @@ let package = Package(
                 .product(name: "Testing", package: "swift-testing")
             ]
         )
-    ],
+    ]
 )
