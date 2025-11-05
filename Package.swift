@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "SwifTeaUI",
-    platforms: [.macOS(.v14)],
+    platforms: [.iOS(.v16)],
     products: [
         // Users typically `import SwifTeaUI` (which depends on SwifTeaCore)
         .library(name: "SwifTeaUI", targets: ["SwifTeaUI"]),
