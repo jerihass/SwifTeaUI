@@ -351,6 +351,30 @@ extension Character {
     }
 }
 
+public struct ForEach<Data: RandomAccessCollection, Content: TUIView>: TUIView {
+    private let data: Data
+    private let content: (Data.Element) -> Content
+
+    public init(
+        _ data: Data,
+        content: @escaping (Data.Element) -> Content
+    ) {
+        self.data = data
+        self.content = content
+    }
+
+    public func render() -> String {
+        var renderedItems: [String] = []
+        renderedItems.reserveCapacity(data.count)
+        for element in data {
+            renderedItems.append(content(element).render())
+        }
+        return renderedItems.joined(separator: "\n")
+    }
+
+    public var body: some TUIView { self }
+}
+
 // SwiftUI-esque result builder
 @resultBuilder
 public struct TUIBuilder {
