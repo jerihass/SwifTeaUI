@@ -20,7 +20,7 @@ This document tracks upcoming terminal UI design paradigms for SwifTeaUI. Each e
 | **Terminal Size Awareness** | Detect window resizing, enforce minimum sizes, and adapt rendering gracefully. | In Progress | Expand terminal metrics access beyond runtime, share minimum-size helpers with more demos, explore automatic layout compaction. |
 | **Modal Overlays** | Blocking dialogs or help palettes with dimmed background and keyboard dismissal. | Planned | Draft overlay container view, decide on focus trapping, design animation-free presentation. |
 | **Notification Toasts** | Non-blocking alerts stacked near header/footer with auto-dismiss timing. | Prototype | Generalise TaskRunner's status message queue into reusable overlays, add lifetimes tied to render loop rather than explicit actions. |
-| **Preview Builders** | Declarative wrappers that hydrate scenes/models with canned state for demos/tests. | Planned | Design lightweight builder API (e.g., `CounterScene.preview(state:)`), ensure builders integrate with runtime lifecycle, spike on sharing fixtures between previews and snapshot tests. |
+| **Preview Builders** | Declarative wrappers that hydrate scenes/models with canned state for demos/tests. | Planned | Design lightweight builder API (e.g., `CounterScene.preview(state:)`), ensure builders can run `TUIScene` without the full runtime, and share fixtures between previews & snapshot tests. |
 
 ## Working Notes
 
