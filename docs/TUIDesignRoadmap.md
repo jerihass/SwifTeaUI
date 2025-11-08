@@ -21,6 +21,7 @@ This document tracks upcoming terminal UI design paradigms for SwifTeaUI. Each e
 | **Modal Overlays** | Blocking dialogs or help palettes with dimmed background and keyboard dismissal. | Planned | Draft overlay container view, decide on focus trapping, design animation-free presentation. |
 | **Notification Toasts** | Non-blocking alerts stacked near header/footer with auto-dismiss timing. | Prototype | Generalise TaskRunner's status message queue into reusable overlays, add lifetimes tied to render loop rather than explicit actions. |
 | **Preview Builders** | Declarative wrappers that hydrate scenes/models with canned state for demos/tests. | Planned | Design lightweight builder API (e.g., `CounterScene.preview(state:)`), ensure builders can run `TUIScene` without the full runtime, and share fixtures between previews & snapshot tests. |
+| **Observable State Objects** | Property wrapper + observation hooks for class-based models (`@StateObject` analog). | Planned | Define observable protocol + lifecycle, ensure reference mutations trigger re-render safely, and document reducer interaction/testing strategy. |
 
 ## Working Notes
 
