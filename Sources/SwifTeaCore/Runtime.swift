@@ -43,6 +43,15 @@ public protocol TUIApp {
     func shouldExit(for action: Action) -> Bool
 }
 
+public protocol SwifTeaScene: TUIApp {}
+
+@resultBuilder
+public enum SwifTeaSceneBuilder {
+    public static func buildBlock<Content: SwifTeaScene>(_ content: Content) -> Content {
+        content
+    }
+}
+
 // MARK: - ANSI helpers & color
 
 public enum ANSI {
@@ -121,16 +130,22 @@ public enum SwifTea {
 // MARK: - Declarative app entry point
 
 /// SwiftUI-like entry wrapper that boots the runtime automatically.
-public protocol SwifTeaApp: TUIApp {
+public protocol SwifTeaApp: SwifTeaScene {
+    associatedtype Body: SwifTeaScene
     init()
     static var framesPerSecond: Int { get }
+    @SwifTeaSceneBuilder var body: Body { get }
+}
+
+public extension SwifTeaApp where Body == Self {
+    var body: Self { self }
 }
 
 public extension SwifTeaApp {
     static var framesPerSecond: Int { 20 }
 
     static func main() {
-        SwifTea.brew(Self.init(), fps: framesPerSecond)
+        SwifTea.brew(Self.init().body, fps: framesPerSecond)
     }
 }
 

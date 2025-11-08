@@ -3,6 +3,7 @@ import SwifTeaUI
 
 @main
 struct TaskRunnerApp: SwifTeaApp {
+    var body: some SwifTeaScene { self }
     enum Action {
         case advance
         case fail

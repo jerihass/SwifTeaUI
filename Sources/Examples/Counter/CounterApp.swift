@@ -4,6 +4,7 @@ import SwifTeaUI
 @main
 struct CounterApp: SwifTeaApp {
     static var framesPerSecond: Int { 30 }
+    var body: some SwifTeaScene { self }
 
     enum Action {
         case increment
