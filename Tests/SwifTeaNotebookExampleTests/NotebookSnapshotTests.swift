@@ -80,7 +80,7 @@ struct NotebookSnapshotTests {
 
     @Test("Notebook frame output stays stable across consecutive renders and selection changes")
     func testNotebookRenderStabilityAcrossFrames() {
-        var app = NotebookApp()
+        var app = NotebookScene()
         let initial = renderNotebook(app)
 
         for _ in 0..<5 {
@@ -158,12 +158,12 @@ private extension String {
 
 @discardableResult
 private func assertSnapshot(
-    mutate: (inout NotebookApp) -> Void = { _ in },
+    mutate: (inout NotebookScene) -> Void = { _ in },
     contains substring: String? = nil,
     expected expectedSnapshot: String,
     size overrideSize: TerminalSize? = nil
 ) -> String {
-    var app = NotebookApp()
+    var app = NotebookScene()
     mutate(&app)
 
     let snapshot = renderNotebook(

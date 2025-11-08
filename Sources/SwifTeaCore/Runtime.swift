@@ -130,14 +130,14 @@ public enum SwifTea {
 // MARK: - Declarative app entry point
 
 /// SwiftUI-like entry wrapper that boots the runtime automatically.
-public protocol SwifTeaApp: SwifTeaScene {
+public protocol SwifTeaApp {
     associatedtype Body: SwifTeaScene
     init()
     static var framesPerSecond: Int { get }
     @SwifTeaSceneBuilder var body: Body { get }
 }
 
-public extension SwifTeaApp where Body == Self {
+public extension SwifTeaApp where Body == Self, Self: SwifTeaScene {
     var body: Self { self }
 }
 

@@ -5,7 +5,7 @@ import SwifTeaUI
 let defaultSnapshotSize = TerminalSize(columns: 140, rows: 40)
 
 func renderNotebook(
-    _ app: NotebookApp,
+    _ app: NotebookScene,
     size: TerminalSize = defaultSnapshotSize
 ) -> String {
     var blinker = CursorBlinker.shared

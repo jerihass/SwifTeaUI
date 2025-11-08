@@ -4,7 +4,10 @@ import SwifTeaUI
 @main
 struct NotebookApp: SwifTeaApp {
     static var framesPerSecond: Int { 120 }
-    var body: some SwifTeaScene { self }
+    var body: some SwifTeaScene { NotebookScene() }
+}
+
+struct NotebookScene: SwifTeaScene {
     enum Action {
         case selectNext
         case selectPrevious
@@ -21,7 +24,7 @@ struct NotebookApp: SwifTeaApp {
     private let focusCoordinator = NotebookFocusCoordinator()
     @FocusState private var focusedField: NotebookFocusField? = .sidebar
 
-    var model: NotebookApp { self }
+    var model: NotebookScene { self }
 
     mutating func update(action: Action) {
         switch action {
@@ -48,7 +51,7 @@ struct NotebookApp: SwifTeaApp {
         }
     }
 
-    func view(model: NotebookApp) -> some TUIView {
+    func view(model: NotebookScene) -> some TUIView {
         NotebookView(
             state: model.state,
             focus: model.focusedField,

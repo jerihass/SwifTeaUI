@@ -6,7 +6,7 @@ import SwifTeaUI
 let taskRunnerSnapshotSize = TerminalSize(columns: 100, rows: 24)
 
 func renderTaskRunner(
-    _ app: TaskRunnerApp,
+    _ app: TaskRunnerScene,
     size: TerminalSize = taskRunnerSnapshotSize,
     time: TimeInterval = 0
 ) -> String {

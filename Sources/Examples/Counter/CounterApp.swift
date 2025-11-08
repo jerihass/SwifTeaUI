@@ -4,8 +4,10 @@ import SwifTeaUI
 @main
 struct CounterApp: SwifTeaApp {
     static var framesPerSecond: Int { 30 }
-    var body: some SwifTeaScene { self }
+    var body: some SwifTeaScene { CounterScene() }
+}
 
+struct CounterScene: SwifTeaScene {
     enum Action {
         case increment
         case decrement
@@ -21,7 +23,7 @@ struct CounterApp: SwifTeaApp {
     private let focusCoordinator = CounterFocusCoordinator()
     @FocusState private var focusedField: CounterFocusField? = .controls
 
-    var model: CounterApp { self }
+    var model: CounterScene { self }
 
     mutating func update(action: Action) {
         switch action {
@@ -46,7 +48,7 @@ struct CounterApp: SwifTeaApp {
         }
     }
 
-    func view(model: CounterApp) -> some TUIView {
+    func view(model: CounterScene) -> some TUIView {
         CounterView(
             state: model.state,
             focus: model.focusedField,

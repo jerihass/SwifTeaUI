@@ -13,13 +13,15 @@ A modern, declarative **Terminal UI framework for Swift**, inspired by SwiftUI a
 ### Example
 
 ```swift
-struct CounterApp: TUIApp {
-    // ...
-}
-@main struct Main {
-    static func main() {
-        SwifTea.brew(CounterApp())
+@main
+struct CounterApp: SwifTeaApp {
+    var body: some SwifTeaScene {
+        CounterScene()
     }
+}
+
+struct CounterScene: SwifTeaScene {
+    // reducer + view logic here
 }
 ```
 Written in Swift.

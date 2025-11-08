@@ -7,7 +7,7 @@ struct TaskRunnerSnapshotTests {
 
     @Test("Initial layout shows pending tasks")
     func testInitialSnapshot() {
-        let snapshot = renderTaskRunner(TaskRunnerApp())
+        let snapshot = renderTaskRunner(TaskRunnerScene())
         let processed = snapshot
             .strippingANSI()
             .removingTrailingSpacesPerLine()
@@ -20,7 +20,7 @@ struct TaskRunnerSnapshotTests {
 
     @Test("Advancing starts spinner and updates status bar")
     func testRunningSnapshot() {
-        var app = TaskRunnerApp()
+        var app = TaskRunnerScene()
         app.update(action: .advance)
 
         let snapshot = renderTaskRunner(app, time: 0)
@@ -39,7 +39,7 @@ struct TaskRunnerSnapshotTests {
 
     @Test("Completing first step advances progress meter and displays toast message")
     func testCompletionProgressAndToast() {
-        var app = TaskRunnerApp()
+        var app = TaskRunnerScene()
         app.update(action: .advance)
         app.update(action: .advance)
 

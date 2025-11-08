@@ -3,7 +3,10 @@ import SwifTeaUI
 
 @main
 struct TaskRunnerApp: SwifTeaApp {
-    var body: some SwifTeaScene { self }
+    var body: some SwifTeaScene { TaskRunnerScene() }
+}
+
+struct TaskRunnerScene: SwifTeaScene {
     enum Action {
         case advance
         case fail
@@ -14,7 +17,7 @@ struct TaskRunnerApp: SwifTeaApp {
     @State private var state = TaskRunnerState()
     private let viewModel = TaskRunnerViewModel()
 
-    var model: TaskRunnerApp { self }
+    var model: TaskRunnerScene { self }
 
     mutating func update(action: Action) {
         state.tickToasts()
@@ -31,7 +34,7 @@ struct TaskRunnerApp: SwifTeaApp {
         }
     }
 
-    func view(model: TaskRunnerApp) -> some TUIView {
+    func view(model: TaskRunnerScene) -> some TUIView {
         TaskRunnerView(state: model.state)
     }
 

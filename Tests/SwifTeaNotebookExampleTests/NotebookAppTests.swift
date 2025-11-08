@@ -6,7 +6,7 @@ struct NotebookAppTests {
 
     @Test("Typing q in editor inserts character instead of quitting")
     func testTypingQInEditorDoesNotQuit() {
-        var app = NotebookApp()
+        var app = NotebookScene()
         app.update(action: .setFocus(.editorTitle))
         let before = renderNotebook(app).strippingANSI()
 
@@ -24,7 +24,7 @@ struct NotebookAppTests {
 
     @Test("Typing q while sidebar focused still quits")
     func testTypingQInSidebarQuits() {
-        let app = NotebookApp()
+        let app = NotebookScene()
         let action = app.mapKeyToAction(.char("q"))
         #expect(action != nil)
         if let action {
@@ -34,7 +34,7 @@ struct NotebookAppTests {
 
     @Test("Pressing Enter in body preserves frame width")
     func testEnterInBodyKeepsFrameWidthStable() {
-        var app = NotebookApp()
+        var app = NotebookScene()
         let baseline = renderNotebook(app)
         let paddedBaseline = baseline.padded(toVisibleWidth: defaultSnapshotSize.columns)
         let baselineWidth = paddedBaseline.strippingANSI().components(separatedBy: "\n").map { $0.count }.max() ?? 0

@@ -5,7 +5,7 @@ struct NotebookRenderDiffTests {
 
     @Test("Notebook adjacent renders only differ when state changes")
     func testFrameDiffs() {
-        var app = NotebookApp()
+        var app = NotebookScene()
         let frame1 = renderNotebook(app)
         let frame2 = renderNotebook(app)
         #expect(frame1 == frame2)
