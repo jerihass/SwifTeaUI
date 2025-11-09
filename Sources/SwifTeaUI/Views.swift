@@ -351,23 +351,27 @@ extension Character {
     }
 }
 
-public struct ForEach<Data: RandomAccessCollection, ID: Hashable, Content: TUIView>: TUIView {
+public struct ForEach<Data: RandomAccessCollection, ID: Hashable>: TUIView {
     private let data: Data
-    private let content: (Data.Element) -> Content
+    private let content: (Data.Element) -> [any TUIView]
     private let idResolver: (Data.Element) -> ID
 
     public init(
         _ data: Data,
         id: KeyPath<Data.Element, ID>,
-        content: @escaping (Data.Element) -> Content
+        @TUIBuilder content: @escaping (Data.Element) -> [any TUIView]
     ) {
-        self.init(data, id: { $0[keyPath: id] }, content: content)
+        self.init(
+            data,
+            id: { $0[keyPath: id] },
+            content: content
+        )
     }
 
     public init(
         _ data: Data,
         id: @escaping (Data.Element) -> ID,
-        content: @escaping (Data.Element) -> Content
+        @TUIBuilder content: @escaping (Data.Element) -> [any TUIView]
     ) {
         self.data = data
         self.content = content
@@ -378,8 +382,9 @@ public struct ForEach<Data: RandomAccessCollection, ID: Hashable, Content: TUIVi
         var renderedItems: [String] = []
         renderedItems.reserveCapacity(data.count)
         for element in data {
-            _ = idResolver(element) // ensures typechecked; reserved for future diffing
-            renderedItems.append(content(element).render())
+            _ = idResolver(element)
+            let children = content(element)
+            renderedItems.append(children.map { $0.render() }.joined(separator: "\n"))
         }
         return renderedItems.joined(separator: "\n")
     }
@@ -390,7 +395,7 @@ public struct ForEach<Data: RandomAccessCollection, ID: Hashable, Content: TUIVi
 public extension ForEach where Data.Element: Identifiable, Data.Element.ID == ID {
     init(
         _ data: Data,
-        content: @escaping (Data.Element) -> Content
+        @TUIBuilder content: @escaping (Data.Element) -> [any TUIView]
     ) {
         self.init(data, id: { $0.id }, content: content)
     }

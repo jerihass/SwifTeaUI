@@ -17,7 +17,7 @@ struct ForEachTests {
         let data = Array(["A", "B", "C"].enumerated())
         let view = ForEach(data, id: \.offset) { entry in
             let (index, value) = entry
-            return Text("\(index):\(value)")
+            Text("\(index):\(value)")
         }
 
         let output = view.render().split(separator: "\n").map(String.init)
