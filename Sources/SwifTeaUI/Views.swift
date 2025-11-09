@@ -11,6 +11,7 @@ public struct Text: TUIView {
     let content: String
     var color: ANSIColor? = nil
     var isBold: Bool = false
+    var isItalic: Bool = false
 
     public init(_ content: String) { self.content = content }
 
@@ -20,6 +21,10 @@ public struct Text: TUIView {
 
     public func bold() -> Text {
         var copy = self; copy.isBold = true; return copy
+    }
+
+    public func italic() -> Text {
+        var copy = self; copy.isItalic = true; return copy
     }
 
     @available(*, deprecated, message: "Use foregroundColor(_: ) to mirror SwiftUI naming.")
@@ -39,6 +44,9 @@ public struct Text: TUIView {
         }
         if isBold {
             prefix += "\u{001B}[1m"
+        }
+        if isItalic {
+            prefix += "\u{001B}[3m"
         }
         guard !prefix.isEmpty else { return content }
         return prefix + content + ANSIColor.reset.rawValue

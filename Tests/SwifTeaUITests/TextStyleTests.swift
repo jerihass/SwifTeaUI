@@ -22,4 +22,20 @@ struct TextStyleTests {
         #expect(first == expected)
         #expect(second == expected)
     }
+
+    @Test("italic wraps content once")
+    func testItalic() {
+        let rendered = Text("Hi").italic().render()
+        #expect(rendered == "\u{001B}[3mHi\u{001B}[0m")
+    }
+
+    @Test("bold color italic combine")
+    func testAllStyles() {
+        let rendered = Text("Hi")
+            .foregroundColor(.cyan)
+            .bold()
+            .italic()
+            .render()
+        #expect(rendered == "\u{001B}[36m\u{001B}[1m\u{001B}[3mHi\u{001B}[0m")
+    }
 }
