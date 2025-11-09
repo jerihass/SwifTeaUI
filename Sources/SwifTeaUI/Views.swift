@@ -351,28 +351,49 @@ extension Character {
     }
 }
 
-public struct ForEach<Data: RandomAccessCollection, Content: TUIView>: TUIView {
+public struct ForEach<Data: RandomAccessCollection, ID: Hashable, Content: TUIView>: TUIView {
     private let data: Data
     private let content: (Data.Element) -> Content
+    private let idResolver: (Data.Element) -> ID
 
     public init(
         _ data: Data,
+        id: KeyPath<Data.Element, ID>,
+        content: @escaping (Data.Element) -> Content
+    ) {
+        self.init(data, id: { $0[keyPath: id] }, content: content)
+    }
+
+    public init(
+        _ data: Data,
+        id: @escaping (Data.Element) -> ID,
         content: @escaping (Data.Element) -> Content
     ) {
         self.data = data
         self.content = content
+        self.idResolver = id
     }
 
     public func render() -> String {
         var renderedItems: [String] = []
         renderedItems.reserveCapacity(data.count)
         for element in data {
+            _ = idResolver(element) // ensures typechecked; reserved for future diffing
             renderedItems.append(content(element).render())
         }
         return renderedItems.joined(separator: "\n")
     }
 
     public var body: some TUIView { self }
+}
+
+public extension ForEach where Data.Element: Identifiable, Data.Element.ID == ID {
+    init(
+        _ data: Data,
+        content: @escaping (Data.Element) -> Content
+    ) {
+        self.init(data, id: { $0.id }, content: content)
+    }
 }
 
 // SwiftUI-esque result builder

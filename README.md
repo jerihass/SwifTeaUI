@@ -105,7 +105,7 @@ Written in Swift.
 
 ### SwiftUI Parity Notes
 
-- Builders: `@TUIBuilder` now supports `if`/`if let`/`switch`/loops via `buildOptional`, `buildEither`, and `buildArray`, plus a `ForEach` view for data-driven repetition just like `@ViewBuilder`.
+- Builders: `@TUIBuilder` now supports `if`/`if let`/`switch`/loops via `buildOptional`, `buildEither`, and `buildArray`, plus a `ForEach(data,id:)` view for data-driven repetition just like `@ViewBuilder`.
 - Text: `Text.foregroundColor(_:)` and `Text.bold()` match SwiftUI naming; the old `.foreground`/`.bolded()` methods remain as deprecated shims.
 - Inputs: `TextEditor` is the multiline field (with `typealias TextArea` for back-compat). Both `TextField` and `TextEditor` support `.focused(_:)`, `.focusRingStyle(_:)`, `.foregroundColor(_:)`, and `.blinkingCursor()`.
 - Focus: `.focused(_:)` mirrors SwiftUI’s modifier, while focus ring visuals come from `.focusRingStyle(_:)` and `FocusRingBorder`.
