@@ -23,6 +23,8 @@ This document tracks upcoming terminal UI design paradigms for SwifTeaUI. Each e
 | **Preview Builders** | Declarative wrappers that hydrate scenes/models with canned state for demos/tests. | Planned | Design lightweight builder API (e.g., `CounterScene.preview(state:)`), ensure builders can run `TUIScene` without the full runtime, and share fixtures between previews & snapshot tests. |
 | **Observable State Objects** | Property wrapper + observation hooks for class-based models (`@StateObject` analog). | Planned | Define observable protocol + lifecycle, ensure reference mutations trigger re-render safely, and document reducer interaction/testing strategy. |
 | **ForEach Diffing** | Re-render only changed elements by leveraging user-provided IDs. | Planned | Track IDs per element, compare against prior frame, and emit minimal updates once runtime supports partial rendering. |
+| **View Background Modifiers** | Allow containers (HStack/VStack/etc.) to apply foreground/background colors. | Planned | Introduce a view-level `.background(_:)` wrapper that wraps rendered output with ANSI codes, document override precedence, and update key demos. |
+| **Additional Text Styles** | Add `.strikethrough()`, `.dim()`, `.inverse()` to mirror ANSI capabilities. | Planned | Extend `Text` modifiers + tests, and decide whether to expose generic view modifiers for these styles. |
 
 ## Working Notes
 
