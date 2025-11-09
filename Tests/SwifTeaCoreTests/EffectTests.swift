@@ -11,10 +11,10 @@ struct EffectTests {
     func timerEmitsActions() async {
         let effect = Effect<TestAction>.timer(every: 0.01, repeats: true) { .ping }
 
-        var emissions: [TestAction] = []
+        let buffer = ActionBuffer<TestAction>()
         let task = Task {
             await effect.run { action in
-                emissions.append(action)
+                buffer.append(action)
             }
         }
 
@@ -22,6 +22,25 @@ struct EffectTests {
         task.cancel()
         _ = await task.result
 
+        let emissions = buffer.snapshot()
         #expect(emissions.count >= 2)
+    }
+}
+
+final class ActionBuffer<Action: Sendable>: @unchecked Sendable {
+    private var values: [Action] = []
+    private let lock = NSLock()
+
+    func append(_ value: Action) {
+        lock.lock()
+        values.append(value)
+        lock.unlock()
+    }
+
+    func snapshot() -> [Action] {
+        lock.lock()
+        let snapshot = values
+        lock.unlock()
+        return snapshot
     }
 }

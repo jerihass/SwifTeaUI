@@ -9,6 +9,7 @@ struct StateTests {
 
         struct DummyApp: TUIScene {
             @State var count = 0
+            enum Action { case none }
 
             // Allow test harness to read the whole app as Model
             typealias Model = DummyApp
@@ -16,10 +17,9 @@ struct StateTests {
             func view(model: Model) -> some TUIView {
                 Text("Count: \(count)")
             }
-
-            mutating func update(action: Never) {}
-            func mapKeyToAction(_ key: KeyEvent) -> Never? { nil }
-            func shouldExit(for action: Never) -> Bool { false }
+            mutating func update(action: Action) {}
+            func mapKeyToAction(_ key: KeyEvent) -> Action? { nil }
+            func shouldExit(for action: Action) -> Bool { false }
         }
 
         var app = DummyApp()
@@ -43,9 +43,3 @@ extension SwifTea {
 extension TUIScene where Model == Self {
     var model: Self { self }
 }
-
-extension TUIScene where Action == Never {
-        mutating func update(action: Action) {}
-        func mapKeyToAction(_ key:KeyEvent) -> Action? { nil }
-        func shouldExit(for action: Action) -> Bool { false }
-    }
