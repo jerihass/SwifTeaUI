@@ -42,4 +42,15 @@ struct ForEachTests {
         let output = view.render().split(separator: "\n").map(String.init)
         #expect(output == ["Alpha", "Beta"])
     }
+
+    @Test("ForEach can participate in horizontal layouts without forced line breaks")
+    func testHorizontalUsage() {
+        let view = HStack {
+            ForEach(["L", "R"], id: \.self) { value in
+                Text(value)
+            }
+        }
+
+        #expect(view.render() == "L   R")
+    }
 }

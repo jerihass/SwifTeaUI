@@ -33,16 +33,18 @@ struct TaskRunnerView: TUIView {
                         .underline()
                     Text(selectionSummary)
                         .foregroundColor(.cyan)
-                    ForEach(Array(state.steps.enumerated()), id: \.element.id) { indexedStep in
-                        StepRow(
-                            index: indexedStep.offset,
-                            step: indexedStep.element,
-                            variant: spinnerVariant(for: indexedStep.offset),
-                            isFocused: indexedStep.offset == state.focusedIndex,
-                            isSelected: state.isSelected(indexedStep.offset),
-                            isCompact: state.isCompactLayout,
-                            meterWidth: state.stepMeterWidth
-                        )
+                    VStack(spacing: 0, alignment: .leading) {
+                        ForEach(Array(state.steps.enumerated()), id: \.element.id) { indexedStep in
+                            StepRow(
+                                index: indexedStep.offset,
+                                step: indexedStep.element,
+                                variant: spinnerVariant(for: indexedStep.offset),
+                                isFocused: indexedStep.offset == state.focusedIndex,
+                                isSelected: state.isSelected(indexedStep.offset),
+                                isCompact: state.isCompactLayout,
+                                meterWidth: state.stepMeterWidth
+                            )
+                        }
                     }
                 }
             )

@@ -421,15 +421,18 @@ public struct ForEach<Data: RandomAccessCollection, ID: Hashable>: TUIView {
         self.idResolver = id
     }
 
-    public func render() -> String {
-        var renderedItems: [String] = []
-        renderedItems.reserveCapacity(data.count)
+    func makeChildViews() -> [any TUIView] {
+        var views: [any TUIView] = []
+        views.reserveCapacity(data.count)
         for element in data {
             _ = idResolver(element)
-            let children = content(element)
-            renderedItems.append(children.map { $0.render() }.joined(separator: "\n"))
+            views.append(contentsOf: content(element))
         }
-        return renderedItems.joined(separator: "\n")
+        return views
+    }
+
+    public func render() -> String {
+        makeChildViews().map { $0.render() }.joined(separator: "\n")
     }
 
     public var body: some TUIView { self }
@@ -449,6 +452,10 @@ public extension ForEach where Data.Element: Identifiable, Data.Element.ID == ID
 public struct TUIBuilder {
     public static func buildBlock(_ components: [any TUIView]...) -> [any TUIView] {
         components.flatMap { $0 }
+    }
+
+    public static func buildExpression<Data, ID>(_ expression: ForEach<Data, ID>) -> [any TUIView] {
+        expression.makeChildViews()
     }
 
     public static func buildExpression<Content: TUIView>(_ expression: Content) -> [any TUIView] {
