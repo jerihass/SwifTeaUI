@@ -2,31 +2,26 @@
 
 A modern, declarative **Terminal UI framework for Swift**, inspired by SwiftUI and Bubble Tea.
 
-### Goals
+### A Tiny SwifTeaUI App
 
-✅ SwiftUI-like declarative syntax  
-✅ POSIX & ANSI abstractions handled for you  
-✅ Async actions, effects, and key event routing  
-✅ Cross-platform (macOS + Linux)  
-✅ Clean, composable view system
-
-### Example
+SwifTeaUI mirrors SwiftUI’s DSL, so the entire model/scene/view for a key-driven counter fits in one file:
 
 ```swift
+import SwifTeaCore
+import SwifTeaUI
+
 @main
-struct CounterApp: TUIApp {
-    var body: some TUIScene {
-        CounterScene()
-    }
+struct TinyCounterApp: TUIApp {
+    var body: some TUIScene { TinyCounterScene() }
 }
 
-struct CounterScene: TUIScene {
-    typealias Model = CounterModel
-    typealias Action = CounterModel.Action
+struct TinyCounterScene: TUIScene {
+    typealias Model = TinyCounterModel
+    typealias Action = TinyCounterModel.Action
 
-    var model: CounterModel
+    var model: TinyCounterModel
 
-    init(model: CounterModel = CounterModel()) {
+    init(model: TinyCounterModel = TinyCounterModel()) {
         self.model = model
     }
 
@@ -34,31 +29,78 @@ struct CounterScene: TUIScene {
         model.update(action: action)
     }
 
-    func view(model: CounterModel) -> some TUIView {
-        CounterView(state: model.state)
+    func view(model: TinyCounterModel) -> some TUIView {
+        model.makeView()
+    }
+
+    func mapKeyToAction(_ key: KeyEvent) -> Action? {
+        model.mapKeyToAction(key)
+    }
+
+    func shouldExit(for action: Action) -> Bool {
+        model.shouldExit(for: action)
     }
 }
 
-struct CounterModel {
-    enum Action { case increment, decrement }
+struct TinyCounterModel {
+    enum Action { case increment, decrement, quit }
 
-    @State private var state: CounterState
-
-    init(state: CounterState = CounterState()) {
-        self._state = State(wrappedValue: state)
-    }
+    @State private var count = 0
 
     mutating func update(action: Action) {
         switch action {
-        case .increment: state.count += 1
-        case .decrement: state.count -= 1
+        case .increment: count += 1
+        case .decrement: count -= 1
+        case .quit: break
         }
+    }
+
+    func makeView() -> some TUIView {
+        TinyCounterView(count: count)
+    }
+
+    func mapKeyToAction(_ key: KeyEvent) -> Action? {
+        switch key {
+        case .rightArrow, .char("+"): return .increment
+        case .leftArrow, .char("-"): return .decrement
+        case .char("q"), .escape: return .quit
+        default: return nil
+        }
+    }
+
+    func shouldExit(for action: Action) -> Bool {
+        if case .quit = action { return true }
+        return false
+    }
+}
+
+struct TinyCounterView: TUIView {
+    let count: Int
+
+    var body: some TUIView {
+        Border(
+            padding: 1,
+            VStack(spacing: 1, alignment: .leading) {
+                Text("Tiny Counter").foregroundColor(.yellow).bold()
+                Text("Use ←/→ or +/- to change the value, press q to quit.")
+                    .foregroundColor(.cyan)
+                Text("Count: \(count)").foregroundColor(.green)
+            }
+        )
+        .padding(1)
     }
 }
 ```
 
-Tests (or previews) can now inject preconfigured scenes via `CounterScene(model: CounterModel(state: previewState))`.
-Written in Swift.
+The scene maps terminal key events to reducer actions, `@State` keeps the counter value live, and the runtime renders the ANSI layout—no manual escape codes required.
+
+### Goals
+
+✅ SwiftUI-like declarative syntax  
+✅ POSIX & ANSI abstractions handled for you  
+✅ Async actions, effects, and key event routing  
+✅ Cross-platform (macOS + Linux)  
+✅ Clean, composable view system
 
 ### Async Effects & Dispatch
 
@@ -73,6 +115,7 @@ Written in Swift.
 - Declare `@FocusState` for whichever enum identifies focusable elements. `$focused.isFocused(.tag)` returns a `Binding<Bool>` that plugs straight into `.focused(_:)`, while `$focused.moveForward(in:)` / `.moveBackward(in:)` walk a `FocusRing`.
 - Wrap related fields in a `FocusScope` so Tab and Shift+Tab navigation can stay inside that group before falling back to a global ring. Terminal Shift+Tab arrives as `.backTab` in `KeyEvent`.
 - Typical pattern:
+
   ```swift
   enum Field: Hashable { case controls, title, body }
   @FocusState private var focused: Field?
