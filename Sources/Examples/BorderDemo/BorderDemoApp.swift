@@ -47,7 +47,24 @@ struct BorderDemoModel {
 
 struct BorderDemoView: TUIView {
     var body: some TUIView {
-        Border(
+        let inner = Border(
+            padding: 1,
+            color: .brightYellow,
+            background: .brightBlack,
+            VStack(spacing: 1, alignment: .leading) {
+                Text("Inner Panel")
+                    .foregroundColor(.brightWhite)
+                    .backgroundColor(.brightBlue)
+                    .bold()
+                Text("This block shows nesting behaviour.")
+                    .foregroundColor(.brightCyan)
+                Text("Inner content can still paint its own backgrounds.")
+                    .foregroundColor(.black)
+                    .backgroundColor(.brightGreen)
+            }
+        )
+
+        return Border(
             padding: 1,
             color: .brightMagenta,
             background: .black,
@@ -56,12 +73,10 @@ struct BorderDemoView: TUIView {
                     .foregroundColor(.brightYellow)
                     .backgroundColor(.blue)
                     .bold()
-                Text("Inspect the right-hand padding for color bleed.")
+                Text("Inspect the padding to confirm no bleed.")
                     .foregroundColor(.brightCyan)
-                Text("Line 2 - bright green bg")
-                    .foregroundColor(.black)
-                    .backgroundColor(.brightGreen)
-                Text("Line 3 - bright red bg")
+                inner
+                Text("Outer content retains its own styling.")
                     .foregroundColor(.brightWhite)
                     .backgroundColor(.brightRed)
             }

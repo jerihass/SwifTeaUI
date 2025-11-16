@@ -69,7 +69,7 @@ struct BorderTests {
             Text("Hi").backgroundColor(.brightGreen)
         )
         let rendered = border.render()
-        let lines = border.render().splitLinesPreservingEmpty()
+        let lines = rendered.splitLinesPreservingEmpty()
         #expect(lines.count == 3)
 
         let prefix = ANSIColor.blue.backgroundCode
@@ -91,6 +91,38 @@ struct BorderTests {
 └──┘
 """
         #expect(rendered.removingANSISequences() == ascii)
+    }
+
+    @Test("Nested borders preserve interior backgrounds")
+    func testNestedBorderBackgrounds() {
+        let inner = Border(
+            padding: 0,
+            color: .brightYellow,
+            background: .brightBlack,
+            Text("Hi").backgroundColor(.brightGreen)
+        )
+        let outer = Border(
+            padding: 1,
+            color: .brightBlue,
+            background: .blue,
+            inner
+        )
+
+        let rendered = outer.render()
+        #expect(rendered.contains(ANSIColor.blue.backgroundCode))
+        #expect(rendered.contains(ANSIColor.brightBlack.backgroundCode))
+        #expect(rendered.contains(ANSIColor.brightGreen.backgroundCode))
+
+        let expectedASCII = """
+┌────────┐
+│        │
+│ ┌──┐   │
+│ │Hi│   │
+│ └──┘   │
+│        │
+└────────┘
+"""
+        #expect(rendered.removingANSISequences() == expectedASCII)
     }
 }
 
