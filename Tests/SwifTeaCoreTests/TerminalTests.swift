@@ -69,4 +69,20 @@ struct TerminalTests {
         #expect(regular.verticalSizeClass == .regular)
         #expect(!regular.isCompact)
     }
+
+    @Test("Frame padding resets colors before trailing spaces")
+    func testFramePaddingResetsColor() {
+        let red = "\u{001B}[31m"
+        let reset = ANSIColor.reset.rawValue
+        let input = "\(red)brew\(reset)"
+
+        let padded = input.padded(toVisibleWidth: 10)
+        #expect(padded.hasSuffix(reset + String(repeating: " ", count: 6)))
+
+        let multiline = "\(input)\n\(input)"
+        let processed = multiline.padded(toVisibleWidth: 10)
+        let expectedPadding = reset + String(repeating: " ", count: 6)
+        #expect(processed.contains(expectedPadding + "\n"))
+        #expect(processed.hasSuffix(expectedPadding))
+    }
 }

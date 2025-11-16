@@ -554,6 +554,7 @@ extension String {
         for character in self {
             if character == "\n" {
                 if currentWidth < width {
+                    result.append(ANSIColor.reset.rawValue)
                     result.append(String(repeating: " ", count: width - currentWidth))
                 }
                 result.append(character)
@@ -576,6 +577,7 @@ extension String {
         }
 
         if currentWidth < width {
+            result.append(ANSIColor.reset.rawValue)
             result.append(String(repeating: " ", count: width - currentWidth))
         }
 
