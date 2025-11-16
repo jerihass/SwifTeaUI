@@ -60,4 +60,23 @@ struct BorderTests {
 """
         #expect(border.render() == expected)
     }
+
+    @Test("Border background color wraps the rendered output")
+    func testBorderBackgroundColor() {
+        let border = Border(padding: 0, background: .blue, Text("Hi"))
+        let lines = border.render().splitLinesPreservingEmpty()
+        #expect(lines.count == 3)
+
+        let prefix = ANSIColor.blue.backgroundCode
+        let reset = ANSIColor.reset.rawValue
+
+        #expect(lines[0] == prefix + "┌──┐" + reset)
+        #expect(lines[2] == prefix + "└──┘" + reset)
+
+        let middle = lines[1]
+        #expect(middle.hasPrefix(prefix + "│" + reset))
+        #expect(middle.hasSuffix(prefix + "│" + reset))
+        let inner = middle.dropFirst((prefix + "│" + reset).count).dropLast((prefix + "│" + reset).count)
+        #expect(inner == "Hi")
+    }
 }

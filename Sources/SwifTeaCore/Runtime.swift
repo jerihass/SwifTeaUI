@@ -563,8 +563,6 @@ extension String {
                 continue
             }
 
-            result.append(character)
-
             if character == "\u{001B}" {
                 inEscape = true
             } else if inEscape {
@@ -574,6 +572,8 @@ extension String {
             } else {
                 currentWidth += 1
             }
+
+            result.append(character)
         }
 
         if currentWidth < width {

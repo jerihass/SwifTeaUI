@@ -51,31 +51,8 @@ struct ColorDemoView: TUIView {
     let sampleText: String
 
     var body: some TUIView {
-        VStack(spacing: 1, alignment: .leading) {
-            Text("Color Artifact Demo")
-                .foregroundColor(.brightYellow)
-                .bold()
-            Text("Use this tiny scene to inspect resets when padding applies.")
-                .foregroundColor(.brightMagenta)
-            Text(sampleText)
-                .foregroundColor(.brightWhite)
-                .backgroundColor(.blue)
-            Text("The blue background above should stop exactly at the text width.")
-                .foregroundColor(.brightCyan)
-            Border(
-                padding: 1,
-                color: .brightBlue,
-                VStack(spacing: 1, alignment: .leading) {
-                    Text("Border content")
-                        .foregroundColor(.brightWhite)
-                        .backgroundColor(.brightBlack)
-                    Text("This row has a green background to expose trailing resets.")
-                        .foregroundColor(.black)
-                        .backgroundColor(.brightGreen)
-                }
-            )
-        }
-        .padding(1)
-        .backgroundColor(.black)
+        Text(sampleText)
+            .foregroundColor(.brightWhite)
+            .backgroundColor(.blue)
     }
 }

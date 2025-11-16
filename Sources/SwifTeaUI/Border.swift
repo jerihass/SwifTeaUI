@@ -11,21 +11,29 @@ public struct Border<Content: TUIView>: TUIView {
     private let padding: Int
     private let borderColor: ANSIColor?
     private let borderBold: Bool
+    private let backgroundColor: ANSIColor?
 
     public init(_ content: Content) {
-        self.init(padding: 1, color: nil, bold: false, content)
+        self.init(padding: 1, color: nil, bold: false, background: nil, content)
     }
 
     public init(padding: Int, _ content: Content) {
-        self.init(padding: padding, color: nil, bold: false, content)
+        self.init(padding: padding, color: nil, bold: false, background: nil, content)
     }
 
-    public init(padding: Int, color: ANSIColor? = nil, bold: Bool = false, _ content: Content) {
+    public init(
+        padding: Int,
+        color: ANSIColor? = nil,
+        bold: Bool = false,
+        background: ANSIColor? = nil,
+        _ content: Content
+    ) {
         precondition(padding >= 0, "Border padding must be non-negative.")
         self.content = content
         self.padding = padding
         self.borderColor = color
         self.borderBold = bold
+        self.backgroundColor = background
     }
 
     public func render() -> String {
@@ -59,8 +67,11 @@ public struct Border<Content: TUIView>: TUIView {
     }
 
     private var borderStyle: (prefix: String, suffix: String)? {
-        guard borderColor != nil || borderBold else { return nil }
-        let prefix = (borderColor?.rawValue ?? "") + (borderBold ? "\u{001B}[1m" : "")
+        guard borderColor != nil || borderBold || backgroundColor != nil else { return nil }
+        let prefix =
+            (backgroundColor?.backgroundCode ?? "")
+            + (borderColor?.rawValue ?? "")
+            + (borderBold ? "\u{001B}[1m" : "")
         return (prefix, ANSIColor.reset.rawValue)
     }
 
@@ -90,6 +101,7 @@ public struct Border<Content: TUIView>: TUIView {
         let padding = width - current
         return line + String(repeating: " ", count: padding)
     }
+
 }
 
 public struct FocusRingBorder<Content: TUIView>: TUIView {
@@ -122,14 +134,20 @@ public struct FocusRingBorder<Content: TUIView>: TUIView {
             padding: padding,
             color: borderColor,
             bold: isFocused ? style.bold : false,
+            background: nil,
             content
         ).render()
     }
 }
 
 public extension TUIView {
-    func border(padding: Int = 1, color: ANSIColor? = nil, bold: Bool = false) -> some TUIView {
-        Border(padding: padding, color: color, bold: bold, self)
+    func border(
+        padding: Int = 1,
+        color: ANSIColor? = nil,
+        bold: Bool = false,
+        background: ANSIColor? = nil
+    ) -> some TUIView {
+        Border(padding: padding, color: color, bold: bold, background: background, self)
     }
 
     func focusRing(
