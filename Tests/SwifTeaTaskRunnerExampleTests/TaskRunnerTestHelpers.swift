@@ -1,7 +1,7 @@
 import Foundation
 import SwifTeaCore
 import SwifTeaUI
-@testable import SwifTeaTaskRunnerExample
+@testable import TaskRunnerExample
 
 let taskRunnerSnapshotSize = TerminalSize(columns: 100, rows: 24)
 

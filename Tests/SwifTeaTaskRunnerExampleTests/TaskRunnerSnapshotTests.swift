@@ -1,7 +1,7 @@
 import Foundation
 import SwifTeaCore
 import Testing
-@testable import SwifTeaTaskRunnerExample
+@testable import TaskRunnerExample
 
 @Suite(.serialized)
 struct TaskRunnerSnapshotTests {

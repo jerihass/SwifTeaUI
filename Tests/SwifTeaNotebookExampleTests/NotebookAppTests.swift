@@ -1,5 +1,5 @@
 import Testing
-@testable import SwifTeaNotebookExample
+@testable import NotebookExample
 @testable import SwifTeaCore
 
 struct NotebookAppTests {

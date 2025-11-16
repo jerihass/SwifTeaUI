@@ -1,10 +1,10 @@
 import SwifTeaCore
 import SwifTeaUI
 
-@main
-struct PackageListApp: TUIApp {
-    static var framesPerSecond: Int { 20 }
-    var body: some TUIScene { PackageListScene() }
+public struct PackageListApp: TUIApp {
+    public init() {}
+    public static var framesPerSecond: Int { 20 }
+    public var body: some TUIScene { PackageListScene() }
 }
 
 struct PackageListScene: TUIScene {

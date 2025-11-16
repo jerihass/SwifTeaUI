@@ -1,9 +1,9 @@
 import SwifTeaCore
 import SwifTeaUI
 
-@main
-struct ShowcaseApp: TUIApp {
-    var body: some TUIScene { ShowcaseScene() }
+public struct ShowcaseApp: TUIApp {
+    public init() {}
+    public var body: some TUIScene { ShowcaseScene() }
 }
 
 struct ShowcaseScene: TUIScene {

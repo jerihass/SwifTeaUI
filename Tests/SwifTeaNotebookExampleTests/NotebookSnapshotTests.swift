@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import SwifTeaNotebookExample
+@testable import NotebookExample
 import SwifTeaCore
 
 private let focusHighlightPrefix = ANSIColor.cyan.rawValue + "\u{001B}[1m"

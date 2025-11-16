@@ -2,10 +2,10 @@ import Foundation
 import SwifTeaCore
 import SwifTeaUI
 
-@main
-struct TaskRunnerApp: TUIApp {
-    static var framesPerSecond: Int { 30 }
-    var body: some TUIScene { TaskRunnerScene() }
+public struct TaskRunnerApp: TUIApp {
+    public init() {}
+    public static var framesPerSecond: Int { 30 }
+    public var body: some TUIScene { TaskRunnerScene() }
 }
 
 struct TaskRunnerScene: TUIScene {

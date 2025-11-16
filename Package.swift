@@ -26,25 +26,45 @@ let package = Package(
             dependencies: ["SwifTeaCore"],
             path: "Sources/SwifTeaUI"
         ),
-        .executableTarget(
-            name: "SwifTeaNotebookExample",
+        .target(
+            name: "NotebookExample",
             dependencies: ["SwifTeaUI"],
             path: "Sources/Examples/Notebook"
         ),
-        .executableTarget(
-            name: "SwifTeaTaskRunnerExample",
+        .target(
+            name: "TaskRunnerExample",
             dependencies: ["SwifTeaUI"],
             path: "Sources/Examples/TaskRunner"
         ),
-        .executableTarget(
-            name: "SwifTeaPackageListExample",
+        .target(
+            name: "PackageListExample",
             dependencies: ["SwifTeaUI"],
             path: "Sources/Examples/PackageList"
         ),
-        .executableTarget(
-            name: "SwifTeaShowcaseExample",
+        .target(
+            name: "ShowcaseExample",
             dependencies: ["SwifTeaUI"],
             path: "Sources/Examples/Showcase"
+        ),
+        .executableTarget(
+            name: "SwifTeaNotebookExample",
+            dependencies: ["NotebookExample"],
+            path: "Sources/ExampleApps/Notebook"
+        ),
+        .executableTarget(
+            name: "SwifTeaTaskRunnerExample",
+            dependencies: ["TaskRunnerExample"],
+            path: "Sources/ExampleApps/TaskRunner"
+        ),
+        .executableTarget(
+            name: "SwifTeaPackageListExample",
+            dependencies: ["PackageListExample"],
+            path: "Sources/ExampleApps/PackageList"
+        ),
+        .executableTarget(
+            name: "SwifTeaShowcaseExample",
+            dependencies: ["ShowcaseExample"],
+            path: "Sources/ExampleApps/Showcase"
         ),
         .target(
             name: "SnapshotTestSupport",
@@ -73,7 +93,7 @@ let package = Package(
         .testTarget(
             name: "SwifTeaNotebookExampleTests",
             dependencies: [
-                "SwifTeaNotebookExample",
+                "NotebookExample",
                 "SnapshotTestSupport",
                 .product(name: "Testing", package: "swift-testing")
             ]
@@ -81,7 +101,7 @@ let package = Package(
         .testTarget(
             name: "SwifTeaTaskRunnerExampleTests",
             dependencies: [
-                "SwifTeaTaskRunnerExample",
+                "TaskRunnerExample",
                 "SnapshotTestSupport",
                 .product(name: "Testing", package: "swift-testing")
             ]
