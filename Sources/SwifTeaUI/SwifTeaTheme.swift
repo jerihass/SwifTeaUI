@@ -87,4 +87,20 @@ public extension SwifTeaTheme {
         accentGradient: [.magenta, .brightMagenta, .brightYellow, .brightCyan, .brightBlue],
         accentGradientSymbol: " "
     )
+
+    static let bubbleTeaNeon = SwifTeaTheme(
+        name: "Bubble Tea (Neon)",
+        headerPanel: .init(foreground: .brightWhite, background: .brightMagenta),
+        formPanel: .init(foreground: .brightWhite, background: .brightCyan),
+        primaryText: .brightWhite,
+        mutedText: .brightYellow,
+        accent: .brightMagenta,
+        success: .brightGreen,
+        warning: .brightYellow,
+        info: .brightCyan,
+        frameBorder: .brightMagenta,
+        background: .brightBlack,
+        accentGradient: [.brightMagenta, .brightYellow, .brightGreen, .brightCyan, .brightBlue],
+        accentGradientSymbol: "▄"
+    )
 }

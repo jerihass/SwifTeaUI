@@ -55,7 +55,7 @@ struct PackageListModel {
     }
 
     func makeView() -> some TUIView {
-        PackageListView(state: state)
+        PackageListView(state: state, theme: .bubbleTeaNeon)
     }
 
     func mapKeyToAction(_ key: KeyEvent) -> Action? {
@@ -190,6 +190,7 @@ struct PackageInfo: Identifiable {
 
 struct PackageListView: TUIView {
     let state: PackageListState
+    let theme: SwifTeaTheme
 
     var body: some TUIView {
         MinimumTerminalSize(columns: 90, rows: 20) {
@@ -211,20 +212,20 @@ struct PackageListView: TUIView {
     private var header: some TUIView {
         VStack(spacing: 0, alignment: .leading) {
             Text("Mint Package Dashboard")
-                .foregroundColor(.yellow)
+                .foregroundColor(theme.accent)
                 .bold()
                 .underline()
             let filterText = state.showOnlyOutdated
                 ? "Showing only outdated or missing packages."
                 : "Showing all tracked packages."
             Text(filterText)
-                .foregroundColor(.cyan)
+                .foregroundColor(theme.info)
         }
     }
 
     private var instructions: some TUIView {
         Text("[f] filter outdated • [q] quit")
-            .foregroundColor(.yellow)
+            .foregroundColor(theme.warning)
             .italic()
     }
 

@@ -12,14 +12,15 @@ struct TaskRunnerView: TUIView {
     }
 
     private var mainContent: some TUIView {
-        VStack(spacing: 1, alignment: .leading) {
+        let theme = SwifTeaTheme.bubbleTeaNeon
+        return VStack(spacing: 1, alignment: .leading) {
             VStack(spacing: 0, alignment: .leading) {
                 Text("SwifTea Task Runner")
-                    .foregroundColor(.yellow)
+                    .foregroundColor(theme.accent)
                     .bold()
                     .underline()
                 Text("Select multiple steps, start them together, and watch them fan out asynchronously.")
-                    .foregroundColor(.cyan)
+                    .foregroundColor(theme.info)
                     .italic()
             }
 
@@ -27,11 +28,11 @@ struct TaskRunnerView: TUIView {
                 padding: 1,
                 VStack(spacing: 1, alignment: .leading) {
                     Text("Process Queue")
-                        .foregroundColor(.yellow)
+                        .foregroundColor(theme.accent)
                         .bold()
                         .underline()
                     Text(selectionSummary)
-                        .foregroundColor(.cyan)
+                        .foregroundColor(theme.info)
                     VStack(spacing: 0, alignment: .leading) {
                         ForEach(Array(state.steps.enumerated()), id: \.element.id) { indexedStep in
                             StepRow(

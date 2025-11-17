@@ -48,19 +48,22 @@ struct GalleryModel {
     private var taskRunner: TaskRunnerModel
     private var packageList: PackageListModel
     @State private var overlays: OverlayPresenter
+    private let theme: SwifTeaTheme
 
     init(
         activeSection: Section = .notebook,
         notebook: NotebookModel = NotebookModel(),
         taskRunner: TaskRunnerModel? = nil,
         packageList: PackageListModel = PackageListModel(),
-        overlays: OverlayPresenter = OverlayPresenter()
+        overlays: OverlayPresenter = OverlayPresenter(),
+        theme: SwifTeaTheme = .bubbleTeaNeon
     ) {
         self._activeSection = State(wrappedValue: activeSection)
         self.notebook = notebook
         self.taskRunner = taskRunner ?? TaskRunnerModel(effects: Self.makeTaskRunnerEffects())
         self.packageList = packageList
         self._overlays = State(wrappedValue: overlays)
+        self.theme = theme
     }
 
     mutating func update(action: Action) {
@@ -93,7 +96,8 @@ struct GalleryModel {
         let galleryView = GalleryView(
             activeSection: activeSection,
             contentView: selectedView,
-            shortcutsEnabled: sectionShortcutsEnabled
+            shortcutsEnabled: sectionShortcutsEnabled,
+            theme: theme
         )
         return OverlayHost(presenter: overlays, content: galleryView)
     }
@@ -227,20 +231,32 @@ struct GalleryModel {
 
     private mutating func showSectionToast() {
         let message = "Switched to \(activeSection.title)"
+        let toastStyle = OverlayPresenter.ToastStyle(
+            accentColor: theme.accent,
+            backgroundColor: theme.background ?? .black,
+            textColor: theme.primaryText,
+            icon: "★"
+        )
         overlays.presentToast(
             placement: .bottom,
             duration: 2,
-            style: .info
+            style: toastStyle
         ) {
             Text(message)
         }
     }
 
     private mutating func presentHelpModal() {
+        let style = OverlayPresenter.ModalStyle(
+            accentColor: theme.accent,
+            borderColor: theme.frameBorder,
+            titleColor: theme.primaryText
+        )
+        let infoColor = theme.info
         overlays.presentModal(
             priority: 1,
             title: "Gallery Shortcuts",
-            style: .info
+            style: style
         ) {
             VStack(spacing: 1, alignment: .leading) {
                 Text("[1]/[2]/[3] select section")
@@ -248,7 +264,7 @@ struct GalleryModel {
                 Text("[?] toggle this help")
                 Text("[Ctrl-C] quit")
             }
-            .foregroundColor(.brightCyan)
+            .foregroundColor(infoColor)
         }
     }
 }

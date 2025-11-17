@@ -9,6 +9,7 @@ struct NotebookView: TUIView {
     private let minimumColumns = 90
     private let minimumRows = 32
     private let stackedBreakpoint = 120
+    private let theme = SwifTeaTheme.bubbleTeaNeon
 
     let state: NotebookState
     let focus: NotebookFocusField?
@@ -39,14 +40,18 @@ struct NotebookView: TUIView {
 
         let textInputFocusStyle = FocusStyle(indicator: "", color: nil, bold: false)
 
-        let editorContent = VStack(spacing: 1, alignment: .leading) {
+        let editorContent = Border(
+            padding: 1,
+            color: theme.frameBorder,
+            background: theme.background,
+            VStack(spacing: 1, alignment: .leading) {
             editorTitleView
-            Text("Title:").foregroundColor(focus == .editorTitle ? .cyan : .yellow)
+            Text("Title:").foregroundColor(focus == .editorTitle ? theme.accent : theme.info)
             TextField("Title...", text: titleBinding)
                 .focusRingStyle(textInputFocusStyle)
                 .focused(titleFocusBinding)
                 .blinkingCursor()
-            Text("Body:").foregroundColor(focus == .editorBody ? .cyan : .yellow)
+            Text("Body:").foregroundColor(focus == .editorBody ? theme.accent : theme.info)
             ScrollView(
                 viewport: bodyViewport,
                 offset: bodyScrollBinding,
@@ -61,9 +66,9 @@ struct NotebookView: TUIView {
             }
             .followingActiveLine(bodyCursorLineBinding, enabled: followCursorBinding)
             Text("")
-            Text("Saved note: \(state.notes[state.selectedIndex].title)").foregroundColor(.green)
-            Text("Status: \(state.statusMessage)").foregroundColor(.cyan)
-        }
+            Text("Saved note: \(state.notes[state.selectedIndex].title)").foregroundColor(theme.success)
+            Text("Status: \(state.statusMessage)").foregroundColor(theme.info)
+        })
         let sidebar = Sidebar(
             title: "Notes",
             items: state.notes,
@@ -74,8 +79,13 @@ struct NotebookView: TUIView {
             note.title
         }
 
-        let sidebarColumn = sidebar.padding(1)
-        let editorColumn = editorContent.padding(1)
+        let sidebarColumn = Border(
+            padding: 1,
+            color: theme.frameBorder,
+            background: theme.background,
+            sidebar.padding(0)
+        )
+        let editorColumn = editorContent
 
         let combined: AnyTUIView = {
             switch mode {
@@ -97,7 +107,7 @@ struct NotebookView: TUIView {
         }()
 
         return VStack(spacing: 1, alignment: .leading) {
-            Text("SwifTea Notebook").foregroundColor(.yellow).bold()
+            Text("SwifTea Notebook").foregroundColor(theme.accent).bold()
             Text("")
             combined
             Text("")
@@ -173,7 +183,7 @@ struct NotebookView: TUIView {
         if focus == .editorTitle || focus == .editorBody {
             return Text(FocusStyle.default.apply(to: "Editor"))
         } else {
-            return Text("Editor").foregroundColor(.yellow)
+            return Text("Editor").foregroundColor(theme.mutedText)
         }
     }
 
