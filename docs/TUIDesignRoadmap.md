@@ -28,6 +28,7 @@ This document tracks upcoming terminal UI design paradigms for SwifTeaUI. Each e
 | **View Background Modifiers** | Allow containers (HStack/VStack/etc.) to apply foreground/background colors. | Implemented | `.foregroundColor(_:)` / `.backgroundColor(_:)` now wrap any view’s rendered output with ANSI escapes. Next: document precedence with nested styled children and add theming helpers for preset palettes. |
 | **Additional Text Styles** | Add `.strikethrough()`, `.dim()`, `.inverse()` to mirror ANSI capabilities. | Planned | Extend `Text` modifiers + tests, and decide whether to expose generic view modifiers for these styles. |
 | **Scrollable Viewports** | Keep text editors and long content bounded via scroll containers that mirror SwiftUI’s `ScrollView`. | Implemented | `ScrollView` now supports horizontal slicing, indicator glyphs, `.followingActiveLine` helpers, and `.scrollDisabled(_:)` so reducers can freeze offsets. Next polish: experiment with indicator theming, add caret-column auto-follow options, and showcase the new APIs across additional demos. |
+| **Theme Presets** | Ship curated color palettes so demos share cohesive styling out of the box. | Implemented | `SwifTeaTheme` exposes bubbleTea dark/light plus the new neon palette; next explore runtime theme toggles, monochrome fallbacks, and documenting palette guidelines. |
 
 ## Working Notes
 
@@ -36,7 +37,7 @@ This document tracks upcoming terminal UI design paradigms for SwifTeaUI. Each e
 - Focus ring helper and snapshot utilities landed; migrate remaining demos as they gain focus cues.
 - Spinner component (`Spinner`) and TaskRunner demo cover animated progress; gather feedback on additional glyph sets (especially ASCII-safe variants) and expand timer customization guidance.
 - Progress meter (`ProgressMeter`) now drives status strip percentages—consider colour-aware theming and stacked meters for concurrent tasks.
-- TaskRunner's status message queue keeps transient updates inside the status bar; evolve this into an overlay view that can auto-expire without explicit user actions.
+- OverlayPresenter/OverlayHost now drive toasts + modals; migrate remaining demos from bespoke queues (e.g., TaskRunner) and surface reusable overlay presets (help sheets, confirmations, etc.).
 - Consider documenting keybindings alongside UI so components surface expected inputs (e.g., Tab order, shortcut hints).
 - API polish: align surface naming with SwiftUI (e.g., `.foregroundColor`, `.bold`, `.focused` modifiers, rename `TextArea` → `TextEditor`), expand `TUIBuilder` with `buildOptional/buildEither/buildArray` for familiar control flow, and expose sizing helpers via modifiers (`.padding`, `.frame`) instead of bespoke initialiser params.
 - Unify example layouts under shared containers so padding/borders read as a single frame (e.g., notebook panes sharing one border with internal padding, counter header wrapped in a bordered stack).
