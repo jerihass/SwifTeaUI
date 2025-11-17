@@ -7,7 +7,6 @@ A modern, declarative **Terminal UI framework for Swift**, inspired by SwiftUI a
 SwifTeaUI mirrors SwiftUI’s DSL.
 
 ```swift
-import SwifTeaCore
 import SwifTeaUI
 
 @main

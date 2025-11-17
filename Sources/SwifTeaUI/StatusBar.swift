@@ -1,4 +1,3 @@
-import SwifTeaCore
 
 public struct StatusBar: TUIView {
     public typealias Body = Never

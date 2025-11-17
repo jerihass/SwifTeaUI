@@ -1,4 +1,3 @@
-import SwifTeaCore
 
 public struct ScrollView<Content: TUIView>: TUIView {
     public enum Axis {

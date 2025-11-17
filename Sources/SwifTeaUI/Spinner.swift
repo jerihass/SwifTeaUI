@@ -1,5 +1,4 @@
 import Foundation
-import SwifTeaCore
 
 public struct Spinner: TUIView {
     public struct Style: Equatable {

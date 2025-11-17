@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-SwifTeaUI is organised as a Swift Package. `Sources/SwifTeaCore` hosts the render loop, effect pipeline, and shared state utilities. `Sources/SwifTeaUI` layers the declarative view DSL on top of the core. Example apps live under `Sources/Examples`, with `Sources/Examples/Gallery` wired to the `SwifTeaGalleryExample` executable so you can iterate quickly. Tests are split between `Tests/SwifTeaCoreTests` and `Tests/SwifTeaUITests`; add mirrors of any new module APIs here to keep coverage balanced.
+SwifTeaUI is organised as a Swift Package. `Sources/SwifTeaUI/Core` hosts the render loop, effect pipeline, and shared state utilities while the rest of `Sources/SwifTeaUI` layers the declarative view DSL on top of the same module. Example apps live under `Sources/Examples`, with `Sources/Examples/Gallery` wired to the `SwifTeaGalleryExample` executable so you can iterate quickly. Tests are split between `Tests/SwifTeaCoreTests` and `Tests/SwifTeaUITests`; add mirrors of any new module APIs here to keep coverage balanced.
 
 ## Build, Test, and Development Commands
 Run `swift package resolve` whenever dependencies change. `swift build` compiles all libraries and the example executable. `swift test` executes the swift-testing suite. To try the sample UI in a terminal, use `swift run SwifTeaGalleryExample`. For focused debugging, `swift test --filter StateTests` is useful when iterating on state management logic.

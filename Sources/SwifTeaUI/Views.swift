@@ -1,5 +1,4 @@
 import Foundation
-import SwifTeaCore
 
 public struct Text: TUIView {
     public typealias Body = Never
@@ -366,17 +365,6 @@ extension String {
         }
         lines.append(current)
         return lines
-    }
-}
-
-extension Character {
-    public var isANSISequenceTerminator: Bool {
-        switch self {
-        case "a"..."z", "A"..."Z":
-            return true
-        default:
-            return false
-        }
     }
 }
 

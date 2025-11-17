@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import SwifTeaCore
+@testable import SwifTeaUI
 
 #if os(Linux)
 import Glibc

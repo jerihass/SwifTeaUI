@@ -1,4 +1,3 @@
-import SwifTeaCore
 
 public struct StatusToast: Equatable {
     public var text: String

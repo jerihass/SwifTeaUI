@@ -1,5 +1,4 @@
 import Foundation
-import SwifTeaCore
 
 public struct ProgressMeter: TUIView {
     public struct Style {

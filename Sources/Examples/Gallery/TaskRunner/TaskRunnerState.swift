@@ -1,5 +1,4 @@
 import Foundation
-import SwifTeaCore
 import SwifTeaUI
 
 struct TaskRunnerState {

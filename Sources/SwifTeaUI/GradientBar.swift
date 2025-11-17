@@ -1,4 +1,3 @@
-import SwifTeaCore
 
 public struct GradientBar: TUIView {
     public typealias Body = Never

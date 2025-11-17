@@ -1,4 +1,3 @@
-import SwifTeaCore
 
 public struct FocusStyle {
     public var indicator: String

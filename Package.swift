@@ -5,9 +5,8 @@ let package = Package(
     name: "SwifTeaUI",
     platforms: [.macOS(.v14)],
     products: [
-        // Users typically `import SwifTeaUI` (which depends on SwifTeaCore)
+        // Users typically `import SwifTeaUI` for the runtime + DSL
         .library(name: "SwifTeaUI", targets: ["SwifTeaUI"]),
-        .library(name: "SwifTeaCore", targets: ["SwifTeaCore"]),
         .executable(name: "SwifTeaGalleryExample", targets: ["SwifTeaGalleryExample"])
     ],
     dependencies: [
@@ -15,12 +14,8 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "SwifTeaCore",
-            path: "Sources/SwifTeaCore"
-        ),
-        .target(
             name: "SwifTeaUI",
-            dependencies: ["SwifTeaCore"],
+            dependencies: [],
             path: "Sources/SwifTeaUI"
         ),
         .target(
@@ -44,7 +39,6 @@ let package = Package(
         .testTarget(
             name: "SwifTeaCoreTests",
             dependencies: [
-                "SwifTeaCore",
                 "SwifTeaUI",
                 .product(name: "Testing", package: "swift-testing")
             ]

@@ -1,4 +1,3 @@
-import SwifTeaCore
 
 public struct Border<Content: TUIView>: TUIView {
     public typealias Body = Never

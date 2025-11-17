@@ -1,5 +1,5 @@
 import Foundation
-import SwifTeaCore
+import SwifTeaUI
 
 struct TaskRunnerViewModel {
     func moveFocus(offset: Int, state: inout TaskRunnerState) {

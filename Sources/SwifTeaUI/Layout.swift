@@ -1,5 +1,4 @@
 import Foundation
-import SwifTeaCore
 
 public struct Spacer: TUIView {
     public typealias Body = Never

@@ -1,4 +1,3 @@
-import SwifTeaCore
 
 public struct TextEditor: TUIView {
     public typealias Body = Never

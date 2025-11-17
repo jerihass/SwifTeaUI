@@ -1,4 +1,3 @@
-import SwifTeaCore
 import SwifTeaUI
 
 public struct NotebookApp: TUIApp {

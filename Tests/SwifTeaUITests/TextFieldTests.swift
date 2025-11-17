@@ -1,6 +1,6 @@
 import SnapshotTestSupport
 import Testing
-@testable import SwifTeaCore
+@testable import SwifTeaUI
 @testable import SwifTeaUI
 
 private extension String {

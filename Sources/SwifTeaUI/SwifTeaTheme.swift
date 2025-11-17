@@ -1,4 +1,3 @@
-import SwifTeaCore
 
 public struct SwifTeaTheme {
     public struct PanelColors {

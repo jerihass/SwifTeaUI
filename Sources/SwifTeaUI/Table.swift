@@ -1,5 +1,4 @@
 import Foundation
-import SwifTeaCore
 
 public struct TableColumn<Row> {
     public enum Width {

@@ -1,5 +1,5 @@
 import Testing
-import SwifTeaCore
+import SwifTeaUI
 @testable import SwifTeaUI
 
 struct ScrollViewTests {

@@ -1,4 +1,3 @@
-import SwifTeaCore
 
 public struct MinimumTerminalSize<Content: TUIView, Fallback: TUIView>: TUIView {
     public typealias Body = Never

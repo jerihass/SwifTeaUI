@@ -1,4 +1,3 @@
-import SwifTeaCore
 
 public struct TextField: TUIView {
     public typealias Body = Never

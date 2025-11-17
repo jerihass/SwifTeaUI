@@ -1,4 +1,4 @@
-import SwifTeaCore
+import SwifTeaUI
 
 struct NotebookFocusCoordinator {
     private let globalRing = FocusRing<NotebookFocusField>([

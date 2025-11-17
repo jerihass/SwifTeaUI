@@ -1,5 +1,5 @@
 import Testing
-@testable import SwifTeaCore
+@testable import SwifTeaUI
 @testable import SwifTeaUI
 
 @Suite(.serialized)

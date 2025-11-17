@@ -1,4 +1,3 @@
-import SwifTeaCore
 
 public struct ForegroundColored<Content: TUIView>: TUIView {
     public typealias Body = Never

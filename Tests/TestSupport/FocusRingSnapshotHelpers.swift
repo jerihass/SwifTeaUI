@@ -1,4 +1,3 @@
-import SwifTeaCore
 import SwifTeaUI
 import Testing
 

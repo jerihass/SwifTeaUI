@@ -1,6 +1,6 @@
 import Testing
 import SnapshotTestSupport
-@testable import SwifTeaCore
+@testable import SwifTeaUI
 @testable import SwifTeaUI
 
 struct BorderTests {
