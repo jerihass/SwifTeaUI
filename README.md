@@ -142,10 +142,7 @@ The scene maps terminal key events to reducer actions, `@State` keeps the counte
 
 ### Examples
 
-- `swift run SwifTeaShowcaseExample` combines the counter, color sample, and nested border demo into one terminal scene so you can see the primary widgets together.
-- `swift run SwifTeaNotebookExample` demonstrates two panes with scoped focus rings, arrow-key navigation, and text entry across multiple fields.
-- `swift run SwifTeaTaskRunnerExample` simulates a task queue, showcasing the spinner view inline and in the status bar for live progress feedback.
-- `swift run SwifTeaPackageListExample` renders a Mint-inspired dashboard that uses the new `Table` view plus a status bar to highlight outdated packages.
+- `swift run SwifTeaGalleryExample` stitches the notebook, task runner, and package list demos into a single executable—use `[1]`, `[2]`, `[3]`, or `Tab`/`Shift+Tab` to jump between the sections without quitting the program.
 
 ### Layout Primitives
 

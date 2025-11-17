@@ -8,10 +8,7 @@ let package = Package(
         // Users typically `import SwifTeaUI` (which depends on SwifTeaCore)
         .library(name: "SwifTeaUI", targets: ["SwifTeaUI"]),
         .library(name: "SwifTeaCore", targets: ["SwifTeaCore"]),
-        .executable(name: "SwifTeaNotebookExample", targets: ["SwifTeaNotebookExample"]),
-        .executable(name: "SwifTeaTaskRunnerExample", targets: ["SwifTeaTaskRunnerExample"]),
-        .executable(name: "SwifTeaPackageListExample", targets: ["SwifTeaPackageListExample"]),
-        .executable(name: "SwifTeaShowcaseExample", targets: ["SwifTeaShowcaseExample"])
+        .executable(name: "SwifTeaGalleryExample", targets: ["SwifTeaGalleryExample"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-testing.git", branch: "main")
@@ -27,44 +24,14 @@ let package = Package(
             path: "Sources/SwifTeaUI"
         ),
         .target(
-            name: "NotebookExample",
+            name: "GalleryExample",
             dependencies: ["SwifTeaUI"],
-            path: "Sources/Examples/Notebook"
-        ),
-        .target(
-            name: "TaskRunnerExample",
-            dependencies: ["SwifTeaUI"],
-            path: "Sources/Examples/TaskRunner"
-        ),
-        .target(
-            name: "PackageListExample",
-            dependencies: ["SwifTeaUI"],
-            path: "Sources/Examples/PackageList"
-        ),
-        .target(
-            name: "ShowcaseExample",
-            dependencies: ["SwifTeaUI"],
-            path: "Sources/Examples/Showcase"
+            path: "Sources/Examples/Gallery"
         ),
         .executableTarget(
-            name: "SwifTeaNotebookExample",
-            dependencies: ["NotebookExample"],
-            path: "Sources/ExampleApps/Notebook"
-        ),
-        .executableTarget(
-            name: "SwifTeaTaskRunnerExample",
-            dependencies: ["TaskRunnerExample"],
-            path: "Sources/ExampleApps/TaskRunner"
-        ),
-        .executableTarget(
-            name: "SwifTeaPackageListExample",
-            dependencies: ["PackageListExample"],
-            path: "Sources/ExampleApps/PackageList"
-        ),
-        .executableTarget(
-            name: "SwifTeaShowcaseExample",
-            dependencies: ["ShowcaseExample"],
-            path: "Sources/ExampleApps/Showcase"
+            name: "SwifTeaGalleryExample",
+            dependencies: ["GalleryExample"],
+            path: "Sources/ExampleApps/Gallery"
         ),
         .target(
             name: "SnapshotTestSupport",
@@ -91,17 +58,9 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "SwifTeaNotebookExampleTests",
+            name: "SwifTeaGalleryExampleTests",
             dependencies: [
-                "NotebookExample",
-                "SnapshotTestSupport",
-                .product(name: "Testing", package: "swift-testing")
-            ]
-        ),
-        .testTarget(
-            name: "SwifTeaTaskRunnerExampleTests",
-            dependencies: [
-                "TaskRunnerExample",
+                "GalleryExample",
                 "SnapshotTestSupport",
                 .product(name: "Testing", package: "swift-testing")
             ]

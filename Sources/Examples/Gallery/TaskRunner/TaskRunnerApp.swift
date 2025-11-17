@@ -61,26 +61,29 @@ struct TaskRunnerModel {
     @State private var state: TaskRunnerState
     private let viewModel: TaskRunnerViewModel
     private var activeStepEffects: Set<UUID> = []
+    private let effects: EffectRuntime
     private static let toastTimerID = "TaskRunner.toastTimer"
     private static let progressTick: TimeInterval = TaskRunnerState.Step.Run.minimumDuration
 
     init(
         state: TaskRunnerState = TaskRunnerState(),
-        viewModel: TaskRunnerViewModel = TaskRunnerViewModel()
+        viewModel: TaskRunnerViewModel = TaskRunnerViewModel(),
+        effects: EffectRuntime = .runtime
     ) {
         self._state = State(wrappedValue: state)
         self.viewModel = viewModel
+        self.effects = effects
     }
 
     mutating func initializeEffects() {
-        SwifTea.dispatch(
+        effects.dispatch(
             Effect<Action>.timer(
                 every: state.toastTickInterval,
                 initialDelay: state.toastTickInterval,
                 repeats: true
             ) { .toastTick },
-            id: Self.toastTimerID,
-            cancelExisting: true
+            Self.toastTimerID,
+            true
         )
     }
 
@@ -166,7 +169,7 @@ struct TaskRunnerModel {
             guard !activeStepEffects.contains(step.id) else { continue }
             activeStepEffects.insert(step.id)
             let effect = makeStepEffect(for: step, run: run)
-            SwifTea.dispatch(effect, id: step.id, cancelExisting: true)
+            effects.dispatch(effect, step.id, true)
         }
     }
 
@@ -174,7 +177,7 @@ struct TaskRunnerModel {
         guard !ids.isEmpty else { return }
         for id in ids {
             if activeStepEffects.contains(id) {
-                SwifTea.cancelEffects(withID: id)
+                effects.cancel(id)
                 activeStepEffects.remove(id)
             }
         }
@@ -182,7 +185,7 @@ struct TaskRunnerModel {
 
     private mutating func cancelAllStepEffects() {
         for id in activeStepEffects {
-            SwifTea.cancelEffects(withID: id)
+            effects.cancel(id)
         }
         activeStepEffects.removeAll()
     }
@@ -202,6 +205,22 @@ struct TaskRunnerModel {
                 send(.stepProgress(id: step.id, remaining: remaining, total: total))
             }
             send(.stepCompleted(id: step.id, result: .success))
+        }
+    }
+}
+
+extension TaskRunnerModel {
+    struct EffectRuntime {
+        let dispatch: (_ effect: Effect<Action>, _ id: AnyHashable?, _ cancelExisting: Bool) -> Void
+        let cancel: (_ id: AnyHashable) -> Void
+
+        static var runtime: EffectRuntime {
+            EffectRuntime(
+                dispatch: { effect, id, cancelExisting in
+                    SwifTea.dispatch(effect, id: id, cancelExisting: cancelExisting)
+                },
+                cancel: { id in SwifTea.cancelEffects(withID: id) }
+            )
         }
     }
 }

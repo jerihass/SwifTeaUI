@@ -201,6 +201,10 @@ struct NotebookModel {
         return false
     }
 
+    var allowsSectionShortcuts: Bool {
+        focusedField == .sidebar || focusedField == nil
+    }
+
     private mutating func apply(_ effect: NotebookViewModel.Effect) {
         switch effect {
         case .focus(let field):
