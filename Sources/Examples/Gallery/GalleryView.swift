@@ -80,6 +80,7 @@ struct GalleryView: TUIView {
             .init("[1] Notebook", color: theme.info),
             .init("[2] Tasks", color: theme.success),
             .init("[3] Packages", color: theme.warning),
+            .init("[4] ZStack", color: theme.accent),
             .init("[Tab] Next", color: theme.accent),
             .init("[Shift+Tab] Previous", color: theme.accent),
             .init("[?] Help", color: theme.info),

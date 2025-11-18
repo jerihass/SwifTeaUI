@@ -6,12 +6,14 @@ struct GalleryModel {
         case notebook
         case tasks
         case packages
+        case zstackDemo
 
         var title: String {
             switch self {
             case .notebook: return "Notebook"
             case .tasks: return "Task Runner"
             case .packages: return "Package List"
+            case .zstackDemo: return "ZStack Playground"
             }
         }
 
@@ -20,6 +22,7 @@ struct GalleryModel {
             case .notebook: return "1"
             case .tasks: return "2"
             case .packages: return "3"
+            case .zstackDemo: return "4"
             }
         }
 
@@ -190,6 +193,8 @@ struct GalleryModel {
             return taskRunnerAction(for: key)
         case .packages:
             return packageListAction(for: key)
+        case .zstackDemo:
+            return nil
         }
     }
 
@@ -205,6 +210,8 @@ struct GalleryModel {
             return AnyTUIView(taskRunner.makeView())
         case .packages:
             return AnyTUIView(packageList.makeView())
+        case .zstackDemo:
+            return AnyTUIView(ZStackDemoView(theme: theme))
         }
     }
 
@@ -212,7 +219,7 @@ struct GalleryModel {
         switch activeSection {
         case .notebook:
             return notebook.allowsSectionShortcuts
-        case .tasks, .packages:
+        case .tasks, .packages, .zstackDemo:
             return true
         }
     }
