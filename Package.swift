@@ -28,6 +28,11 @@ let package = Package(
             dependencies: ["GalleryExample"],
             path: "Sources/ExampleApps/Gallery"
         ),
+        .executableTarget(
+            name: "SwifTeaPreviewDemo",
+            dependencies: ["GalleryExample"],
+            path: "Sources/ExampleApps/PreviewDemo"
+        ),
         .target(
             name: "SnapshotTestSupport",
             dependencies: [

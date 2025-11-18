@@ -1,7 +1,7 @@
 import SwifTeaUI
 
-struct HelloWorldPreviewProvider: TUIViewPreviewProvider {
-    static var previews: [TUIViewPreview] {
+public struct HelloWorldPreviewProvider: TUIViewPreviewProvider {
+    public static var previews: [TUIViewPreview] {
         TUIViewPreview(
             "Hello World",
             category: "Samples",
