@@ -111,6 +111,7 @@ The scene maps terminal key events to reducer actions, `@State` keeps the counte
 ### Text Input & Focus
 
 - Use `@State` for local data and pass `$property` to `TextField`/`TextEditor`. These views now mirror SwiftUI naming: call `.foregroundColor(_)`, `.bold()`, `.focused(_:)`, `.blinkingCursor()`, and `.focusRingStyle(_)` to customise appearance and focus behaviour.
+- Reach for `@StateObject`/`@ObservedObject` when you need shared reference models (e.g., a long-lived view model or async fetcher). SwifTeaUI keeps those objects alive across re-renders, mirroring SwiftUI’s ownership semantics.
 - Declare `@FocusState` for whichever enum identifies focusable elements. `$focused.isFocused(.tag)` returns a `Binding<Bool>` that plugs straight into `.focused(_:)`, while `$focused.moveForward(in:)` / `.moveBackward(in:)` walk a `FocusRing`.
 - Wrap related fields in a `FocusScope` so Tab and Shift+Tab navigation can stay inside that group before falling back to a global ring. Terminal Shift+Tab arrives as `.backTab` in `KeyEvent`.
 - Typical pattern:
