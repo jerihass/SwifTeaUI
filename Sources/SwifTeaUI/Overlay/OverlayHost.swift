@@ -1,4 +1,6 @@
 public struct OverlayHost<Content: TUIView>: TUIView {
+    public typealias Body = Never
+
     private let presenter: OverlayPresenter
     private let content: Content
 
@@ -17,55 +19,56 @@ public struct OverlayHost<Content: TUIView>: TUIView {
         self.init(presenter: presenter, content: content())
     }
 
-    public var body: some TUIView {
+    public var body: Never {
+        fatalError("OverlayHost has no composed body")
+    }
+
+    public func render() -> String {
         if let modal = presenter.activeModal {
-            return AnyTUIView(ModalOverlay(base: content, modal: modal))
+            return ModalOverlay(base: content, modal: modal).render()
         }
 
-        return AnyTUIView(
-            VStack(spacing: 1, alignment: .leading) {
-            if !presenter.topToasts.isEmpty {
-                ToastColumn(toasts: presenter.topToasts)
-            }
-            content
-            if !presenter.bottomToasts.isEmpty {
-                ToastColumn(toasts: presenter.bottomToasts)
-            }
+        var baseLines = content.render().splitLinesPreservingEmpty()
+        if baseLines.isEmpty {
+            baseLines = [""]
         }
-        )
+
+        overlay(toasts: presenter.topToasts, onto: &baseLines, fromTop: true)
+        overlay(toasts: presenter.bottomToasts, onto: &baseLines, fromTop: false)
+
+        return baseLines.joined(separator: "\n")
     }
-}
 
-private struct ToastColumn: TUIView {
-    let toasts: [OverlayPresenter.ToastSnapshot]
+    private func overlay(
+        toasts: [OverlayPresenter.ToastSnapshot],
+        onto lines: inout [String],
+        fromTop: Bool
+    ) {
+        guard !toasts.isEmpty else { return }
 
-    var body: some TUIView {
-        VStack(spacing: 1, alignment: .leading) {
-            ForEach(toasts) { toast in
-                ToastRow(toast: toast)
-            }
-        }
-    }
-}
+        var offset = 0
+        for toast in fromTop ? toasts : toasts.reversed() {
+            let rendered = toast.view.render().splitLinesPreservingEmpty()
+            guard !rendered.isEmpty else { continue }
 
-private struct ToastRow: TUIView {
-    let toast: OverlayPresenter.ToastSnapshot
-
-    var body: some TUIView {
-        Border(
-            padding: 1,
-            color: toast.style.accentColor,
-            background: toast.style.backgroundColor,
-            HStack(spacing: 1, horizontalAlignment: .leading, verticalAlignment: .center) {
-                if let icon = toast.style.icon {
-                    Text(icon)
-                        .foregroundColor(toast.style.accentColor)
-                        .bold()
+            for (index, toastLine) in rendered.enumerated() {
+                let targetIndex: Int
+                if fromTop {
+                    targetIndex = offset + index
+                } else {
+                    targetIndex = lines.count - 1 - offset - (rendered.count - 1 - index)
                 }
-                toast.view
-                    .foregroundColor(toast.style.textColor)
+
+                guard lines.indices.contains(targetIndex) else { continue }
+                let baseWidth = HStack.visibleWidth(of: lines[targetIndex])
+                lines[targetIndex] = toastLine.padded(toVisibleWidth: max(baseWidth, HStack.visibleWidth(of: toastLine)))
             }
-        )
+
+            offset += rendered.count + 1
+            if offset >= lines.count {
+                break
+            }
+        }
     }
 }
 

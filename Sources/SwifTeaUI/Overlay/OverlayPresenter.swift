@@ -112,17 +112,17 @@ public struct OverlayPresenter {
         }
     }
 
-    private struct Modal {
-        var id: UUID
-        var priority: Int
-        var title: String?
-        var style: ModalStyle
-        var view: AnyTUIView
+private struct Modal {
+    var id: UUID
+    var priority: Int
+    var title: String?
+    var style: ModalStyle
+    var view: AnyTUIView
 
-        func snapshot() -> ModalSnapshot {
-            ModalSnapshot(id: id, style: style, title: title, view: view)
-        }
+    func snapshot() -> ModalSnapshot {
+        ModalSnapshot(id: id, style: style, title: title, view: view)
     }
+}
 
     private var toasts: [Toast] = []
     private var modals: [Modal] = []
@@ -156,7 +156,7 @@ public struct OverlayPresenter {
         style: ToastStyle = .info,
         content: () -> T
     ) {
-        let rendered = AnyTUIView(content())
+        let rendered = AnyTUIView(ToastView(style: style, content: AnyTUIView(content())))
         let toast = Toast(
             id: id,
             placement: placement,
@@ -211,5 +211,26 @@ public struct OverlayPresenter {
     public mutating func clearAll() {
         toasts.removeAll()
         modals.removeAll()
+    }
+}
+
+private struct ToastView: TUIView {
+    let style: OverlayPresenter.ToastStyle
+    let content: AnyTUIView
+
+    var body: some TUIView {
+        Border(
+            padding: 1,
+            color: style.accentColor,
+            background: style.backgroundColor,
+            HStack(spacing: 1, horizontalAlignment: .leading, verticalAlignment: .center) {
+                if let icon = style.icon {
+                    Text(icon)
+                        .foregroundColor(style.accentColor)
+                        .bold()
+                }
+                content
+            }
+        )
     }
 }
