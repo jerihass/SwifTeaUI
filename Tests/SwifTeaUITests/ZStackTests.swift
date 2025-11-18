@@ -37,4 +37,16 @@ struct ZStackTests {
         let resetSequence = ANSIColor.reset.rawValue
         #expect(rendered.contains(resetSequence + "lloWorld"))
     }
+
+    @Test("Base colors resume after overlay")
+    func testBaseColorRestorationAfterOverlay() {
+        let stack = ZStack(alignment: .topLeading) {
+            Text("Hello").backgroundColor(.brightBlue)
+            Text("++")
+        }
+
+        let rendered = stack.render()
+        let expected = ANSIColor.brightBlue.backgroundCode + "llo"
+        #expect(rendered.contains(expected))
+    }
 }

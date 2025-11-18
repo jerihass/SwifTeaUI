@@ -192,6 +192,8 @@ private func mergeLine(base: String, overlay: String, coverage: [Bool]) -> Strin
     var result = ""
     var overlayIsActive = false
     var appendedOverlayTrailing = false
+    var needsBaseStateInjection = false
+    var baseState = ""
 
     for index in 0..<width {
         let baseColumn = index < baseColumns.count ? baseColumns[index] : ANSIColumn(prefix: "", char: " ")
@@ -206,16 +208,24 @@ private func mergeLine(base: String, overlay: String, coverage: [Bool]) -> Strin
                 appendedOverlayTrailing = true
             }
             overlayIsActive = false
+            needsBaseStateInjection = true
         }
 
         if overlayCovers, let overlayColumn {
             overlayIsActive = true
+            needsBaseStateInjection = false
             result += overlayColumn.prefix
             result.append(overlayColumn.char)
         } else {
+            if needsBaseStateInjection, !baseState.isEmpty {
+                result += baseState
+                needsBaseStateInjection = false
+            }
             result += baseColumn.prefix
             result.append(baseColumn.char)
         }
+
+        baseState = applyANSIPrefix(baseColumn.prefix, to: baseState)
     }
 
     if overlayIsActive && !overlayTrailing.isEmpty {
@@ -228,4 +238,34 @@ private func mergeLine(base: String, overlay: String, coverage: [Bool]) -> Strin
     }
     result += baseTrailing
     return result
+}
+
+private func applyANSIPrefix(_ prefix: String, to currentState: String) -> String {
+    guard !prefix.isEmpty else { return currentState }
+    var state = currentState
+    var inEscape = false
+    var sequence = ""
+
+    for character in prefix {
+        if !inEscape {
+            if character == "\u{001B}" {
+                inEscape = true
+                sequence = String(character)
+            }
+            continue
+        }
+
+        sequence.append(character)
+        if character.isANSISequenceTerminator {
+            if sequence == ANSIColor.reset.rawValue {
+                state = ""
+            } else {
+                state += sequence
+            }
+            inEscape = false
+            sequence = ""
+        }
+    }
+
+    return state
 }
