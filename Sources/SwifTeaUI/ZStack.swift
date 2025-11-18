@@ -55,10 +55,11 @@ public struct ZStack: TUIView {
             return pad(lines: lines, width: maxWidth, height: maxHeight, alignment: alignment)
         }
 
-        var canvas = paddedLayers.first ?? Array(repeating: String(repeating: " ", count: maxWidth), count: maxHeight)
+        guard let baseLayer = paddedLayers.first else { return "" }
+        var canvas = baseLayer.lines
         for layer in paddedLayers.dropFirst() {
-            for index in layer.indices {
-                canvas[index] = mergeLine(base: canvas[index], overlay: layer[index])
+            for index in layer.lines.indices {
+                canvas[index] = mergeLine(base: canvas[index], overlay: layer.lines[index], coverage: layer.coverage[index])
             }
         }
 
@@ -66,46 +67,70 @@ public struct ZStack: TUIView {
     }
 }
 
-private func pad(lines: [String], width: Int, height: Int, alignment: ZStack.Alignment) -> [String] {
-    var padded = lines.map { pad(line: $0, width: width, horizontal: alignment.horizontal) }
+private struct PaddedLayer {
+    var lines: [String]
+    var coverage: [[Bool]]
+}
+
+private func pad(lines: [String], width: Int, height: Int, alignment: ZStack.Alignment) -> PaddedLayer {
+    var paddedLines: [String] = []
+    var coverageRows: [[Bool]] = []
+
+    for line in lines {
+        let (padded, coverage) = padLine(line: line, width: width, horizontal: alignment.horizontal)
+        paddedLines.append(padded)
+        coverageRows.append(coverage)
+    }
+
     let blankLine = String(repeating: " ", count: width)
-    let extra = height - padded.count
+    let blankCoverage = Array(repeating: false, count: width)
+    let extra = height - paddedLines.count
     if extra > 0 {
         switch alignment.vertical {
         case .top:
-            padded.append(contentsOf: Array(repeating: blankLine, count: extra))
+            paddedLines.append(contentsOf: Array(repeating: blankLine, count: extra))
+            coverageRows.append(contentsOf: Array(repeating: blankCoverage, count: extra))
         case .bottom:
-            padded = Array(repeating: blankLine, count: extra) + padded
+            paddedLines = Array(repeating: blankLine, count: extra) + paddedLines
+            coverageRows = Array(repeating: blankCoverage, count: extra) + coverageRows
         case .center:
             let leading = extra / 2
             let trailing = extra - leading
-            padded = Array(repeating: blankLine, count: leading) + padded + Array(repeating: blankLine, count: trailing)
+            paddedLines = Array(repeating: blankLine, count: leading) + paddedLines + Array(repeating: blankLine, count: trailing)
+            coverageRows = Array(repeating: blankCoverage, count: leading) + coverageRows + Array(repeating: blankCoverage, count: trailing)
         }
     } else if extra < 0 {
-        padded = Array(padded.prefix(height))
+        paddedLines = Array(paddedLines.prefix(height))
+        coverageRows = Array(coverageRows.prefix(height))
     }
 
-    if padded.isEmpty {
-        padded = Array(repeating: blankLine, count: height)
+    if paddedLines.isEmpty {
+        paddedLines = Array(repeating: blankLine, count: height)
+        coverageRows = Array(repeating: blankCoverage, count: height)
     }
 
-    return padded
+    return PaddedLayer(lines: paddedLines, coverage: coverageRows)
 }
 
-private func pad(line: String, width: Int, horizontal: ZStack.Alignment.Horizontal) -> String {
+private func padLine(line: String, width: Int, horizontal: ZStack.Alignment.Horizontal) -> (String, [Bool]) {
     let visible = HStack.visibleWidth(of: line)
-    guard visible < width else { return line }
-    let padding = width - visible
-    switch horizontal {
-    case .leading:
-        return line + String(repeating: " ", count: padding)
-    case .trailing:
-        return String(repeating: " ", count: padding) + line
-    case .center:
-        let leading = padding / 2
-        let trailing = padding - leading
-        return String(repeating: " ", count: leading) + line + String(repeating: " ", count: trailing)
+    if visible >= width {
+        let coverage = Array(repeating: true, count: width)
+        return (line, coverage)
     }
+    let padding = width - visible
+    let spaces: (leading: Int, trailing: Int) = {
+        switch horizontal {
+        case .leading: return (0, padding)
+        case .trailing: return (padding, 0)
+        case .center:
+            let leading = padding / 2
+            return (leading, padding - leading)
+        }
+    }()
+    let padded = String(repeating: " ", count: spaces.leading) + line + String(repeating: " ", count: spaces.trailing)
+    let coverage = Array(repeating: false, count: spaces.leading) + Array(repeating: true, count: visible) + Array(repeating: false, count: spaces.trailing)
+    return (padded, coverage)
 }
 
 private enum ANSIToken {
@@ -160,7 +185,7 @@ private func columns(from string: String) -> ([ANSIColumn], String) {
     return (columns, prefix)
 }
 
-private func mergeLine(base: String, overlay: String) -> String {
+private func mergeLine(base: String, overlay: String, coverage: [Bool]) -> String {
     let (baseColumns, baseTrailing) = columns(from: base)
     let (overlayColumns, overlayTrailing) = columns(from: overlay)
     let width = max(baseColumns.count, overlayColumns.count)
@@ -168,9 +193,8 @@ private func mergeLine(base: String, overlay: String) -> String {
 
     for index in 0..<width {
         let baseColumn = index < baseColumns.count ? baseColumns[index] : ANSIColumn(prefix: "", char: " ")
-        let overlayColumn = index < overlayColumns.count ? overlayColumns[index] : ANSIColumn(prefix: "", char: " ")
-        let useOverlay = !(overlayColumn.char == " " && overlayColumn.prefix.isEmpty)
-        if useOverlay {
+        if index < overlayColumns.count, coverage.indices.contains(index), coverage[index] {
+            let overlayColumn = overlayColumns[index]
             result += overlayColumn.prefix
             result.append(overlayColumn.char)
         } else {
