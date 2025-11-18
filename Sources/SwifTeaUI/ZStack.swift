@@ -48,7 +48,12 @@ public struct ZStack: TUIView {
         }.max() ?? 0)
         let maxHeight = max(1, renderedLayers.map { $0.count }.max() ?? 0)
 
-        let paddedLayers = renderedLayers.map { pad(lines: $0, width: maxWidth, height: maxHeight, alignment: alignment) }
+        let paddedLayers = renderedLayers.enumerated().map { index, lines in
+            if index == 0 {
+                return pad(lines: lines, width: maxWidth, height: maxHeight, alignment: .topLeading)
+            }
+            return pad(lines: lines, width: maxWidth, height: maxHeight, alignment: alignment)
+        }
 
         var canvas = paddedLayers.first ?? Array(repeating: String(repeating: " ", count: maxWidth), count: maxHeight)
         for layer in paddedLayers.dropFirst() {
