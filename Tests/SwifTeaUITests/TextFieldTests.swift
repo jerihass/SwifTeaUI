@@ -133,7 +133,7 @@ struct TextFieldTests {
 
         let editor = TextEditor(text: harness.textBinding, cursorPosition: cursorBinding)
         let rendered = editor.render().strippingANSI()
-        #expect(rendered.contains("He|llo"))
+        #expect(rendered.contains("He█llo") || rendered.contains("He▌llo"))
         #expect(cursorPosition == 2)
     }
 
@@ -243,12 +243,12 @@ struct TextFieldTests {
             CursorBlinker.shared = blinker
 
             let harness = Harness()
-            let field = TextField("Prompt", text: harness.binding, cursor: "|")
+            let field = TextField("Prompt", text: harness.binding, cursor: "▌")
                 .blinkingCursor()
                 .focusRingStyle(FocusStyle(indicator: "", color: .cyan, bold: false))
 
             let visible = field.render().strippingANSI()
-            #expect(visible.hasSuffix("|"))
+            #expect(visible.hasSuffix("▌"))
 
             let hiddenInterval = CursorBlinker.shared.interval
             blinker = CursorBlinker.shared

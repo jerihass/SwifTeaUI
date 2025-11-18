@@ -17,7 +17,7 @@ public struct TextField: TUIView {
         _ placeholder: String = "",
         text: Binding<String>,
         focus: Binding<Bool>? = nil,
-        cursor: String = "|",
+        cursor: String = "▌",
         focusStyle: FocusStyle = .default,
         blinkingCursor: Bool = false
     ) {

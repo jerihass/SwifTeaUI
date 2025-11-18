@@ -21,7 +21,7 @@ public struct TextEditor: TUIView {
         text: Binding<String>,
         focus: Binding<Bool>? = nil,
         width: Int = 60,
-        cursorSymbol: String = "|",
+        cursorSymbol: String = "█",
         focusStyle: FocusStyle = .default,
         blinkingCursor: Bool = false,
         cursorPosition: Binding<Int>? = nil,
