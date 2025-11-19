@@ -156,6 +156,30 @@ The scene maps terminal key events to reducer actions, `@State` keeps the counte
 - `ZStack` overlays multiple views in z-order so badges/tooltips/overlays can be layered without touching the base content.
 - All `TUIView` conformers expose `var body: some TUIView`; return `VStack`/`HStack` (or any other view) and the runtime calls `render()` for you—no manual `.render()` needed.
 
+### Table Layouts
+
+`Table` brings SwiftUI-style column definitions to the terminal. Pick from `.fixed`, `.fitContent`, or `.flex(min:max:)` widths, opt into headers/footers, and let SwifTeaUI handle ANSI-aware measurement for multi-line cells. Row styling is opt-in per index so you can emphasize focus, selections, or zebra striping:
+
+```swift
+Table(
+    processes,
+    divider: .line(color: .brightBlack, isBold: true),
+    rowStyle: TableRowStyle.stripedRows(
+        evenStyle: TableRowStyle.stripe(backgroundColor: .brightBlack),
+        oddStyle: TableRowStyle.focused(accent: .cyan)
+    )
+) {
+    TableColumn("Name", width: .flex(min: 12)) { process in
+        Text(process.name).bold()
+    }
+    TableColumn("State", width: .fixed(12), alignment: .trailing) { process in
+        StatusBadge(state: process.state)
+    }
+}
+```
+
+`TableRowStyle` now exposes underline/dim/reverse toggles plus optional borders (`▌ row ▐`) so focused rows read clearly without building ad-hoc view wrappers. Divider lines accept foreground/background colors (or a fully custom renderer) whenever you need to match a theme instead of relying on plain ASCII separators.
+
 ### Terminal Awareness
 
 - Wrap any view in `MinimumTerminalSize(columns:rows:fallback:)` to display a friendly message when the window is too small. Counter and Task Runner both demonstrate this pattern so users aren’t stuck staring at broken layouts.

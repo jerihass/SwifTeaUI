@@ -49,24 +49,90 @@ public struct TableColumn<Row> {
 }
 
 public struct TableRowStyle {
+    public struct Border {
+        public var leading: String
+        public var trailing: String
+
+        public init(leading: String = "│ ", trailing: String = " │") {
+            self.leading = leading
+            self.trailing = trailing
+        }
+    }
+
     public var foregroundColor: ANSIColor?
     public var backgroundColor: ANSIColor?
     public var isBold: Bool
+    public var isUnderlined: Bool
+    public var isDimmed: Bool
+    public var isReversed: Bool
+    public var border: Border?
 
     public init(
         foregroundColor: ANSIColor? = nil,
         backgroundColor: ANSIColor? = nil,
-        isBold: Bool = false
+        isBold: Bool = false,
+        isUnderlined: Bool = false,
+        isDimmed: Bool = false,
+        isReversed: Bool = false,
+        border: Border? = nil
     ) {
         self.foregroundColor = foregroundColor
         self.backgroundColor = backgroundColor
         self.isBold = isBold
+        self.isUnderlined = isUnderlined
+        self.isDimmed = isDimmed
+        self.isReversed = isReversed
+        self.border = border
+    }
+}
+
+public extension TableRowStyle {
+    static func focused(
+        accent: ANSIColor = .cyan,
+        border: Border = Border(leading: "▌ ", trailing: " ▐")
+    ) -> TableRowStyle {
+        TableRowStyle(
+            foregroundColor: accent,
+            isBold: true,
+            border: border
+        )
+    }
+
+    static func stripe(
+        foregroundColor: ANSIColor? = nil,
+        backgroundColor: ANSIColor? = .brightBlack,
+        isBold: Bool = false
+    ) -> TableRowStyle {
+        TableRowStyle(
+            foregroundColor: foregroundColor,
+            backgroundColor: backgroundColor,
+            isBold: isBold
+        )
+    }
+
+    static func stripedRows<Row>(
+        evenStyle: TableRowStyle? = TableRowStyle.stripe(),
+        oddStyle: TableRowStyle? = nil
+    ) -> (Row, Int) -> TableRowStyle? {
+        { _, index in
+            if index.isMultiple(of: 2) {
+                return evenStyle
+            } else {
+                return oddStyle
+            }
+        }
     }
 }
 
 public enum TableDividerStyle {
     case none
-    case line(Character = "─")
+    case line(
+        character: Character = "─",
+        color: ANSIColor? = nil,
+        backgroundColor: ANSIColor? = nil,
+        isBold: Bool = false
+    )
+    case custom((Int) -> String)
 }
 
 @resultBuilder
@@ -282,8 +348,22 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
         switch divider {
         case .none:
             return nil
-        case .line(let character):
-            return String(repeating: String(character), count: totalWidth)
+        case .line(let character, let color, let background, let isBold):
+            let base = String(repeating: String(character), count: totalWidth)
+            var prefix = ""
+            if let color {
+                prefix += color.rawValue
+            }
+            if let background {
+                prefix += background.backgroundCode
+            }
+            if isBold {
+                prefix += "\u{001B}[1m"
+            }
+            guard !prefix.isEmpty else { return base }
+            return prefix + base + ANSIColor.reset.rawValue
+        case .custom(let builder):
+            return builder(totalWidth)
         }
     }
 
@@ -294,6 +374,12 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
 
     private func apply(style: TableRowStyle?, to line: String) -> String {
         guard let style else { return line }
+
+        var decoratedLine = line
+        if let border = style.border {
+            decoratedLine = border.leading + decoratedLine + border.trailing
+        }
+
         var prefix = ""
         if let fg = style.foregroundColor {
             prefix += fg.rawValue
@@ -304,8 +390,17 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
         if style.isBold {
             prefix += "\u{001B}[1m"
         }
-        guard !prefix.isEmpty else { return line }
-        return prefix + line + ANSIColor.reset.rawValue
+        if style.isUnderlined {
+            prefix += "\u{001B}[4m"
+        }
+        if style.isDimmed {
+            prefix += "\u{001B}[2m"
+        }
+        if style.isReversed {
+            prefix += "\u{001B}[7m"
+        }
+        guard !prefix.isEmpty else { return decoratedLine }
+        return prefix + decoratedLine + ANSIColor.reset.rawValue
     }
 
     private func renderViews(_ views: [any TUIView]) -> [String] {

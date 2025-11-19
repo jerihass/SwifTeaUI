@@ -58,12 +58,12 @@ Table(processes, columnSpacing: 2, rowSpacing: 1, divider: .line()) {
 2. **Table Core (Completed)**
    - `Table<Data>` renders header/body/footer blocks, handles dividers, spacing, and caches cell strings per row.
    - Both `id:` closure and `Identifiable` overloads are implemented.
-3. **Styling Layer (Partially Completed)**
-   - `TableRowStyle` exists for foreground/background/bold styling; divider style currently limited to `.none` / `.line`.
-   - TODO: add richer row styles (focused outline, underline) and colored/custom dividers.
+3. **Styling Layer (In Progress)**
+   - `TableRowStyle` now handles underline/dim/reverse flags plus optional leading/trailing borders so focused rows can render outlines without custom view wrappers.
+   - `TableDividerStyle` exposes colored `.line` dividers and full custom builders; `TableRowStyle.stripedRows` ships as a convenience helper for zebra striping.
 4. **Ergonomics & Docs (In Progress)**
    - Example usage is limited to the Package List demo; README/docs still need a dedicated table section.
-   - TODO: add key-path column sugar, default row striping helpers, and focus/selection bindings inspired by SwiftUI’s table selection API.
+   - TODO: add key-path column sugar and focus/selection bindings inspired by SwiftUI’s table selection API.
 
 ## Testing Plan
 - ✅ `Tests/SwifTeaUITests/TableTests.swift` exercises header/footer rendering, divider lines, width rules, and ANSI row styling.

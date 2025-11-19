@@ -91,4 +91,75 @@ struct TableTests {
         #expect(output.contains(ANSIColor.cyan.backgroundCode))
         #expect(output.contains("\u{001B}[1m"))
     }
+
+    @Test("Row style helpers can add borders and underline text")
+    func testRowStyleDecorations() {
+        let packages = [
+            Package(id: 1, name: "Mint", version: "0.17.2", status: "Installed")
+        ]
+
+        let table = Table(packages, divider: .none) {
+            TableColumn("Name") { (item: Package) in
+                Text(item.name)
+            }
+        } rowStyle: { _, _ in
+            TableRowStyle(
+                foregroundColor: .magenta,
+                isUnderlined: true,
+                border: .init(leading: "▶ ", trailing: " ◀")
+            )
+        }
+
+        let rows = table.render().split(separator: "\n")
+        let line = rows.dropFirst().first ?? ""
+        #expect(line.contains("▶"))
+        #expect(line.contains("◀"))
+        #expect(line.contains(ANSIColor.magenta.rawValue))
+        #expect(line.contains("\u{001B}[4m"))
+    }
+
+    @Test("Striped rows helper alternates styles")
+    func testStripedRowsHelper() {
+        let packages = [
+            Package(id: 1, name: "Mint", version: "0.17.2", status: "Installed"),
+            Package(id: 2, name: "Tuist", version: "4.0.0", status: "Outdated")
+        ]
+
+        let table = Table(
+            packages,
+            divider: .none,
+            columns: {
+                TableColumn("Name") { (item: Package) in
+                    Text(item.name)
+                }
+            },
+            rowStyle: TableRowStyle.stripedRows(
+                evenStyle: TableRowStyle(backgroundColor: .brightBlack),
+                oddStyle: TableRowStyle(backgroundColor: .brightBlue)
+            )
+        )
+
+        let lines = table.render().split(separator: "\n").dropFirst()
+        let body = Array(lines.prefix(packages.count))
+        #expect(body[0].contains(ANSIColor.brightBlack.backgroundCode))
+        #expect(body[1].contains(ANSIColor.brightBlue.backgroundCode))
+    }
+
+    @Test("Divider style can be colored")
+    func testColoredDivider() {
+        let packages = [
+            Package(id: 1, name: "Mint", version: "0.17.2", status: "Installed")
+        ]
+
+        let table = Table(packages, divider: .line(character: "─", color: .yellow, backgroundColor: .brightBlack, isBold: true)) {
+            TableColumn("Name") { (item: Package) in
+                Text(item.name)
+            }
+        }
+
+        let output = table.render()
+        #expect(output.contains(ANSIColor.yellow.rawValue))
+        #expect(output.contains(ANSIColor.brightBlack.backgroundCode))
+        #expect(output.contains("\u{001B}[1m"))
+    }
 }
