@@ -5,9 +5,11 @@ public enum SwifTea {
     public static func brew<App: TUIScene>(_ app: App, fps: Int = 20) {
         var app = app
         let frameDelay = useconds_t(1_000_000 / max(1, fps))
+        let idleRefreshInterval: TimeInterval = 0.5
 
         let actionQueue = ActionQueue<App.Action>()
         let effectRuntime = EffectRuntime(actionQueue: actionQueue)
+        let renderInvalidation = RenderInvalidationFlag()
         let originalMode = setRawMode()
         hideCursor()
         let frameLogger = FrameLogger.make()
@@ -18,7 +20,9 @@ public enum SwifTea {
         }
         clearScreenAndHome()
         TerminalDimensions.refresh()
-        RuntimeDispatch.install(queue: actionQueue, effectRuntime: effectRuntime) {
+        renderInvalidation.markDirty()
+
+        RuntimeDispatch.install(queue: actionQueue, effectRuntime: effectRuntime, renderInvalidation: renderInvalidation) {
             app.initializeEffects()
 
             var running = true
@@ -27,6 +31,7 @@ public enum SwifTea {
             let maxStaticFrames = 5
             var lastSize = TerminalDimensions.current
             var lastTime = ProcessInfo.processInfo.systemUptime
+            var lastRenderTime = lastTime
 
             while running {
                 let now = ProcessInfo.processInfo.systemUptime
@@ -42,9 +47,14 @@ public enum SwifTea {
                     if isDrawable {
                         clearScreenAndHome()
                     }
+                    renderInvalidation.markDirty()
                 }
 
-                if isDrawable {
+                let renderNeeded = renderInvalidation.consume()
+                let timeSinceLastRender = now - lastRenderTime
+                let shouldRender = renderNeeded || sizeChanged || timeSinceLastRender >= idleRefreshInterval
+
+                if isDrawable && shouldRender {
                     let frame = app.view(model: app.model).render()
                     let changed = frame != lastFrame
                     let forceRefresh = sizeChanged || (!changed ? (staticFrameStreak >= maxStaticFrames) : false)
@@ -53,6 +63,7 @@ public enum SwifTea {
                         renderFrame(frame)
                         lastFrame = frame
                         staticFrameStreak = 0
+                        lastRenderTime = now
                     } else {
                         staticFrameStreak += 1
                     }
@@ -67,6 +78,7 @@ public enum SwifTea {
                         running = false
                     } else {
                         app.update(action: action)
+                        renderInvalidation.markDirty()
                     }
                 }
 
@@ -79,6 +91,7 @@ public enum SwifTea {
                                 break
                             }
                             app.update(action: action)
+                            renderInvalidation.markDirty()
                         }
                     }
                 }
@@ -102,5 +115,28 @@ public enum SwifTea {
 
     public static func cancelEffects(withID id: AnyHashable) {
         RuntimeDispatch.cancel(id: id)
+    }
+
+    public static func requestRender() {
+        RuntimeDispatch.requestRender()
+    }
+}
+
+final class RenderInvalidationFlag {
+    private let lock = NSLock()
+    private var dirty = false
+
+    func markDirty() {
+        lock.lock()
+        dirty = true
+        lock.unlock()
+    }
+
+    func consume() -> Bool {
+        lock.lock()
+        let current = dirty
+        dirty = false
+        lock.unlock()
+        return current
     }
 }

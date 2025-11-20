@@ -56,3 +56,32 @@
     "p95NS" : 3875
   }
 }
+{
+  "bytes" : {
+    "max" : 14356,
+    "mean" : 14356,
+    "median" : 14356
+  },
+  "commit" : "94388e0",
+  "config" : {
+    "columns" : 120,
+    "commit" : "94388e0",
+    "rows" : 40,
+    "sampleIterations" : 200,
+    "warmupIterations" : 20
+  },
+  "render" : {
+    "maxNS" : 2961042,
+    "meanNS" : 2624510.835,
+    "medianNS" : 2610167,
+    "p95NS" : 2706792
+  },
+  "timestamp" : "2025-11-20T03:30:55Z",
+  "version" : 1,
+  "write" : {
+    "maxNS" : 37875,
+    "meanNS" : 2310.61,
+    "medianNS" : 1209,
+    "p95NS" : 4000
+  }
+}

@@ -90,6 +90,7 @@ private struct RuntimeDispatchBox {
     let sendAction: (Any) -> Void
     let runEffect: (Any, AnyHashable?, Bool) -> Void
     let cancelEffects: (AnyHashable) -> Void
+    let requestRender: () -> Void
 }
 
 enum RuntimeDispatch {
@@ -99,6 +100,7 @@ enum RuntimeDispatch {
     static func install<Action>(
         queue: ActionQueue<Action>,
         effectRuntime: EffectRuntime<Action>,
+        renderInvalidation: RenderInvalidationFlag,
         body: () -> Void
     ) {
         lock.lock()
@@ -119,6 +121,9 @@ enum RuntimeDispatch {
             },
             cancelEffects: { id in
                 effectRuntime.cancel(id)
+            },
+            requestRender: {
+                renderInvalidation.markDirty()
             }
         )
         lock.unlock()
@@ -151,5 +156,12 @@ enum RuntimeDispatch {
         let current = box
         lock.unlock()
         current?.cancelEffects(id)
+    }
+
+    static func requestRender() {
+        lock.lock()
+        let current = box
+        lock.unlock()
+        current?.requestRender()
     }
 }
