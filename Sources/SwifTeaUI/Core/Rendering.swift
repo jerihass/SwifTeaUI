@@ -2,6 +2,12 @@ import Foundation
 
 private final class DiffFrameRenderer {
     private var lastLines: [String] = []
+    private var needsFullRedraw = true
+
+    func reset() {
+        lastLines = []
+        needsFullRedraw = true
+    }
 
     func render(frame: String, columns: Int) {
         let prepared: String
@@ -12,13 +18,14 @@ private final class DiffFrameRenderer {
         }
 
         let lines = prepared.splitLinesPreservingEmpty()
-        // First paint: full redraw.
-        if lastLines.isEmpty {
+        // First paint or forced reset: full redraw.
+        if needsFullRedraw || lastLines.isEmpty {
             moveCursorHome()
             writeToStdout(prepared)
             clearBelowCursor()
             fflush(stdout)
             lastLines = lines
+            needsFullRedraw = false
             return
         }
 
@@ -32,6 +39,7 @@ private final class DiffFrameRenderer {
                 continue
             }
             buffer.append(cursorMove(row: index + 1, column: 1))
+            buffer.append(clearLine())
             buffer.append(newLine)
         }
 
@@ -53,9 +61,17 @@ private final class DiffFrameRenderer {
     private func cursorMove(row: Int, column: Int) -> String {
         "\u{001B}[\(row);\(column)H"
     }
+
+    private func clearLine() -> String {
+        "\u{001B}[2K"
+    }
 }
 
 private let frameRenderer = DiffFrameRenderer()
+
+func resetFrameRenderer() {
+    frameRenderer.reset()
+}
 
 final class FrameLogger {
     private let handle: FileHandle

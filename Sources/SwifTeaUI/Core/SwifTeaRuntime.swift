@@ -49,6 +49,7 @@ public enum SwifTea {
                         clearScreenAndHome()
                     }
                     renderInvalidation.markDirty()
+                    resetFrameRenderer()
                 }
 
                 let renderNeeded = renderInvalidation.consume()
