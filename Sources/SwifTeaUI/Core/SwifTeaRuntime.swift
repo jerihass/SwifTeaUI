@@ -13,6 +13,7 @@ public enum SwifTea {
         let originalMode = setRawMode()
         hideCursor()
         let frameLogger = FrameLogger.make()
+        TerminalDimensions.installResizeSignalHandler()
         defer {
             showCursor()
             restoreMode(originalMode)

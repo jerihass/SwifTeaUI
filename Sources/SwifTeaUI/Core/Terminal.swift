@@ -4,6 +4,7 @@ import Glibc
 private let STDIN_FILENO_: Int32 = 0
 #else
 import Darwin
+import Dispatch
 private let STDIN_FILENO_: Int32 = STDIN_FILENO
 #endif
 
@@ -23,6 +24,8 @@ public enum TerminalDimensions {
     private static var currentSize = TerminalSize(columns: 80, rows: 24)
     private static var overrideStack: [TerminalSize] = []
     private static let overrideLock = NSLock()
+    private static var needsRefresh = true
+    private static var resizeSource: DispatchSourceSignal?
 
     public static var current: TerminalSize {
         overrideLock.lock()
@@ -35,14 +38,20 @@ public enum TerminalDimensions {
     public static func refresh() -> TerminalSize {
         overrideLock.lock()
         if let override = overrideStack.last {
+            needsRefresh = false
             overrideLock.unlock()
             return override
         }
+        let shouldQuery = needsRefresh
+        let cached = currentSize
         overrideLock.unlock()
+
+        guard shouldQuery else { return cached }
 
         let queried = queryTerminalSize()
         overrideLock.lock()
         currentSize = queried
+        needsRefresh = false
         overrideLock.unlock()
         return queried
     }
@@ -57,6 +66,9 @@ public enum TerminalDimensions {
         defer {
             overrideLock.lock()
             overrideStack.removeLast()
+            if overrideStack.isEmpty {
+                needsRefresh = true
+            }
             overrideLock.unlock()
         }
         return try perform()
@@ -68,6 +80,28 @@ public enum TerminalDimensions {
             return TerminalSize(columns: Int(ws.ws_col), rows: Int(ws.ws_row))
         }
         return currentSize
+    }
+
+    static func markNeedsRefresh() {
+        overrideLock.lock()
+        if overrideStack.isEmpty {
+            needsRefresh = true
+        }
+        overrideLock.unlock()
+    }
+
+    public static func installResizeSignalHandler() {
+#if os(Linux) || os(macOS)
+        guard resizeSource == nil else { return }
+        signal(SIGWINCH, SIG_IGN)
+        let source = DispatchSource.makeSignalSource(signal: SIGWINCH, queue: DispatchQueue.global(qos: .userInteractive))
+        source.setEventHandler {
+            TerminalDimensions.markNeedsRefresh()
+            SwifTea.requestRender()
+        }
+        source.resume()
+        resizeSource = source
+#endif
     }
 }
 
