@@ -287,6 +287,7 @@ public struct HStack: TUIView {
                 let line = (offsetRow >= 0 && offsetRow < rendered.lines.count) ? rendered.lines[offsetRow] : ""
                 let padded = Self.pad(
                     line,
+                    currentWidth: (offsetRow >= 0 && offsetRow < rendered.widths.count) ? rendered.widths[offsetRow] : 0,
                     toVisibleWidth: columnWidths[index],
                     alignment: horizontalAlignment
                 )
@@ -325,10 +326,11 @@ public struct HStack: TUIView {
 
     private static func pad(
         _ line: String,
+        currentWidth: Int,
         toVisibleWidth width: Int,
         alignment: HorizontalAlignment
     ) -> String {
-        let currentWidth = visibleWidth(of: line)
+        let currentWidth = currentWidth >= 0 ? currentWidth : visibleWidth(of: line)
         guard currentWidth < width else { return line }
 
         let padding = width - currentWidth
