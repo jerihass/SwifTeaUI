@@ -1,5 +1,62 @@
 import Foundation
 
+private final class DiffFrameRenderer {
+    private var lastLines: [String] = []
+
+    func render(frame: String, columns: Int) {
+        let prepared: String
+        if columns > 0 {
+            prepared = frame.padded(toVisibleWidth: columns)
+        } else {
+            prepared = frame
+        }
+
+        let lines = prepared.splitLinesPreservingEmpty()
+        // First paint: full redraw.
+        if lastLines.isEmpty {
+            moveCursorHome()
+            writeToStdout(prepared)
+            clearBelowCursor()
+            fflush(stdout)
+            lastLines = lines
+            return
+        }
+
+        var buffer = String()
+
+        let lineCount = max(lines.count, lastLines.count)
+        for index in 0..<lineCount {
+            let newLine = index < lines.count ? lines[index] : ""
+            let oldLine = index < lastLines.count ? lastLines[index] : nil
+            if let oldLine, newLine == oldLine {
+                continue
+            }
+            buffer.append(cursorMove(row: index + 1, column: 1))
+            buffer.append(newLine)
+        }
+
+        if lines.count < lastLines.count {
+            buffer.append(cursorMove(row: lines.count + 1, column: 1))
+            buffer.append("\u{001B}[J") // clear below cursor
+        }
+
+        guard !buffer.isEmpty else {
+            lastLines = lines
+            return
+        }
+
+        writeToStdout(buffer)
+        fflush(stdout)
+        lastLines = lines
+    }
+
+    private func cursorMove(row: Int, column: Int) -> String {
+        "\u{001B}[\(row);\(column)H"
+    }
+}
+
+private let frameRenderer = DiffFrameRenderer()
+
 final class FrameLogger {
     private let handle: FileHandle
     private var frameIndex: Int = 0
@@ -59,15 +116,7 @@ func clearBelowCursor() {
 
 @inline(__always)
 func renderFrame(_ frame: String) {
-    moveCursorHome()
-    let columns = TerminalDimensions.current.columns
-    if columns > 0 {
-        writeToStdout(frame.padded(toVisibleWidth: columns))
-    } else {
-        writeToStdout(frame)
-    }
-    clearBelowCursor()
-    fflush(stdout)
+    frameRenderer.render(frame: frame, columns: TerminalDimensions.current.columns)
 }
 
 @inline(__always)
