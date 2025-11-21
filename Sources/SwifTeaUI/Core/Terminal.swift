@@ -23,7 +23,7 @@ public struct TerminalSize: Equatable, Sendable {
 public enum TerminalDimensions {
     private static var currentSize = TerminalSize(columns: 80, rows: 24)
     private static var overrideStack: [TerminalSize] = []
-    private static let overrideLock = NSLock()
+    private static let overrideLock = NSRecursiveLock()
     private static var needsRefresh = true
     private static var resizeSource: DispatchSourceSignal?
 
@@ -62,9 +62,7 @@ public enum TerminalDimensions {
     ) rethrows -> T {
         overrideLock.lock()
         overrideStack.append(size)
-        overrideLock.unlock()
         defer {
-            overrideLock.lock()
             overrideStack.removeLast()
             if overrideStack.isEmpty {
                 needsRefresh = true

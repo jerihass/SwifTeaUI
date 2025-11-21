@@ -60,8 +60,10 @@ public struct OverlayHost<Content: TUIView>: TUIView {
                 }
 
                 guard lines.indices.contains(targetIndex) else { continue }
-                let baseWidth = HStack.visibleWidth(of: lines[targetIndex])
-                lines[targetIndex] = toastLine.padded(toVisibleWidth: max(baseWidth, HStack.visibleWidth(of: toastLine)))
+                lines[targetIndex] = overlayLine(
+                    toastLine,
+                    onto: lines[targetIndex]
+                )
             }
 
             offset += rendered.count + 1
@@ -69,6 +71,59 @@ public struct OverlayHost<Content: TUIView>: TUIView {
                 break
             }
         }
+    }
+
+    private func overlayLine(_ toastLine: String, onto baseLine: String) -> String {
+        let toastWidth = HStack.visibleWidth(of: toastLine)
+        guard toastWidth > 0 else { return baseLine }
+        let baseRemainder = dropLeadingVisibleColumns(from: baseLine, count: toastWidth)
+        return toastLine + baseRemainder
+    }
+
+    private func dropLeadingVisibleColumns(from line: String, count: Int) -> String {
+        guard count > 0 else { return line }
+
+        var visibleIndex = 0
+        var capturing = false
+        var result = ""
+        var pendingSequences = ""
+        var index = line.startIndex
+        var inEscape = false
+        var currentSequence = ""
+
+        while index < line.endIndex {
+            let character = line[index]
+            if inEscape {
+                currentSequence.append(character)
+                if character.isANSISequenceTerminator {
+                    inEscape = false
+                    if capturing {
+                        result.append(currentSequence)
+                    } else {
+                        pendingSequences.append(currentSequence)
+                    }
+                    currentSequence.removeAll(keepingCapacity: true)
+                }
+            } else if character == "\u{001B}" {
+                inEscape = true
+                currentSequence = "\u{001B}"
+            } else {
+                if visibleIndex >= count {
+                    if !capturing {
+                        capturing = true
+                        if !pendingSequences.isEmpty {
+                            result.append(pendingSequences)
+                            pendingSequences.removeAll(keepingCapacity: true)
+                        }
+                    }
+                    result.append(character)
+                }
+                visibleIndex += 1
+            }
+            index = line.index(after: index)
+        }
+
+        return capturing ? result : ""
     }
 }
 

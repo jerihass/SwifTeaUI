@@ -32,4 +32,26 @@ struct OverlayPresenterTests {
         presenter.dismissModal()
         #expect(!presenter.hasModal)
     }
+
+    @Test("Toasts draw over existing content without wiping the row")
+    func toastOverlaysContent() {
+        var presenter = OverlayPresenter()
+        presenter.presentToast(duration: 5) {
+            Text("Toast")
+        }
+
+        let host = OverlayHost(
+            presenter: presenter,
+            content: {
+                Group {
+                    Text("Underlying content should remain visible")
+                    Text("Second line")
+                }
+            }
+        )
+
+        let lines = host.render().splitLinesPreservingEmpty()
+        #expect(lines.count >= 2)
+        #expect(lines[0].contains("remain visible")) // keep tail of base line after overlay
+    }
 }
