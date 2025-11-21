@@ -224,7 +224,7 @@ struct SwifTeaPerfHarness {
 
         static func writeJSON(_ report: Report, to path: String) {
             let encoder = JSONEncoder()
-            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            encoder.outputFormatting = [.sortedKeys]
             guard let data = try? encoder.encode(report) else { return }
             try? data.write(to: URL(fileURLWithPath: path))
         }

@@ -36,9 +36,12 @@ public struct Border<Content: TUIView>: TUIView {
     }
 
     public func render() -> String {
-        let inner = content.render()
-        let lines = inner.splitLinesPreservingEmpty()
-        let width = lines.map { Self.visibleWidth(of: $0) }.max() ?? 0
+        var rendered = RenderedView(lines: content.render().splitLinesPreservingEmpty())
+        if rendered.lines.isEmpty {
+            rendered = RenderedView(lines: [""])
+        }
+
+        let width = rendered.maxWidth
         let paddingString = String(repeating: " ", count: padding)
         let horizontal = String(repeating: "─", count: width + padding * 2)
         let top = decorateHorizontal("┌" + horizontal + "┐")
@@ -47,8 +50,9 @@ public struct Border<Content: TUIView>: TUIView {
         let leftBorder = decorateVertical("│")
         let rightBorder = decorateVertical("│")
 
-        let body = lines.map { line -> String in
-            let padded = Self.pad(line, toVisibleWidth: width)
+        let body = rendered.lines.enumerated().map { index, line -> String in
+            let currentWidth = index < rendered.widths.count ? rendered.widths[index] : HStack.visibleWidth(of: line)
+            let padded = Self.pad(line, currentWidth: currentWidth, toVisibleWidth: width)
             let interior = paddingString + padded + paddingString
             let filledInterior = applyInteriorBackground(interior)
             return leftBorder + filledInterior + rightBorder
@@ -76,30 +80,9 @@ public struct Border<Content: TUIView>: TUIView {
         return (prefix, ANSIColor.reset.rawValue)
     }
 
-    private static func visibleWidth(of string: String) -> Int {
-        var width = 0
-        var iterator = string.makeIterator()
-        var inEscape = false
-
-        while let character = iterator.next() {
-            if inEscape {
-                if character.isANSISequenceTerminator {
-                    inEscape = false
-                }
-            } else if character == "\u{001B}" {
-                inEscape = true
-            } else {
-                width += 1
-            }
-        }
-
-        return width
-    }
-
-    private static func pad(_ line: String, toVisibleWidth width: Int) -> String {
-        let current = visibleWidth(of: line)
-        guard current < width else { return line }
-        let padding = width - current
+    private static func pad(_ line: String, currentWidth: Int, toVisibleWidth width: Int) -> String {
+        guard currentWidth < width else { return line }
+        let padding = width - currentWidth
         return line + String(repeating: " ", count: padding)
     }
 
