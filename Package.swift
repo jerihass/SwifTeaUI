@@ -11,7 +11,7 @@ let package = Package(
         .executable(name: "SwifTeaPerfHarness", targets: ["SwifTeaPerfHarness"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-testing.git", branch: "main")
+        .package(url: "https://github.com/apple/swift-testing.git", revision: "98430f2d6cb8d817b60ea1489ad18db87cc547aa")
     ],
     targets: [
         .target(

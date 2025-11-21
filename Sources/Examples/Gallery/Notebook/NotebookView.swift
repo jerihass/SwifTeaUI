@@ -59,7 +59,7 @@ struct NotebookView: TUIView {
         )
 
         return VStack(spacing: 1, alignment: .leading) {
-            Text("SwifTea Notebook").foregroundColor(theme.accent).bold()
+            Text("SwifTea Notebook!").foregroundColor(theme.accent).bold()
             Text("")
             AnyTUIView(layout)
             Text("")
