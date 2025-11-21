@@ -14,6 +14,7 @@ struct NotebookView: TUIView {
     let state: NotebookState
     let focus: NotebookFocusField?
     let titleBinding: Binding<String>
+    let titleCursorBinding: Binding<Int>
     let bodyBinding: Binding<String>
     let titleFocusBinding: Binding<Bool>
     let bodyFocusBinding: Binding<Bool>
@@ -141,6 +142,7 @@ struct NotebookView: TUIView {
                     .focusRingStyle(textInputFocusStyle)
                     .focused(titleFocusBinding)
                     .blinkingCursor()
+                    .cursorPosition(titleCursorBinding)
                 Text("Body:").foregroundColor(focus == .editorBody ? theme.accent : theme.info)
                 ScrollView(
                     viewport: bodyViewport,

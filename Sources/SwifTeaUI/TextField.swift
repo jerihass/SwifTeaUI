@@ -152,6 +152,7 @@ public enum TextFieldEvent: Equatable {
     case insert(Character)
     case backspace
     case submit
+    case moveCursor(Int)
 }
 
 public func textFieldEvent(from key: KeyEvent) -> TextFieldEvent? {
@@ -162,6 +163,10 @@ public func textFieldEvent(from key: KeyEvent) -> TextFieldEvent? {
         return .backspace
     case .enter:
         return .submit
+    case .leftArrow:
+        return .moveCursor(-1)
+    case .rightArrow:
+        return .moveCursor(1)
     default:
         return nil
     }
@@ -178,6 +183,8 @@ public extension Binding where Value == String {
                     value.removeLast()
                 }
             case .submit:
+                break
+            case .moveCursor:
                 break
             }
         }

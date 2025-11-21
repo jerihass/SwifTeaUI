@@ -159,7 +159,8 @@ struct TextFieldTests {
         #expect(textFieldEvent(from: .char("a")) == .insert("a"))
         #expect(textFieldEvent(from: .backspace) == .backspace)
         #expect(textFieldEvent(from: .enter) == .submit)
-        #expect(textFieldEvent(from: .leftArrow) == nil)
+        #expect(textFieldEvent(from: .leftArrow) == .moveCursor(-1))
+        #expect(textFieldEvent(from: .rightArrow) == .moveCursor(1))
     }
 
     @Test("Focus bindings toggle wrapped focus value")

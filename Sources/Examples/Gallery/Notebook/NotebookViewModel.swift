@@ -21,31 +21,33 @@ struct NotebookViewModel {
     func handleTitle(event: TextFieldEvent, state: inout NotebookState) -> Effect? {
         switch event {
         case .insert(let character):
-            state.editorTitle.append(character)
+            insertCharacter(character, in: &state.editorTitle, cursor: &state.editorTitleCursor)
             syncTitle(into: &state)
             return nil
 
         case .backspace:
-            if !state.editorTitle.isEmpty {
-                state.editorTitle.removeLast()
-                syncTitle(into: &state)
-            }
+            removeCharacter(in: &state.editorTitle, cursor: &state.editorTitleCursor)
+            syncTitle(into: &state)
             return nil
 
         case .submit:
             return .focus(.editorBody)
+
+        case .moveCursor(let delta):
+            state.editorTitleCursor = clampCursor(state.editorTitleCursor + delta, within: state.editorTitle)
+            return nil
         }
     }
 
     func handleBody(event: TextFieldEvent, state: inout NotebookState) -> Effect? {
         switch event {
         case .insert(let character):
-            insertCharacter(character, in: &state)
+            insertCharacter(character, in: &state.editorBody, cursor: &state.editorBodyCursor)
             syncBody(into: &state)
             return nil
 
         case .backspace:
-            removeCharacter(in: &state)
+            removeCharacter(in: &state.editorBody, cursor: &state.editorBodyCursor)
             syncBody(into: &state)
             return nil
 
@@ -53,6 +55,10 @@ struct NotebookViewModel {
             syncBody(into: &state)
             state.statusMessage = "Saved \"\(state.editorTitle)\" at \(Self.timestampFormatter.string(from: Date()))"
             return .focus(.sidebar)
+
+        case .moveCursor(let delta):
+            state.editorBodyCursor = clampCursor(state.editorBodyCursor + delta, within: state.editorBody)
+            return nil
         }
     }
 
@@ -63,6 +69,7 @@ struct NotebookViewModel {
         let note = state.notes[state.selectedIndex]
         state.editorTitle = note.title
         state.editorBody = note.body
+        state.editorTitleCursor = note.title.count
         state.editorBodyCursor = note.body.count
     }
 
@@ -76,19 +83,19 @@ struct NotebookViewModel {
         state.notes[state.selectedIndex].body = state.editorBody
     }
 
-    private func insertCharacter(_ character: Character, in state: inout NotebookState) {
-        let cursor = clampCursor(state.editorBodyCursor, within: state.editorBody)
-        let index = state.editorBody.index(state.editorBody.startIndex, offsetBy: cursor)
-        state.editorBody.insert(character, at: index)
-        state.editorBodyCursor = cursor + 1
+    private func insertCharacter(_ character: Character, in text: inout String, cursor: inout Int) {
+        let clamped = clampCursor(cursor, within: text)
+        let index = text.index(text.startIndex, offsetBy: clamped)
+        text.insert(character, at: index)
+        cursor = clamped + 1
     }
 
-    private func removeCharacter(in state: inout NotebookState) {
-        let cursor = clampCursor(state.editorBodyCursor, within: state.editorBody)
-        guard cursor > 0 else { return }
-        let removalIndex = state.editorBody.index(state.editorBody.startIndex, offsetBy: cursor - 1)
-        state.editorBody.remove(at: removalIndex)
-        state.editorBodyCursor = cursor - 1
+    private func removeCharacter(in text: inout String, cursor: inout Int) {
+        let clamped = clampCursor(cursor, within: text)
+        guard clamped > 0 else { return }
+        let removalIndex = text.index(text.startIndex, offsetBy: clamped - 1)
+        text.remove(at: removalIndex)
+        cursor = clamped - 1
     }
 
     private func clampCursor(_ cursor: Int, within text: String) -> Int {

@@ -43,7 +43,6 @@ struct NotebookModel {
         case editTitle(TextFieldEvent)
         case editBody(TextFieldEvent)
         case scrollBody(by: Int)
-        case moveBodyCursor(Int)
         case quit
     }
 
@@ -112,9 +111,6 @@ struct NotebookModel {
             let desired = bodyScrollOffset + delta
             let clamped = max(0, min(desired, maxOffset))
             bodyScrollOffset = clamped
-        case .moveBodyCursor(let delta):
-            moveCursor(by: delta)
-            followCursor = true
         case .quit:
             break
         }
@@ -125,6 +121,7 @@ struct NotebookModel {
             state: state,
             focus: focusedField,
             titleBinding: titleBinding,
+            titleCursorBinding: titleCursorBinding,
             bodyBinding: bodyBinding,
             titleFocusBinding: titleFocusBinding,
             bodyFocusBinding: bodyFocusBinding,
@@ -154,16 +151,6 @@ struct NotebookModel {
                 return .selectNext
             } else if focusedField == .editorBody {
                 return .scrollBody(by: 1)
-            }
-            return nil
-        case .leftArrow:
-            if focusedField == .editorBody {
-                return .moveBodyCursor(-1)
-            }
-            return nil
-        case .rightArrow:
-            if focusedField == .editorBody {
-                return .moveBodyCursor(1)
             }
             return nil
         case .enter:
@@ -218,6 +205,10 @@ struct NotebookModel {
         $state.map(\.editorTitle)
     }
 
+    private var titleCursorBinding: Binding<Int> {
+        $state.map(\.editorTitleCursor)
+    }
+
     private var bodyBinding: Binding<String> {
         $state.map(\.editorBody)
     }
@@ -241,11 +232,5 @@ struct NotebookModel {
 
     private var bodyMaxOffset: Int {
         max(0, bodyContentHeight - NotebookModel.bodyViewport)
-    }
-
-    private mutating func moveCursor(by delta: Int) {
-        let current = state.editorBodyCursor
-        let newValue = max(0, min(current + delta, state.editorBody.count))
-        state.editorBodyCursor = newValue
     }
 }
