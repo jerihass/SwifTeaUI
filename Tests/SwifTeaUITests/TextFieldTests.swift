@@ -132,8 +132,12 @@ struct TextFieldTests {
         )
 
         let editor = TextEditor(text: harness.textBinding, cursorPosition: cursorBinding)
-        let rendered = editor.render().strippingANSI()
-        #expect(rendered.contains("He█llo") || rendered.contains("He▌llo"))
+        let rendered = editor.render()
+        #expect(
+            rendered.contains("He█llo")
+            || rendered.contains("He▌llo")
+            || rendered.contains("\u{001B}[7ml\u{001B}[0m")
+        )
         #expect(cursorPosition == 2)
     }
 

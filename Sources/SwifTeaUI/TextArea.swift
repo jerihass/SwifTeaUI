@@ -49,10 +49,20 @@ public struct TextEditor: TUIView {
             cursorPositionBinding.wrappedValue = cursorIndex
         }
 
-        var renderText = value.isEmpty ? placeholder : value
-        let insertionIndex = renderText == value
-            ? min(cursorIndex, renderText.count)
-            : min(cursorIndex, renderText.count)
+        var renderText: String
+        var underlyingChar: Character?
+        if value.isEmpty {
+            renderText = placeholder
+        } else {
+            renderText = value
+            if cursorIndex < renderText.count {
+                let idx = renderText.index(renderText.startIndex, offsetBy: cursorIndex)
+                underlyingChar = renderText[idx]
+                renderText.remove(at: idx)
+            }
+        }
+
+        let insertionIndex = min(cursorIndex, renderText.count)
         let index = renderText.index(renderText.startIndex, offsetBy: insertionIndex)
         renderText.insert(contentsOf: sentinel, at: index)
 
@@ -60,8 +70,8 @@ public struct TextEditor: TUIView {
 
         let targetWidth = wrapWidth + 1
         let cursorDisplay = blinkingCursor
-            ? CursorBlinker.shared.cursor(for: cursorSymbol)
-            : cursorSymbol
+            ? CursorBlinker.shared.cursor(for: String(underlyingChar ?? " "))
+            : String(underlyingChar ?? " ")
 
         var detectedCursorLine: Int?
 
@@ -69,7 +79,8 @@ public struct TextEditor: TUIView {
             if let range = lines[lineIndex].range(of: sentinel) {
                 detectedCursorLine = lineIndex
                 if isFocused {
-                    lines[lineIndex].replaceSubrange(range, with: cursorDisplay)
+                    let overlay = "\u{001B}[7m" + cursorDisplay + ANSIColor.reset.rawValue
+                    lines[lineIndex].replaceSubrange(range, with: overlay)
                     lines[lineIndex] = focusStyle.apply(to: lines[lineIndex])
                 } else {
                     lines[lineIndex].removeSubrange(range)
