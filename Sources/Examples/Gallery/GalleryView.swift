@@ -24,8 +24,10 @@ struct GalleryView: TUIView {
             Text("SwifTea Gallery")
                 .foregroundColor(theme.accent)
                 .bold()
-            Text("One executable demo that stitches together the original Notebook, Task Runner, and Package List examples.")
+            Text("Focused, single-concept demos you can copy and tinker with.")
                 .foregroundColor(theme.info)
+            Text(activeSection.subtitle)
+                .foregroundColor(theme.primaryText)
             gradientBar
         }
     }
@@ -77,17 +79,18 @@ struct GalleryView: TUIView {
 
     private var trailingSegments: [StatusBar.Segment] {
         var segments: [StatusBar.Segment] = [
-            .init("[1] Notebook", color: theme.info),
-            .init("[2] Tasks", color: theme.success),
-            .init("[3] Packages", color: theme.warning),
-            .init("[4] ZStack", color: theme.accent),
+            .init("[1] Counter", color: theme.info),
+            .init("[2] Form", color: theme.success),
+            .init("[3] List", color: theme.warning),
+            .init("[4] Table", color: theme.accent),
+            .init("[5] Overlays", color: theme.primaryText),
             .init("[Tab] Next", color: theme.accent),
             .init("[Shift+Tab] Previous", color: theme.accent),
             .init("[?] Help", color: theme.info),
             .init("[Ctrl-C] Quit", color: theme.warning)
         ]
         if !shortcutsEnabled {
-            segments.append(.init("Finish editing note to switch", color: theme.warning))
+            segments.append(.init("Shortcuts paused while editing", color: theme.warning))
         }
         return segments
     }

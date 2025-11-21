@@ -27,3 +27,8 @@ Keep Notebook/TaskRunner/PackageList content only if it clearly maps to one of t
 - Add a lightweight landing card in each demo describing the concept and key bindings.
 - Unify keybindings across demos (`Tab`/`Shift+Tab` for sections, digits 1–9 for direct jumps, `?` for help).
 - Refresh README “Examples” section to mirror the new lineup once implemented.
+
+## Current Status
+
+- Gallery now shows the focused set: counter, form/focus, list/search, table snapshot, and overlay presets with unified keybindings and help modal.
+- README examples section mirrors the new lineup; further responsive/scroll demos can be added in follow-up iterations.

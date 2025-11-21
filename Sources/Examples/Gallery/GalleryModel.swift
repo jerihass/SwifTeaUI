@@ -3,26 +3,44 @@ import SwifTeaUI
 
 struct GalleryModel {
     enum Section: Int, CaseIterable {
-        case notebook
-        case tasks
-        case packages
-        case zstackDemo
+        case counter
+        case form
+        case listSearch
+        case table
+        case overlays
 
         var title: String {
             switch self {
-            case .notebook: return "Notebook"
-            case .tasks: return "Task Runner"
-            case .packages: return "Package List"
-            case .zstackDemo: return "ZStack Playground"
+            case .counter: return "Counter"
+            case .form: return "Form & Focus"
+            case .listSearch: return "List & Search"
+            case .table: return "Table Snapshot"
+            case .overlays: return "Overlays"
+            }
+        }
+
+        var subtitle: String {
+            switch self {
+            case .counter:
+                return "Minimal reducer-driven state."
+            case .form:
+                return "Text input, focus, and validation."
+            case .listSearch:
+                return "Incremental filtering with selection."
+            case .table:
+                return "Columns, selection, and focus styling."
+            case .overlays:
+                return "Toast + modal presets via OverlayHost."
             }
         }
 
         var shortcut: Character {
             switch self {
-            case .notebook: return "1"
-            case .tasks: return "2"
-            case .packages: return "3"
-            case .zstackDemo: return "4"
+            case .counter: return "1"
+            case .form: return "2"
+            case .listSearch: return "3"
+            case .table: return "4"
+            case .overlays: return "5"
             }
         }
 
@@ -30,7 +48,6 @@ struct GalleryModel {
             let all = Section.allCases
             guard let currentIndex = all.firstIndex(of: self) else { return self }
             let count = all.count
-            guard count > 0 else { return self }
             let offset = ((currentIndex + delta) % count + count) % count
             return all[offset]
         }
@@ -39,32 +56,40 @@ struct GalleryModel {
     enum Action {
         case selectSection(Section)
         case cycleSection(Int)
-        case notebook(NotebookModel.Action)
-        case tasks(TaskRunnerModel.Action)
-        case packages(PackageListModel.Action)
+        case counter(CounterDemoModel.Action)
+        case form(FormDemoModel.Action)
+        case list(ListSearchDemoModel.Action)
+        case table(TableDemoModel.Action)
+        case overlayDemo(OverlayDemoModel.Action)
         case toggleHelp
         case quit
     }
 
     @State private var activeSection: Section
-    private var notebook: NotebookModel
-    private var taskRunner: TaskRunnerModel
-    private var packageList: PackageListModel
+    private var counter: CounterDemoModel
+    private var form: FormDemoModel
+    private var list: ListSearchDemoModel
+    private var table: TableDemoModel
+    private var overlaysDemo: OverlayDemoModel
     @State private var overlays: OverlayPresenter
     private let theme: SwifTeaTheme
 
     init(
-        activeSection: Section = .notebook,
-        notebook: NotebookModel = NotebookModel(),
-        taskRunner: TaskRunnerModel? = nil,
-        packageList: PackageListModel = PackageListModel(),
+        activeSection: Section = .counter,
+        counter: CounterDemoModel = CounterDemoModel(),
+        form: FormDemoModel = FormDemoModel(),
+        list: ListSearchDemoModel = ListSearchDemoModel(),
+        table: TableDemoModel = TableDemoModel(),
+        overlaysDemo: OverlayDemoModel = OverlayDemoModel(),
         overlays: OverlayPresenter = OverlayPresenter(),
         theme: SwifTeaTheme = .bubbleTeaNeon
     ) {
         self._activeSection = State(wrappedValue: activeSection)
-        self.notebook = notebook
-        self.taskRunner = taskRunner ?? TaskRunnerModel(effects: Self.makeTaskRunnerEffects())
-        self.packageList = packageList
+        self.counter = counter
+        self.form = form
+        self.list = list
+        self.table = table
+        self.overlaysDemo = overlaysDemo
         self._overlays = State(wrappedValue: overlays)
         self.theme = theme
     }
@@ -77,12 +102,20 @@ struct GalleryModel {
         case .cycleSection(let offset):
             activeSection = activeSection.next(offset)
             showSectionToast()
-        case .notebook(let notebookAction):
-            notebook.update(action: notebookAction)
-        case .tasks(let taskAction):
-            taskRunner.update(action: taskAction)
-        case .packages(let packageAction):
-            packageList.update(action: packageAction)
+        case .counter(let action):
+            counter.update(action: action)
+        case .form(let action):
+            form.update(action: action)
+        case .list(let action):
+            list.update(action: action)
+        case .table(let action):
+            table.update(action: action)
+        case .overlayDemo(let action):
+            var demo = overlaysDemo
+            var presenter = overlays
+            demo.update(action: action, overlays: &presenter, theme: theme)
+            overlaysDemo = demo
+            overlays = presenter
         case .toggleHelp:
             if overlays.hasModal {
                 overlays.dismissModal()
@@ -105,12 +138,10 @@ struct GalleryModel {
         return OverlayHost(presenter: overlays, content: galleryView)
     }
 
-    mutating func initializeEffects() {
-        taskRunner.initializeEffects()
-    }
+    mutating func initializeEffects() {}
 
     mutating func handleTerminalResize(to newSize: TerminalSize) {
-        taskRunner.updateTerminalMetrics(TerminalMetrics(size: newSize))
+        _ = newSize
     }
 
     mutating func tickOverlays(_ delta: TimeInterval) {
@@ -118,82 +149,34 @@ struct GalleryModel {
     }
 
     func shouldExit(for action: Action) -> Bool {
-        switch action {
-        case .quit:
-            return true
-        case .notebook(let inner):
-            return notebook.shouldExit(for: inner)
-        case .tasks(let inner):
-            return taskRunner.shouldExit(for: inner)
-        case .packages(let inner):
-            return packageList.shouldExit(for: inner)
-        case .selectSection, .cycleSection, .toggleHelp:
-            return false
-        }
+        if case .quit = action { return true }
+        return false
     }
 
     func mapKeyToAction(_ key: KeyEvent) -> Action? {
-        if case .char(let char) = key, let section = section(for: char) {
-            if sectionShortcutsEnabled {
-                return .selectSection(section)
-            }
+        if case .char("?") = key {
+            return .toggleHelp
+        }
+        if case .ctrlC = key {
+            return .quit
+        }
+
+        if case .char(let char) = key,
+           let section = section(for: char),
+           sectionShortcutsEnabled {
+            return .selectSection(section)
+        }
+
+        if let sectionAction = actionForActiveSection(key) {
+            return sectionAction
         }
 
         switch key {
-        case .char("?"):
-            return .toggleHelp
-        case .ctrlC:
-            return .quit
         case .tab:
-            if activeSection == .notebook {
-                return notebookAction(for: key)
-            }
             return .cycleSection(1)
         case .backTab:
-            if activeSection == .notebook {
-                return notebookAction(for: key)
-            }
             return .cycleSection(-1)
         default:
-            break
-        }
-
-        return actionForActiveSection(key)
-    }
-
-    private func notebookAction(for key: KeyEvent) -> Action? {
-        guard let action = notebook.mapKeyToAction(key) else { return nil }
-        if notebook.shouldExit(for: action) {
-            return .quit
-        }
-        return .notebook(action)
-    }
-
-    private func taskRunnerAction(for key: KeyEvent) -> Action? {
-        guard let action = taskRunner.mapKeyToAction(key) else { return nil }
-        if taskRunner.shouldExit(for: action) {
-            return .quit
-        }
-        return .tasks(action)
-    }
-
-    private func packageListAction(for key: KeyEvent) -> Action? {
-        guard let action = packageList.mapKeyToAction(key) else { return nil }
-        if packageList.shouldExit(for: action) {
-            return .quit
-        }
-        return .packages(action)
-    }
-
-    private func actionForActiveSection(_ key: KeyEvent) -> Action? {
-        switch activeSection {
-        case .notebook:
-            return notebookAction(for: key)
-        case .tasks:
-            return taskRunnerAction(for: key)
-        case .packages:
-            return packageListAction(for: key)
-        case .zstackDemo:
             return nil
         }
     }
@@ -202,38 +185,54 @@ struct GalleryModel {
         Section.allCases.first { $0.shortcut == shortcut }
     }
 
+    private func actionForActiveSection(_ key: KeyEvent) -> Action? {
+        switch activeSection {
+        case .counter:
+            guard let action = counter.mapKeyToAction(key) else { return nil }
+            return .counter(action)
+        case .form:
+            guard let action = form.mapKeyToAction(key) else { return nil }
+            return .form(action)
+        case .listSearch:
+            guard let action = list.mapKeyToAction(key) else { return nil }
+            return .list(action)
+        case .table:
+            guard let action = table.mapKeyToAction(key) else { return nil }
+            return .table(action)
+        case .overlays:
+            guard let action = overlaysDemo.mapKeyToAction(key) else { return nil }
+            return .overlayDemo(action)
+        }
+    }
+
     private func viewForActiveSection() -> AnyTUIView {
         switch activeSection {
-        case .notebook:
-            return AnyTUIView(notebook.makeView())
-        case .tasks:
-            return AnyTUIView(taskRunner.makeView())
-        case .packages:
-            return AnyTUIView(packageList.makeView())
-        case .zstackDemo:
-            return AnyTUIView(ZStackDemoView(theme: theme))
+        case .counter:
+            return AnyTUIView(counter.makeView(theme: theme))
+        case .form:
+            return AnyTUIView(form.makeView(theme: theme))
+        case .listSearch:
+            return AnyTUIView(list.makeView(theme: theme))
+        case .table:
+            return AnyTUIView(table.makeView(theme: theme))
+        case .overlays:
+            return AnyTUIView(overlaysDemo.makeView(theme: theme))
         }
     }
 
     private var sectionShortcutsEnabled: Bool {
         switch activeSection {
-        case .notebook:
-            return notebook.allowsSectionShortcuts
-        case .tasks, .packages, .zstackDemo:
-            return true
+        case .counter:
+            return counter.allowsSectionShortcuts
+        case .form:
+            return form.allowsSectionShortcuts
+        case .listSearch:
+            return list.allowsSectionShortcuts
+        case .table:
+            return table.allowsSectionShortcuts
+        case .overlays:
+            return overlaysDemo.allowsSectionShortcuts
         }
-    }
-
-    private static func makeTaskRunnerEffects() -> TaskRunnerModel.EffectRuntime {
-        TaskRunnerModel.EffectRuntime(
-            dispatch: { effect, id, cancelExisting in
-                let wrapped = effect.map(GalleryModel.Action.tasks)
-                SwifTea.dispatch(wrapped, id: id, cancelExisting: cancelExisting)
-            },
-            cancel: { id in
-                SwifTea.cancelEffects(withID: id)
-            }
-        )
     }
 
     private mutating func showSectionToast() {
@@ -254,19 +253,20 @@ struct GalleryModel {
     }
 
     private mutating func presentHelpModal() {
+        let theme = self.theme
+        let infoColor = theme.info
         let style = OverlayPresenter.ModalStyle(
             accentColor: theme.accent,
             borderColor: theme.frameBorder,
             titleColor: theme.primaryText
         )
-        let infoColor = theme.info
         overlays.presentModal(
             priority: 1,
             title: "Gallery Shortcuts",
             style: style
         ) {
             VStack(spacing: 1, alignment: .leading) {
-                Text("[1]/[2]/[3] select section")
+                Text("[1…5] jump to section")
                 Text("[Tab]/[Shift+Tab] cycle sections")
                 Text("[?] toggle this help")
                 Text("[Ctrl-C] quit")

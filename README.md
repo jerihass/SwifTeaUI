@@ -142,7 +142,7 @@ The scene maps terminal key events to reducer actions, `@State` keeps the counte
 
 ### Examples
 
-- `swift run SwifTeaGalleryExample` stitches the notebook, task runner, and package list demos into a single executable—use `[1]`, `[2]`, `[3]`, or `Tab`/`Shift+Tab` to jump between the sections without quitting the program.
+- `swift run SwifTeaGalleryExample` now launches focused demos: counter, form & focus, list/search, table snapshot, and overlays. Jump with `[1]`…`[5]` or `Tab`/`Shift+Tab` between sections without quitting.
 
 ### Layout Primitives
 

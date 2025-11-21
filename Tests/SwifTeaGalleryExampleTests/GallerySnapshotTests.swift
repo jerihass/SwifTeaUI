@@ -4,27 +4,27 @@ import SwifTeaUI
 
 struct GallerySnapshotTests {
 
-    @Test("Defaults to rendering the Notebook section")
-    func testNotebookSectionSnapshot() {
+    @Test("Defaults to rendering the Counter section")
+    func testCounterSectionSnapshot() {
         let snapshot = renderGallery()
         #expect(snapshot.contains("SwifTea Gallery"))
-        #expect(snapshot.contains("SwifTea Notebook"))
+        #expect(snapshot.contains("Counter & State"))
     }
 
-    @Test("Switching sections shows the Task Runner view")
-    func testTaskRunnerSectionSnapshot() {
+    @Test("Switching sections shows the Form view")
+    func testFormSectionSnapshot() {
         let snapshot = renderGallery { model in
-            model.update(action: .selectSection(.tasks))
+            model.update(action: .selectSection(.form))
         }
-        #expect(snapshot.contains("SwifTea Task Runner"))
+        #expect(snapshot.contains("Form & Focus"))
     }
 
-    @Test("Package List section renders when selected")
-    func testPackageListSectionSnapshot() {
+    @Test("Table section renders when selected")
+    func testTableSectionSnapshot() {
         let snapshot = renderGallery { model in
-            model.update(action: .selectSection(.packages))
+            model.update(action: .selectSection(.table))
         }
-        #expect(snapshot.contains("Mint Package Dashboard"))
+        #expect(snapshot.contains("Table Snapshot"))
     }
 
     private func renderGallery(
