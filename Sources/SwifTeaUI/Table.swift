@@ -72,10 +72,12 @@ public struct TableRowStyle {
     public struct Border {
         public var leading: String
         public var trailing: String
+        public var reserveSpace: Bool
 
-        public init(leading: String = "│ ", trailing: String = " │") {
+        public init(leading: String = "│ ", trailing: String = " │", reserveSpace: Bool = false) {
             self.leading = leading
             self.trailing = trailing
+            self.reserveSpace = reserveSpace
         }
     }
 
@@ -121,13 +123,21 @@ public extension TableRowStyle {
 
     static func focused(
         accent: ANSIColor = .cyan,
-        border: Border = Border(leading: "▌ ", trailing: " ▐")
+        border: Border? = Border(leading: "▌ ", trailing: " ▐", reserveSpace: true)
     ) -> TableRowStyle {
         TableRowStyle(
             foregroundColor: accent,
             isBold: true,
             border: border
         )
+    }
+
+    /// Focused style with explicit gutter markers that reserve space so content remains aligned.
+    static func focusedWithMarkers(
+        accent: ANSIColor = .cyan,
+        border: Border = Border(leading: "▌ ", trailing: " ▐", reserveSpace: true)
+    ) -> TableRowStyle {
+        focused(accent: accent, border: border)
     }
 
     static func selected(
@@ -369,13 +379,27 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
             Self.resolveWidth(measured: measured, rule: column.width)
         }
 
+        // Resolve styles so we can compute shared gutter reservations.
+        let resolvedRows: [ResolvedRow] = renderedRows.map { row in
+            ResolvedRow(row: row, style: resolvedStyle(for: row))
+        }
+        let reservedLeading = resolvedRows.map { $0.gutterLeading }.max() ?? 0
+        let reservedTrailing = resolvedRows.map { $0.gutterTrailing }.max() ?? 0
+        let rowWidth = totalWidth(using: resolvedWidths) + reservedLeading + reservedTrailing
+
         let headerLines = renderHeader(
             renderedCells: renderedHeaderCells,
-            columnWidths: resolvedWidths
+            columnWidths: resolvedWidths,
+            reservedLeading: reservedLeading,
+            reservedTrailing: reservedTrailing,
+            rowWidth: rowWidth
         )
         let bodyLines = renderBody(
-            rows: renderedRows,
-            columnWidths: resolvedWidths
+            rows: resolvedRows,
+            columnWidths: resolvedWidths,
+            reservedLeading: reservedLeading,
+            reservedTrailing: reservedTrailing,
+            rowWidth: rowWidth
         )
 
         var tableLines: [String] = []
@@ -403,17 +427,30 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
 
     private func renderHeader(
         renderedCells: [RenderedCell],
-        columnWidths: [Int]
+        columnWidths: [Int],
+        reservedLeading: Int,
+        reservedTrailing: Int,
+        rowWidth: Int
     ) -> [String]? {
         guard renderedCells.contains(where: { !$0.lines.isEmpty }) else {
             return nil
         }
-        return renderRow(cells: renderedCells, columnWidths: columnWidths, style: nil)
+        return renderRow(
+            cells: renderedCells,
+            columnWidths: columnWidths,
+            style: nil,
+            reservedLeading: reservedLeading,
+            reservedTrailing: reservedTrailing,
+            rowWidth: rowWidth
+        )
     }
 
     private func renderBody(
-        rows: [RenderedRow],
-        columnWidths: [Int]
+        rows: [ResolvedRow],
+        columnWidths: [Int],
+        reservedLeading: Int,
+        reservedTrailing: Int,
+        rowWidth: Int
     ) -> [String] {
         guard !rows.isEmpty else { return [] }
         var lines: [String] = []
@@ -421,9 +458,12 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
         for (index, row) in rows.enumerated() {
             lines.append(
                 contentsOf: renderRow(
-                    cells: row.cells,
+                    cells: row.row.cells,
                     columnWidths: columnWidths,
-                    style: resolvedStyle(for: row)
+                    style: row.style,
+                    reservedLeading: reservedLeading,
+                    reservedTrailing: reservedTrailing,
+                    rowWidth: rowWidth
                 )
             )
             if rowSpacing > 0 && index < rows.count - 1 {
@@ -438,7 +478,10 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
     private func renderRow(
         cells: [RenderedCell],
         columnWidths: [Int],
-        style: TableRowStyle?
+        style: TableRowStyle?,
+        reservedLeading: Int,
+        reservedTrailing: Int,
+        rowWidth: Int
     ) -> [String] {
         let spacingString = String(repeating: " ", count: columnSpacing)
         let rowHeight = cells.map { $0.lines.count }.max() ?? 0
@@ -461,7 +504,13 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
                 pieces.append(padded)
             }
             let rowString = pieces.joined(separator: spacingString)
-            renderedLines.append(apply(style: style, to: rowString))
+            renderedLines.append(apply(
+                style: style,
+                to: rowString,
+                totalWidth: rowWidth,
+                reservedLeading: reservedLeading,
+                reservedTrailing: reservedTrailing
+            ))
         }
 
         return renderedLines
@@ -496,12 +545,27 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
         return columnWidths.reduce(0, +) + spacingWidth
     }
 
-    private func apply(style: TableRowStyle?, to line: String) -> String {
-        guard let style else { return line }
+    private func apply(
+        style: TableRowStyle?,
+        to line: String,
+        totalWidth: Int,
+        reservedLeading: Int,
+        reservedTrailing: Int
+    ) -> String {
+        let guttered = addGutters(to: line, reservedLeading: reservedLeading, reservedTrailing: reservedTrailing)
 
-        var decoratedLine = line
+        guard let style else { return enforceVisibleWidth(guttered, width: totalWidth) }
+
+        var decoratedLine = guttered
         if let border = style.border {
-            decoratedLine = border.leading + decoratedLine + border.trailing
+            let targetLine = border.reserveSpace ? line : guttered
+            decoratedLine = overlayBorder(
+                targetLine,
+                border: border,
+                width: totalWidth,
+                reservedLeading: reservedLeading,
+                reservedTrailing: reservedTrailing
+            )
         }
 
         var prefix = ""
@@ -523,8 +587,11 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
         if style.isReversed {
             prefix += "\u{001B}[7m"
         }
-        guard !prefix.isEmpty else { return decoratedLine }
-        return prefix + decoratedLine + ANSIColor.reset.rawValue
+        if !prefix.isEmpty {
+            decoratedLine = prefix + decoratedLine + ANSIColor.reset.rawValue
+        }
+
+        return enforceVisibleWidth(decoratedLine, width: totalWidth)
     }
 
     private func renderViews(_ views: [any TUIView]) -> [String] {
@@ -600,6 +667,220 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
         let id: ID
         let cells: [RenderedCell]
         let style: TableRowStyle?
+    }
+
+    private struct ResolvedRow {
+        let row: RenderedRow
+        let style: TableRowStyle?
+
+        var gutterLeading: Int {
+            guard let border = style?.border, border.reserveSpace else { return 0 }
+            return HStack.visibleWidth(of: border.leading)
+        }
+
+        var gutterTrailing: Int {
+            guard let border = style?.border, border.reserveSpace else { return 0 }
+            return HStack.visibleWidth(of: border.trailing)
+        }
+    }
+
+    private func overlayBorder(
+        _ line: String,
+        border: TableRowStyle.Border,
+        width: Int,
+        reservedLeading: Int,
+        reservedTrailing: Int
+    ) -> String {
+        guard width > 0 else { return line }
+        let leadingWidth = HStack.visibleWidth(of: border.leading)
+        let trailingWidth = HStack.visibleWidth(of: border.trailing)
+
+        // Reserve gutters when requested to avoid covering content.
+        if border.reserveSpace {
+            let contentWidth = max(0, width - reservedLeading - reservedTrailing)
+            let content = enforceVisibleWidth(line, width: contentWidth)
+            let leading = padBorderSegment(border.leading, to: reservedLeading)
+            let trailing = padBorderSegment(border.trailing, to: reservedTrailing)
+            return leading + content + trailing
+        }
+
+        var result = line
+        if leadingWidth > 0 {
+            result = border.leading + dropLeadingVisibleColumns(from: result, count: leadingWidth)
+        }
+
+        if trailingWidth > 0 {
+            let keepWidth = max(0, width - trailingWidth)
+            result = takeLeadingVisibleColumns(from: result, count: keepWidth) + border.trailing
+        }
+
+        return enforceVisibleWidth(result, width: width)
+    }
+
+    private func enforceVisibleWidth(_ line: String, width: Int) -> String {
+        guard width > 0 else { return "" }
+
+        let currentWidth = HStack.visibleWidth(of: line)
+        if currentWidth == width {
+            return line
+        } else if currentWidth < width {
+            return line + String(repeating: " ", count: width - currentWidth)
+        }
+
+        // Trim to the requested width while preserving ANSI sequences.
+        var visibleIndex = 0
+        var produced = 0
+        var result = ""
+        var pendingSequences = ""
+        var index = line.startIndex
+        var inEscape = false
+        var currentSequence = ""
+
+        while index < line.endIndex {
+            let character = line[index]
+            if inEscape {
+                currentSequence.append(character)
+                if character.isANSISequenceTerminator {
+                    inEscape = false
+                    // keep sequences even if we don't emit visible chars yet
+                    if produced < width {
+                        result.append(currentSequence)
+                    } else {
+                        pendingSequences.append(currentSequence)
+                    }
+                    currentSequence.removeAll(keepingCapacity: true)
+                }
+            } else if character == "\u{001B}" {
+                inEscape = true
+                currentSequence = "\u{001B}"
+            } else {
+                if produced < width {
+                    if !pendingSequences.isEmpty {
+                        result.append(pendingSequences)
+                        pendingSequences.removeAll(keepingCapacity: true)
+                    }
+                    result.append(character)
+                    produced += 1
+                }
+                visibleIndex += 1
+                if produced >= width && !inEscape {
+                    // discard remaining visible characters
+                    // but continue consuming escapes to keep index advancing
+                }
+            }
+            index = line.index(after: index)
+            if produced >= width && !inEscape {
+                // We can break early once we hit the width and not inside escape.
+                break
+            }
+        }
+
+        if !result.hasSuffix(ANSIColor.reset.rawValue) {
+            result += ANSIColor.reset.rawValue
+        }
+        return result
+    }
+
+    private func addGutters(to line: String, reservedLeading: Int, reservedTrailing: Int) -> String {
+        let leading = reservedLeading > 0 ? String(repeating: " ", count: reservedLeading) : ""
+        let trailing = reservedTrailing > 0 ? String(repeating: " ", count: reservedTrailing) : ""
+        return leading + line + trailing
+    }
+
+    private func padBorderSegment(_ segment: String, to width: Int) -> String {
+        guard width > 0 else { return "" }
+        let current = HStack.visibleWidth(of: segment)
+        if current == width { return segment }
+        if current < width {
+            return segment + String(repeating: " ", count: width - current)
+        }
+        return takeLeadingVisibleColumns(from: segment, count: width)
+    }
+
+    private func dropLeadingVisibleColumns(from line: String, count: Int) -> String {
+        guard count > 0 else { return line }
+
+        var visibleIndex = 0
+        var capturing = false
+        var result = ""
+        var pendingSequences = ""
+        var index = line.startIndex
+        var inEscape = false
+        var currentSequence = ""
+
+        while index < line.endIndex {
+            let character = line[index]
+            if inEscape {
+                currentSequence.append(character)
+                if character.isANSISequenceTerminator {
+                    inEscape = false
+                    if capturing {
+                        result.append(currentSequence)
+                    } else {
+                        pendingSequences.append(currentSequence)
+                    }
+                    currentSequence.removeAll(keepingCapacity: true)
+                }
+            } else if character == "\u{001B}" {
+                inEscape = true
+                currentSequence = "\u{001B}"
+            } else {
+                if visibleIndex >= count {
+                    if !capturing {
+                        capturing = true
+                        if !pendingSequences.isEmpty {
+                            result.append(pendingSequences)
+                            pendingSequences.removeAll(keepingCapacity: true)
+                        }
+                    }
+                    result.append(character)
+                }
+                visibleIndex += 1
+            }
+            index = line.index(after: index)
+        }
+
+        return capturing ? result : ""
+    }
+
+    private func takeLeadingVisibleColumns(from line: String, count: Int) -> String {
+        guard count > 0 else { return "" }
+
+        var visibleIndex = 0
+        var produced = 0
+        var result = ""
+        var index = line.startIndex
+        var inEscape = false
+        var currentSequence = ""
+
+        while index < line.endIndex {
+            let character = line[index]
+            if inEscape {
+                currentSequence.append(character)
+                if character.isANSISequenceTerminator {
+                    inEscape = false
+                    result.append(currentSequence)
+                    currentSequence.removeAll(keepingCapacity: true)
+                }
+            } else if character == "\u{001B}" {
+                inEscape = true
+                currentSequence = "\u{001B}"
+            } else {
+                if produced < count {
+                    result.append(character)
+                    produced += 1
+                } else {
+                    break
+                }
+                visibleIndex += 1
+            }
+            index = line.index(after: index)
+        }
+
+        if produced < count {
+            result += String(repeating: " ", count: count - produced)
+        }
+        return result
     }
 }
 
