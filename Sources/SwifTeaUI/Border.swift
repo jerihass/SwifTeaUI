@@ -36,7 +36,7 @@ public struct Border<Content: TUIView>: TUIView {
     }
 
     public func render() -> String {
-        var rendered = RenderedView(lines: content.render().splitLinesPreservingEmpty())
+        var rendered = resolveRenderedView(for: content)
         if rendered.lines.isEmpty {
             rendered = RenderedView(lines: [""])
         }

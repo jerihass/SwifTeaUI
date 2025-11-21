@@ -42,7 +42,7 @@ public struct ZStack: TUIView {
     public func render() -> String {
         guard !layers.isEmpty else { return "" }
 
-        let renderedLayers = layers.map { RenderedView(lines: $0.render().splitLinesPreservingEmpty()) }
+        let renderedLayers = layers.map { resolveRenderedView(for: $0) }
         let maxWidth = max(1, renderedLayers.map { $0.maxWidth }.max() ?? 0)
         let maxHeight = max(1, renderedLayers.map { $0.height }.max() ?? 0)
 

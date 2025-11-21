@@ -105,7 +105,7 @@ public struct ScrollView<Content: TUIView>: TUIView {
     }
 
     private func renderVertical() -> String {
-        var rendered = RenderedView(lines: content.render().splitLinesPreservingEmpty())
+        var rendered = resolveRenderedView(for: content)
         if rendered.lines.isEmpty {
             rendered = RenderedView(lines: [""])
         }
@@ -157,7 +157,7 @@ public struct ScrollView<Content: TUIView>: TUIView {
     }
 
     private func renderHorizontal() -> String {
-        var rendered = RenderedView(lines: content.render().splitLinesPreservingEmpty())
+        var rendered = resolveRenderedView(for: content)
         if rendered.lines.isEmpty {
             rendered = RenderedView(lines: [""])
         }

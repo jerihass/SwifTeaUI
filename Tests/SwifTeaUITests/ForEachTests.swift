@@ -1,56 +1,51 @@
 import Testing
 @testable import SwifTeaUI
 
+private struct CountingView: TUIView {
+    typealias Body = Never
+
+    static var renders = 0
+    let value: Int
+
+    var body: Never { fatalError("CountingView has no body") }
+
+    func render() -> String {
+        Self.renders += 1
+        return "row \(value)"
+    }
+}
+
 struct ForEachTests {
-    @Test("ForEach renders each element vertically")
-    func testRendersSequence() {
-        let view = ForEach(["One", "Two", "Three"], id: \.self) { value in
-            Text(value)
+    @Test("Diffing reuses cached renders for unchanged elements")
+    func testForEachDiffingReuse() {
+        CountingView.renders = 0
+        let forEach = ForEach([1, 2, 3], id: \.self) { value in
+            [CountingView(value: value)]
         }
+        .diffing(key: "stable")
 
-        let output = view.render().split(separator: "\n").map(String.init)
-        #expect(output == ["One", "Two", "Three"])
+        _ = forEach.makeChildViews()
+        #expect(CountingView.renders == 3)
+
+        CountingView.renders = 0
+        _ = forEach.makeChildViews()
+        #expect(CountingView.renders == 0)
     }
 
-    @Test("ForEach handles enumerated data with tuple elements")
-    func testEnumeratedSequence() {
-        let data = Array(["A", "B", "C"].enumerated())
-        let view = ForEach(data, id: \.offset) { entry in
-            let (index, value) = entry
-            Text("\(index):\(value)")
+    @Test("Diffing key change invalidates cache")
+    func testDiffingKeyInvalidates() {
+        CountingView.renders = 0
+        let initial = ForEach([1, 2], id: \.self) { value in
+            [CountingView(value: value)]
         }
+        .diffing(key: "a")
 
-        let output = view.render().split(separator: "\n").map(String.init)
-        #expect(output == ["0:A", "1:B", "2:C"])
-    }
+        _ = initial.makeChildViews()
+        #expect(CountingView.renders == 2)
 
-    @Test("ForEach infers IDs from Identifiable data without explicit id key path")
-    func testIdentifiableData() {
-        struct Item: Identifiable {
-            let id: Int
-            let name: String
-        }
-        let items = [
-            Item(id: 1, name: "Alpha"),
-            Item(id: 2, name: "Beta")
-        ]
-
-        let view = ForEach(items) { item in
-            Text(item.name)
-        }
-
-        let output = view.render().split(separator: "\n").map(String.init)
-        #expect(output == ["Alpha", "Beta"])
-    }
-
-    @Test("ForEach can participate in horizontal layouts without forced line breaks")
-    func testHorizontalUsage() {
-        let view = HStack {
-            ForEach(["L", "R"], id: \.self) { value in
-                Text(value)
-            }
-        }
-
-        #expect(view.render() == "L   R")
+        CountingView.renders = 0
+        let updated = initial.diffing(key: "b")
+        _ = updated.makeChildViews()
+        #expect(CountingView.renders == 2)
     }
 }

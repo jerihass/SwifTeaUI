@@ -596,9 +596,8 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
 
     private func renderViews(_ views: [any TUIView]) -> [String] {
         guard !views.isEmpty else { return [] }
-        let joined = views.map { $0.render() }.joined(separator: "\n")
-        guard !joined.isEmpty else { return [] }
-        return joined.splitLinesPreservingEmpty()
+        let rendered = views.map { resolveRenderedView(for: $0) }
+        return rendered.flatMap { $0.lines }
     }
 
     private static func resolveWidth(measured: Int, rule: TableColumn<Row>.Width) -> Int {

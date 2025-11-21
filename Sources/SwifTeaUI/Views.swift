@@ -136,7 +136,7 @@ public struct VStack: TUIView {
     public func render() -> String {
         guard !children.isEmpty else { return "" }
 
-        let rendered = children.map { RenderedView(lines: $0.render().splitLinesPreservingEmpty()) }
+        let rendered = children.map { resolveRenderedView(for: $0) }
         let maxWidth = rendered.map { $0.maxWidth }.max() ?? 0
 
         var lines: [String] = []
@@ -257,7 +257,7 @@ public struct HStack: TUIView {
     public func render() -> String {
         guard !children.isEmpty else { return "" }
 
-        let renderedColumns = children.map { RenderedView(lines: $0.render().splitLinesPreservingEmpty()) }
+        let renderedColumns = children.map { resolveRenderedView(for: $0) }
         let columnWidths = renderedColumns.map { $0.maxWidth }
         let columnHeights = renderedColumns.map { $0.height }
         let maxRows = columnHeights.max() ?? 0
@@ -385,19 +385,70 @@ public struct Group: TUIView {
     public var body: some TUIView { self }
 }
 
+private struct ForEachCacheKey: Hashable {
+    let file: String
+    let line: UInt
+    let idType: ObjectIdentifier
+}
+
+private final class ForEachCacheStore {
+    static let shared = ForEachCacheStore()
+
+    private var storage: [ForEachCacheKey: Any] = [:]
+    private let lock = NSLock()
+
+    func cache<ID>(for key: ForEachCacheKey) -> ForEachCache<ID> {
+        lock.lock()
+        defer { lock.unlock() }
+
+        if let cached = storage[key] as? ForEachCache<ID> {
+            return cached
+        }
+
+        let cache = ForEachCache<ID>()
+        storage[key] = cache
+        return cache
+    }
+}
+
+private final class ForEachCache<ID: Hashable> {
+    struct Entry {
+        var fingerprint: AnyHashable?
+        var renders: [RenderedView]
+    }
+
+    var entries: [ID: Entry] = [:]
+    var lastDiffingKey: AnyHashable?
+
+    func reset() {
+        entries.removeAll()
+        lastDiffingKey = nil
+    }
+}
+
 public struct ForEach<Data: RandomAccessCollection, ID: Hashable>: TUIView {
     private let data: Data
     private let content: (Data.Element) -> [any TUIView]
     private let idResolver: (Data.Element) -> ID
+    private let cacheKey: ForEachCacheKey
+    private let cache: ForEachCache<ID>
+    private let diffingKey: AnyHashable?
+    private let isDiffingEnabled: Bool
 
     public init(
         _ data: Data,
         id: KeyPath<Data.Element, ID>,
-        @TUIBuilder content: @escaping (Data.Element) -> [any TUIView]
+        @TUIBuilder content: @escaping (Data.Element) -> [any TUIView],
+        file: StaticString = #fileID,
+        line: UInt = #line
     ) {
         self.init(
             data,
             id: { $0[keyPath: id] },
+            diffingKey: nil,
+            isDiffingEnabled: false,
+            file: String(describing: file),
+            line: line,
             content: content
         )
     }
@@ -405,20 +456,104 @@ public struct ForEach<Data: RandomAccessCollection, ID: Hashable>: TUIView {
     public init(
         _ data: Data,
         id: @escaping (Data.Element) -> ID,
+        @TUIBuilder content: @escaping (Data.Element) -> [any TUIView],
+        file: StaticString = #fileID,
+        line: UInt = #line
+    ) {
+        self.init(
+            data,
+            id: id,
+            diffingKey: nil,
+            isDiffingEnabled: false,
+            file: String(describing: file),
+            line: line,
+            content: content
+        )
+    }
+
+    private init(
+        _ data: Data,
+        id: @escaping (Data.Element) -> ID,
+        diffingKey: AnyHashable?,
+        isDiffingEnabled: Bool,
+        file: String,
+        line: UInt,
         @TUIBuilder content: @escaping (Data.Element) -> [any TUIView]
     ) {
         self.data = data
         self.content = content
         self.idResolver = id
+        self.diffingKey = diffingKey
+        self.isDiffingEnabled = isDiffingEnabled
+
+        let cacheKey = ForEachCacheKey(file: String(describing: file), line: line, idType: ObjectIdentifier(ID.self))
+        self.cacheKey = cacheKey
+        self.cache = ForEachCacheStore.shared.cache(for: cacheKey)
+    }
+
+    public func diffing(key: AnyHashable? = nil) -> ForEach {
+        ForEach(
+            data,
+            id: idResolver,
+            diffingKey: key,
+            isDiffingEnabled: true,
+            file: cacheKey.file,
+            line: cacheKey.line,
+            content: content
+        )
     }
 
     func makeChildViews() -> [any TUIView] {
+        guard isDiffingEnabled else {
+            cache.reset()
+            var views: [any TUIView] = []
+            views.reserveCapacity(data.count)
+            for element in data {
+                _ = idResolver(element)
+                views.append(contentsOf: content(element))
+            }
+            return views
+        }
+
+        let invalidateAll = cache.lastDiffingKey != diffingKey
+        cache.lastDiffingKey = diffingKey
+
+        if invalidateAll {
+            cache.entries.removeAll()
+        }
+
+        var nextEntries: [ID: ForEachCache<ID>.Entry] = [:]
         var views: [any TUIView] = []
         views.reserveCapacity(data.count)
+
         for element in data {
-            _ = idResolver(element)
-            views.append(contentsOf: content(element))
+            let id = idResolver(element)
+            let fingerprint = element as? AnyHashable
+
+            if let fingerprint,
+               let cached = cache.entries[id],
+               let cachedFingerprint = cached.fingerprint,
+               !invalidateAll,
+               cachedFingerprint == fingerprint {
+                views.append(contentsOf: cached.renders.map { CachedRenderedView(snapshot: $0) })
+                nextEntries[id] = cached
+                continue
+            }
+
+            let generated = content(element)
+            var snapshots: [RenderedView] = []
+            snapshots.reserveCapacity(generated.count)
+
+            for view in generated {
+                let rendered = resolveRenderedView(for: view)
+                snapshots.append(rendered)
+                views.append(CachedRenderedView(snapshot: rendered))
+            }
+
+            nextEntries[id] = ForEachCache<ID>.Entry(fingerprint: fingerprint, renders: snapshots)
         }
+
+        cache.entries = nextEntries
         return views
     }
 
@@ -432,9 +567,11 @@ public struct ForEach<Data: RandomAccessCollection, ID: Hashable>: TUIView {
 public extension ForEach where Data.Element: Identifiable, Data.Element.ID == ID {
     init(
         _ data: Data,
-        @TUIBuilder content: @escaping (Data.Element) -> [any TUIView]
+        @TUIBuilder content: @escaping (Data.Element) -> [any TUIView],
+        file: StaticString = #fileID,
+        line: UInt = #line
     ) {
-        self.init(data, id: { $0.id }, content: content)
+        self.init(data, id: { $0.id }, content: content, file: file, line: line)
     }
 }
 

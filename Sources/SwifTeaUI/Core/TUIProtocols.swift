@@ -25,6 +25,35 @@ struct RenderedView {
     }
 }
 
+/// Internal hook for views that can hand back a precomputed render without re-splitting.
+protocol RenderedViewProvider {
+    var renderedViewSnapshot: RenderedView? { get }
+}
+
+/// Resolve a view into a measured render, reusing cached snapshots when available.
+func resolveRenderedView(for view: any TUIView) -> RenderedView {
+    if let provider = view as? RenderedViewProvider, let cached = provider.renderedViewSnapshot {
+        return cached
+    }
+    return RenderedView(lines: view.render().splitLinesPreservingEmpty())
+}
+
+struct CachedRenderedView: TUIView, RenderedViewProvider {
+    typealias Body = Never
+
+    let snapshot: RenderedView
+
+    var renderedViewSnapshot: RenderedView? { snapshot }
+
+    var body: Never {
+        fatalError("CachedRenderedView has no body")
+    }
+
+    func render() -> String {
+        snapshot.joined()
+    }
+}
+
 public extension TUIView {
     func render() -> String {
         body.render()
