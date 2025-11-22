@@ -61,6 +61,7 @@ struct GalleryModel {
         case list(ListSearchDemoModel.Action)
         case table(TableDemoModel.Action)
         case overlayDemo(OverlayDemoModel.Action)
+        case nextTheme
         case toggleHelp
         case quit
     }
@@ -72,7 +73,8 @@ struct GalleryModel {
     private var table: TableDemoModel
     private var overlaysDemo: OverlayDemoModel
     @State private var overlays: OverlayPresenter
-    private let theme: SwifTeaTheme
+    private let themes: [SwifTeaTheme]
+    @State private var themeIndex: Int
 
     init(
         activeSection: Section = .counter,
@@ -82,7 +84,14 @@ struct GalleryModel {
         table: TableDemoModel = TableDemoModel(),
         overlaysDemo: OverlayDemoModel = OverlayDemoModel(),
         overlays: OverlayPresenter = OverlayPresenter(),
-        theme: SwifTeaTheme = .bubbleTeaNeon
+        themes: [SwifTeaTheme] = [
+            .bubbleTeaNeon,
+            .bubbleTeaDark,
+            .bubbleTeaLight,
+            .solarizedDark,
+            .solarizedLight
+        ],
+        themeIndex: Int = 0
     ) {
         self._activeSection = State(wrappedValue: activeSection)
         self.counter = counter
@@ -91,7 +100,8 @@ struct GalleryModel {
         self.table = table
         self.overlaysDemo = overlaysDemo
         self._overlays = State(wrappedValue: overlays)
-        self.theme = theme
+        self.themes = themes
+        self._themeIndex = State(wrappedValue: max(0, min(themeIndex, themes.indices.last ?? 0)))
     }
 
     mutating func update(action: Action) {
@@ -116,6 +126,8 @@ struct GalleryModel {
             demo.update(action: action, overlays: &presenter, theme: theme)
             overlaysDemo = demo
             overlays = presenter
+        case .nextTheme:
+            themeIndex = (themeIndex + 1) % themes.count
         case .toggleHelp:
             if overlays.hasModal {
                 overlays.dismissModal()
@@ -159,6 +171,12 @@ struct GalleryModel {
         }
         if case .ctrlC = key {
             return .quit
+        }
+        if case .char("t") = key {
+            return .nextTheme
+        }
+        if case .char("T") = key {
+            return .nextTheme
         }
 
         if case .char(let char) = key,
@@ -220,6 +238,12 @@ struct GalleryModel {
         }
     }
 
+    private var theme: SwifTeaTheme {
+        guard !themes.isEmpty else { return .bubbleTeaNeon }
+        let index = themeIndex % themes.count
+        return themes[index]
+    }
+
     private var sectionShortcutsEnabled: Bool {
         switch activeSection {
         case .counter:
@@ -268,6 +292,7 @@ struct GalleryModel {
             VStack(spacing: 1, alignment: .leading) {
                 Text("[1…5] jump to section")
                 Text("[Tab]/[Shift+Tab] cycle sections")
+                Text("[T] cycle theme")
                 Text("[?] toggle this help")
                 Text("[Ctrl-C] quit")
             }

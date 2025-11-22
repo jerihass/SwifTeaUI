@@ -142,7 +142,7 @@ The scene maps terminal key events to reducer actions, `@State` keeps the counte
 
 ### Examples
 
-- `swift run SwifTeaGalleryExample` now launches focused demos: counter, form & focus, list/search, table snapshot, and overlays. Jump with `[1]`…`[5]` or `Tab`/`Shift+Tab` between sections without quitting.
+- `swift run SwifTeaGalleryExample` now launches focused demos: counter, form & focus, list/search, table snapshot, and overlays. Jump with `[1]`…`[5]` or `Tab`/`Shift+Tab` between sections without quitting; hit `[T]` to cycle themes (bubble tea + solarized light/dark).
 
 ### Layout Primitives
 

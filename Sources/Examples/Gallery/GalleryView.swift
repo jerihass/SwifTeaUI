@@ -73,7 +73,8 @@ struct GalleryView: TUIView {
     private var leadingSegments: [StatusBar.Segment] {
         [
             .init("Gallery", color: theme.accent),
-            .init(activeSection.title, color: theme.info)
+            .init(activeSection.title, color: theme.info),
+            .init(theme.name, color: theme.mutedText)
         ]
     }
 
@@ -84,6 +85,7 @@ struct GalleryView: TUIView {
             .init("[3] List", color: theme.warning),
             .init("[4] Table", color: theme.accent),
             .init("[5] Overlays", color: theme.primaryText),
+            .init("[T] Theme", color: theme.accent),
             .init("[Tab] Next", color: theme.accent),
             .init("[Shift+Tab] Previous", color: theme.accent),
             .init("[?] Help", color: theme.info),

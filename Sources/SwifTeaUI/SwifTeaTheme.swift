@@ -103,4 +103,36 @@ public extension SwifTeaTheme {
         accentGradient: [.brightMagenta, .brightYellow, .brightGreen, .brightCyan, .brightBlue],
         accentGradientSymbol: "▄"
     )
+
+    static let solarizedDark = SwifTeaTheme(
+        name: "Solarized (Dark)",
+        headerPanel: .init(foreground: .brightYellow, background: .blue),
+        formPanel: .init(foreground: .brightWhite, background: .brightBlack),
+        primaryText: .brightWhite,
+        mutedText: .brightBlack,
+        accent: .cyan,
+        success: .green,
+        warning: .yellow,
+        info: .blue,
+        frameBorder: .cyan,
+        background: .black,
+        accentGradient: [.blue, .cyan, .green, .yellow, .brightYellow],
+        accentGradientSymbol: " "
+    )
+
+    static let solarizedLight = SwifTeaTheme(
+        name: "Solarized (Light)",
+        headerPanel: .init(foreground: .black, background: .cyan),
+        formPanel: .init(foreground: .black, background: .brightWhite),
+        primaryText: .black,
+        mutedText: .brightBlack,
+        accent: .blue,
+        success: .green,
+        warning: .yellow,
+        info: .cyan,
+        frameBorder: .blue,
+        background: .white,
+        accentGradient: [.cyan, .blue, .yellow, .green, .brightBlack],
+        accentGradientSymbol: " "
+    )
 }
