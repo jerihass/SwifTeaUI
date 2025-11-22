@@ -68,7 +68,7 @@ struct PackageListModel {
     }
 
     func makeView() -> some TUIView {
-        PackageListView(state: state, theme: .bubbleTeaNeon)
+        PackageListView(state: state, theme: .basic)
     }
 
     func mapKeyToAction(_ key: KeyEvent) -> Action? {

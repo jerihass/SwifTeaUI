@@ -62,6 +62,24 @@ public struct SwifTeaTheme {
 }
 
 public extension SwifTeaTheme {
+    static let basic = SwifTeaTheme(
+        name: "Basic",
+        headerPanel: .init(foreground: .brightWhite, background: .blue),
+        formPanel: .init(foreground: .white, background: .brightBlack),
+        primaryText: .brightWhite,
+        mutedText: .brightBlack,
+        accent: .brightCyan,
+        success: .brightGreen,
+        warning: .brightYellow,
+        info: .brightBlue,
+        frameBorder: .brightCyan,
+        background: .black,
+        selectionForeground: .brightWhite,
+        selectionBackground: .blue,
+        accentGradient: [.brightCyan, .brightBlue, .blue],
+        accentGradientSymbol: " "
+    )
+
     static let lumenGlass = SwifTeaTheme(
         name: "Lumen Glass (Truecolor)",
         headerPanel: .init(
@@ -90,85 +108,5 @@ public extension SwifTeaTheme {
             .trueColor(red: 212, green: 232, blue: 244)
         ],
         accentGradientSymbol: "█"
-    )
-
-    static let bubbleTeaDark = SwifTeaTheme(
-        name: "Bubble Tea (Dark)",
-        headerPanel: .init(foreground: .brightWhite, background: .brightMagenta),
-        formPanel: .init(foreground: .brightWhite, background: .brightBlack),
-        primaryText: .brightWhite,
-        mutedText: .brightCyan,
-        accent: .brightMagenta,
-        success: .brightGreen,
-        warning: .brightYellow,
-        info: .brightBlue,
-        frameBorder: .brightMagenta,
-        background: .black,
-        accentGradient: [.brightMagenta, .magenta, .brightBlue, .blue, .brightCyan],
-        accentGradientSymbol: " "
-    )
-
-    static let bubbleTeaLight = SwifTeaTheme(
-        name: "Bubble Tea (Light)",
-        headerPanel: .init(foreground: .white, background: .brightMagenta),
-        formPanel: .init(foreground: .black, background: .brightWhite),
-        primaryText: .black,
-        mutedText: .magenta,
-        accent: .magenta,
-        success: .green,
-        warning: .red,
-        info: .cyan,
-        frameBorder: .magenta,
-        background: .white,
-        accentGradient: [.magenta, .brightMagenta, .brightYellow, .brightCyan, .brightBlue],
-        accentGradientSymbol: " "
-    )
-
-    static let bubbleTeaNeon = SwifTeaTheme(
-        name: "Bubble Tea (Neon)",
-        headerPanel: .init(foreground: .brightWhite, background: .brightMagenta),
-        formPanel: .init(foreground: .brightWhite, background: .brightCyan),
-        primaryText: .brightWhite,
-        mutedText: .brightYellow,
-        accent: .brightMagenta,
-        success: .brightGreen,
-        warning: .brightYellow,
-        info: .brightCyan,
-        frameBorder: .brightMagenta,
-        background: .brightBlack,
-        accentGradient: [.brightMagenta, .brightYellow, .brightGreen, .brightCyan, .brightBlue],
-        accentGradientSymbol: "▄"
-    )
-
-    static let solarizedDark = SwifTeaTheme(
-        name: "Solarized (Dark)",
-        headerPanel: .init(foreground: .brightYellow, background: .blue),
-        formPanel: .init(foreground: .brightWhite, background: .brightBlack),
-        primaryText: .brightWhite,
-        mutedText: .brightBlack,
-        accent: .cyan,
-        success: .green,
-        warning: .yellow,
-        info: .blue,
-        frameBorder: .cyan,
-        background: .black,
-        accentGradient: [.blue, .cyan, .green, .yellow, .brightYellow],
-        accentGradientSymbol: " "
-    )
-
-    static let solarizedLight = SwifTeaTheme(
-        name: "Solarized (Light)",
-        headerPanel: .init(foreground: .black, background: .cyan),
-        formPanel: .init(foreground: .black, background: .brightWhite),
-        primaryText: .black,
-        mutedText: .brightBlack,
-        accent: .blue,
-        success: .green,
-        warning: .yellow,
-        info: .cyan,
-        frameBorder: .blue,
-        background: .white,
-        accentGradient: [.cyan, .blue, .yellow, .green, .brightBlack],
-        accentGradientSymbol: " "
     )
 }

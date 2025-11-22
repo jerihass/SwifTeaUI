@@ -385,19 +385,19 @@ public struct Group: TUIView {
     public var body: some TUIView { self }
 }
 
-private struct ForEachCacheKey: Hashable {
+fileprivate struct ForEachCacheKey: Hashable {
     let file: String
     let line: UInt
     let idType: ObjectIdentifier
 }
 
-private final class ForEachCacheStore {
+final class ForEachCacheStore {
     static let shared = ForEachCacheStore()
 
     private var storage: [ForEachCacheKey: Any] = [:]
     private let lock = NSLock()
 
-    func cache<ID>(for key: ForEachCacheKey) -> ForEachCache<ID> {
+    fileprivate func cache<ID>(for key: ForEachCacheKey) -> ForEachCache<ID> {
         lock.lock()
         defer { lock.unlock() }
 
@@ -408,6 +408,12 @@ private final class ForEachCacheStore {
         let cache = ForEachCache<ID>()
         storage[key] = cache
         return cache
+    }
+
+    func reset() {
+        lock.lock()
+        storage.removeAll()
+        lock.unlock()
     }
 }
 

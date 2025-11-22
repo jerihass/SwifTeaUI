@@ -12,7 +12,7 @@ struct TaskRunnerView: TUIView {
     }
 
     private var mainContent: some TUIView {
-        let theme = SwifTeaTheme.bubbleTeaNeon
+        let theme = SwifTeaTheme.basic
         return VStack(spacing: 1, alignment: .leading) {
             VStack(spacing: 0, alignment: .leading) {
                 Text("SwifTea Task Runner")

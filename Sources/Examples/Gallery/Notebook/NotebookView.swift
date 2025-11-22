@@ -9,7 +9,7 @@ struct NotebookView: TUIView {
     private let minimumColumns = 90
     private let minimumRows = 32
     private let stackedBreakpoint = 120
-    private let theme = SwifTeaTheme.bubbleTeaNeon
+    private let theme = SwifTeaTheme.lumenGlass
 
     let state: NotebookState
     let focus: NotebookFocusField?

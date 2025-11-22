@@ -142,14 +142,14 @@ The scene maps terminal key events to reducer actions, `@State` keeps the counte
 
 ### Examples
 
-- `swift run SwifTeaGalleryExample` now launches focused demos: counter, form & focus, list/search, table snapshot, and overlays. Jump with `[1]`…`[5]` or `Tab`/`Shift+Tab` between sections without quitting; hit `[T]` to cycle themes (truecolor Lumen Glass plus bubble tea + solarized light/dark).
+- `swift run SwifTeaGalleryExample` now launches focused demos: counter, form & focus, list/search, table snapshot, and overlays. Jump with `[1]`…`[5]` or `Tab`/`Shift+Tab` between sections without quitting; hit `[T]` to cycle themes (truecolor Lumen Glass or the basic ANSI palette).
 
 ### Layout Primitives
 
 - `VStack` and `HStack` accept `spacing` and alignment arguments that mirror SwiftUI. Need a fixed height? Call `.frame(height:alignment:)` on the stack rather than passing a custom parameter.
 - Call `.padding(_:)` on any view to inset the rendered output with ANSI-aware spacing.
 - Wrap any view in `.foregroundColor(_:)` or `.backgroundColor(_:)` to tint entire containers (Stacks, Borders, custom composites) with ANSI colors without re-styling each child manually.
-- Need curated palettes? `SwifTeaTheme` ships with a truecolor `lumenGlass` palette and bubble tea/solarized presets so demos (like Counter) can apply consistent accent/success/info colors and let users toggle between them.
+- Need curated palettes? `SwifTeaTheme` ships with a truecolor `lumenGlass` palette and a `basic` ANSI preset so demos (like Counter) can apply consistent accent/success/info colors and let users toggle between them.
 - `ScrollView(axis:viewport:offset:)` clamps tall content (vertical) or wide buffers (horizontal) without re-rendering children. Bind `contentLength` to capture the total rows or columns, call `.followingActiveLine(_:)` (optionally with an enable binding) to auto-scroll caret positions, flip on `.scrollIndicators(.automatic)` for arrow chrome when content overflows, and use `.scrollDisabled(true)` whenever reducers need to freeze scroll state manually.
 - `HStack(spacing:horizontalAlignment:verticalAlignment:)` measures ANSI widths accurately so mixed-color content still lines up.
 - `AdaptiveStack(breakpoint:expanded:collapsed:)` switches entire layouts based on terminal width—use it to collapse dual-column panes into a stacked presentation without re-implementing breakpoint checks.

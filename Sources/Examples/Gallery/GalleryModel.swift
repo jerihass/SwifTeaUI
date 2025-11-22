@@ -86,11 +86,7 @@ struct GalleryModel {
         overlays: OverlayPresenter = OverlayPresenter(),
         themes: [SwifTeaTheme] = [
             .lumenGlass,
-            .bubbleTeaNeon,
-            .bubbleTeaDark,
-            .bubbleTeaLight,
-            .solarizedDark,
-            .solarizedLight
+            .basic
         ],
         themeIndex: Int = 0
     ) {
@@ -240,7 +236,7 @@ struct GalleryModel {
     }
 
     private var theme: SwifTeaTheme {
-        guard !themes.isEmpty else { return .bubbleTeaNeon }
+        guard !themes.isEmpty else { return .lumenGlass }
         let index = themeIndex % themes.count
         return themes[index]
     }

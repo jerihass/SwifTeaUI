@@ -32,7 +32,7 @@ This document tracks upcoming terminal UI design paradigms for SwifTeaUI. Each e
 | **Additional Text Styles** | Add `.strikethrough()`, `.dim()`, `.inverse()` to mirror ANSI capabilities. | Planned | Extend `Text` modifiers + tests, and decide whether to expose generic view modifiers for these styles. |
 | **Internationalization & Accessibility** | Reasonable localization + contrast aids without full bidi/RTL. | Planned | Add keyed string/localization layer, ensure Unicode-aware width/truncation for wide/combining glyphs, ship high-contrast/monochrome themes with runtime toggle, and document focus/shortcut cues as the baseline accessibility story. |
 | **Scrollable Viewports** | Keep text editors and long content bounded via scroll containers that mirror SwiftUI’s `ScrollView`. | Implemented | `ScrollView` now supports horizontal slicing, indicator glyphs, `.followingActiveLine` helpers, and `.scrollDisabled(_:)` so reducers can freeze offsets. Next polish: experiment with indicator theming, add caret-column auto-follow options, and showcase the new APIs across additional demos. |
-| **Theme Presets** | Ship curated color palettes so demos share cohesive styling out of the box. | Implemented | `SwifTeaTheme` exposes bubbleTea dark/light plus the new neon palette; next explore runtime theme toggles, monochrome fallbacks, and documenting palette guidelines. |
+| **Theme Presets** | Ship curated color palettes so demos share cohesive styling out of the box. | Implemented | `SwifTeaTheme` exposes a truecolor `lumenGlass` preset and a `basic` ANSI palette; next explore runtime theme toggles, monochrome fallbacks, and documenting palette guidelines. |
 
 ## Working Notes
 
