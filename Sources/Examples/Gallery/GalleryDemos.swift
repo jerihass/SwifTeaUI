@@ -87,6 +87,7 @@ struct FormDemoModel {
         case focusNext
         case focusPrevious
         case submit
+        case input(Field, TextFieldEvent)
     }
 
     @State private var name: String = ""
@@ -116,6 +117,8 @@ struct FormDemoModel {
             focus = ring.move(from: focus, direction: .backward)
         case .submit:
             showValidation = true
+        case .input(let field, let event):
+            apply(event, to: field)
         }
     }
 
@@ -132,8 +135,13 @@ struct FormDemoModel {
         case .enter:
             return .submit
         default:
+            break
+        }
+
+        guard let focusedField = focus, let event = textFieldEvent(from: key) else {
             return nil
         }
+        return .input(focusedField, event)
     }
 
     func makeView(theme: SwifTeaTheme) -> some TUIView {
@@ -210,6 +218,17 @@ struct FormDemoModel {
         }
         return messages.isEmpty ? ["Looks good!"] : messages
     }
+
+    private mutating func apply(_ event: TextFieldEvent, to field: Field) {
+        switch field {
+        case .name:
+            $name.apply(event)
+        case .email:
+            $email.apply(event)
+        case .note:
+            $note.apply(event)
+        }
+    }
 }
 
 struct ListSearchDemoModel {
@@ -221,6 +240,7 @@ struct ListSearchDemoModel {
 
     enum Action {
         case moveSelection(Int)
+        case text(TextFieldEvent)
     }
 
     @State private var query: String = ""
@@ -249,6 +269,8 @@ struct ListSearchDemoModel {
         switch action {
         case .moveSelection(let delta):
             moveSelection(delta)
+        case .text(let event):
+            $query.apply(event)
         }
     }
 
@@ -258,8 +280,13 @@ struct ListSearchDemoModel {
         switch key {
         case .upArrow, .char("k"): return .moveSelection(-1)
         case .downArrow, .char("j"): return .moveSelection(1)
-        default: return nil
+        default: break
         }
+
+        if let event = textFieldEvent(from: key) {
+            return .text(event)
+        }
+        return nil
     }
 
     func makeView(theme: SwifTeaTheme) -> some TUIView {

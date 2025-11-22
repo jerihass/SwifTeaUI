@@ -163,17 +163,20 @@ struct GalleryModel {
     }
 
     func mapKeyToAction(_ key: KeyEvent) -> Action? {
-        if case .char("?") = key {
-            return .toggleHelp
+        let allowGlobalShortcuts = sectionShortcutsEnabled
+        if allowGlobalShortcuts {
+            if case .char("?") = key {
+                return .toggleHelp
+            }
+            if case .char("t") = key {
+                return .nextTheme
+            }
+            if case .char("T") = key {
+                return .nextTheme
+            }
         }
         if case .ctrlC = key {
             return .quit
-        }
-        if case .char("t") = key {
-            return .nextTheme
-        }
-        if case .char("T") = key {
-            return .nextTheme
         }
 
         if case .char(let char) = key,

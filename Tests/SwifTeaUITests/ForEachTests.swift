@@ -18,7 +18,7 @@ private struct CountingView: TUIView {
 struct ForEachTests {
     @Test("Diffing reuses cached renders for unchanged elements")
     func testForEachDiffingReuse() {
-        ForEachCacheStore.shared.reset()
+        ForEachCacheStore.shared = ForEachCacheStore()
         CountingView.renders = 0
         let forEach = ForEach([1, 2, 3], id: \.self) { value in
             [CountingView(value: value)]
@@ -35,7 +35,7 @@ struct ForEachTests {
 
     @Test("Diffing key change invalidates cache")
     func testDiffingKeyInvalidates() {
-        ForEachCacheStore.shared.reset()
+        ForEachCacheStore.shared = ForEachCacheStore()
         CountingView.renders = 0
         let initial = ForEach([1, 2], id: \.self) { value in
             [CountingView(value: value)]

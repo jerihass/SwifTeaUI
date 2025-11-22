@@ -392,7 +392,7 @@ fileprivate struct ForEachCacheKey: Hashable {
 }
 
 final class ForEachCacheStore {
-    static let shared = ForEachCacheStore()
+    static var shared = ForEachCacheStore()
 
     private var storage: [ForEachCacheKey: Any] = [:]
     private let lock = NSLock()
