@@ -385,6 +385,95 @@ public struct Group: TUIView {
     public var body: some TUIView { self }
 }
 
+public struct Checkbox: TUIView {
+    public typealias Body = Never
+
+    public enum Style {
+        case square
+        case round
+    }
+
+    private let isChecked: Bool
+    private let isFocused: Bool
+    private let label: String
+    private let style: Style
+    private let accent: ANSIColor
+    private let focusStyle: FocusStyle
+
+    public init(
+        _ label: String,
+        isChecked: Bool,
+        isFocused: Bool = false,
+        style: Style = .square,
+        accent: ANSIColor = .cyan,
+        focusStyle: FocusStyle = .default
+    ) {
+        self.label = label
+        self.isChecked = isChecked
+        self.isFocused = isFocused
+        self.style = style
+        self.accent = accent
+        self.focusStyle = focusStyle
+    }
+
+    public var body: Never {
+        fatalError("Checkbox has no body")
+    }
+
+    public func render() -> String {
+        let marker: String
+        switch style {
+        case .square:
+            marker = isChecked ? "☑" : "☐"
+        case .round:
+            marker = isChecked ? "⦿" : "⭘"
+        }
+
+        var text = "\(marker) \(label)"
+        if isFocused {
+            text = focusStyle.apply(to: text)
+        }
+        return accent.rawValue + text + ANSIColor.reset.rawValue
+    }
+}
+
+public struct RadioButton: TUIView {
+    public typealias Body = Never
+
+    private let isSelected: Bool
+    private let isFocused: Bool
+    private let label: String
+    private let accent: ANSIColor
+    private let focusStyle: FocusStyle
+
+    public init(
+        _ label: String,
+        isSelected: Bool,
+        isFocused: Bool = false,
+        accent: ANSIColor = .cyan,
+        focusStyle: FocusStyle = .default
+    ) {
+        self.label = label
+        self.isSelected = isSelected
+        self.isFocused = isFocused
+        self.accent = accent
+        self.focusStyle = focusStyle
+    }
+
+    public var body: Never {
+        fatalError("RadioButton has no body")
+    }
+
+    public func render() -> String {
+        let marker = isSelected ? "◉" : "◯"
+        var text = "\(marker) \(label)"
+        if isFocused {
+            text = focusStyle.apply(to: text)
+        }
+        return accent.rawValue + text + ANSIColor.reset.rawValue
+    }
+}
+
 fileprivate struct ForEachCacheKey: Hashable {
     let file: String
     let line: UInt
