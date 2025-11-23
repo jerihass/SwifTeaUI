@@ -142,7 +142,11 @@ The scene maps terminal key events to reducer actions, `@State` keeps the counte
 
 ### Examples
 
-- `swift run SwifTeaGalleryExample` now launches focused demos: counter, form & focus, list/search, table snapshot, and overlays. Jump with `[1]`…`[5]` or `Tab`/`Shift+Tab` between sections without quitting; hit `[T]` to cycle themes (truecolor Lumen Glass or the basic ANSI palette).
+- `swift run SwifTeaGalleryExample` now launches focused demos: counter, form & focus, list/search, list selection, table snapshot, and overlays. Jump with `[1]`…`[6]` or `Tab`/`Shift+Tab` between sections without quitting; hit `[T]` to cycle themes (truecolor Lumen Glass or the basic ANSI palette).
+
+### Quickstart
+
+- For a concise, model/view-separated walkthrough (setup, gallery controls, minimal app skeleton, common patterns), see `docs/QUICKSTART.md`.
 
 ### Layout Primitives
 
