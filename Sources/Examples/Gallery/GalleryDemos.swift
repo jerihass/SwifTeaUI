@@ -245,6 +245,7 @@ struct ListSearchDemoModel {
 
     @State private var query: String = ""
     @State private var selectedID: Item.ID? = 1
+    @State private var focusedID: Item.ID? = 1
     @FocusState private var searchFocused: Bool?
     private let items: [Item] = [
         .init(id: 1, title: "SwifTeaUI", detail: "ANSI-native view DSL"),
@@ -277,6 +278,18 @@ struct ListSearchDemoModel {
     var allowsSectionShortcuts: Bool { searchFocused != true }
 
     func mapKeyToAction(_ key: KeyEvent) -> Action? {
+        if searchFocused == true {
+            switch key {
+            case .upArrow: return .moveSelection(-1)
+            case .downArrow: return .moveSelection(1)
+            default: break
+            }
+            if let event = textFieldEvent(from: key) {
+                return .text(event)
+            }
+            return nil
+        }
+
         switch key {
         case .upArrow, .char("k"): return .moveSelection(-1)
         case .downArrow, .char("j"): return .moveSelection(1)
@@ -291,7 +304,6 @@ struct ListSearchDemoModel {
 
     func makeView(theme: SwifTeaTheme) -> some TUIView {
         let filtered = filteredItems()
-        let selected = selectedID
         return Border(
             padding: 1,
             color: theme.frameBorder,
@@ -312,16 +324,21 @@ struct ListSearchDemoModel {
                     Text("No matches.")
                         .foregroundColor(theme.warning)
                 } else {
-                    List(filtered, id: \.id, rowSpacing: 0, separator: .dashed()) { item in
-                        row(for: item, selected: selected, theme: theme)
+                    List(
+                        filtered,
+                        id: \.id,
+                        rowSpacing: 0,
+                        separator: .dashed(),
+                        selection: selectionConfiguration(theme: theme)
+                    ) { item in
+                        row(for: item, theme: theme)
                     }
                 }
-
                 Border(
                     padding: 0,
                     color: theme.info,
                     background: theme.headerPanel.background ?? theme.background,
-                    Text("[j]/[k] Move • Typing filters")
+                    Text("[j]/[k]/↑/↓ move • Typing filters")
                         .foregroundColor(theme.info)
                         .padding(0)
                 )
@@ -346,13 +363,14 @@ struct ListSearchDemoModel {
         }
         let count = filtered.count
         let offset = ((currentIndex + delta) % count + count) % count
-        selectedID = filtered[offset].id
+        let next = filtered[offset].id
+        selectedID = next
+        focusedID = next
     }
 
-    private func row(for item: Item, selected: Item.ID?, theme: SwifTeaTheme) -> AnyTUIView {
-        let isSelected = item.id == selected
+    private func row(for item: Item, theme: SwifTeaTheme) -> AnyTUIView {
         let title = highlight(text: item.title, theme: theme)
-            .foregroundColor(isSelected ? theme.accent : theme.primaryText)
+            .foregroundColor(theme.primaryText)
         let detail = Text(item.detail)
             .foregroundColor(theme.mutedText)
 
@@ -360,18 +378,6 @@ struct ListSearchDemoModel {
             title
             detail
         }
-
-        if isSelected {
-            return AnyTUIView(
-                Border(
-                    padding: 0,
-                    color: theme.accent,
-                    background: theme.headerPanel.background ?? theme.background,
-                    row.padding(0)
-                )
-            )
-        }
-
         return AnyTUIView(row)
     }
 
@@ -382,6 +388,213 @@ struct ListSearchDemoModel {
             return Text(text).bold().foregroundColor(theme.accent)
         }
         return Text(text)
+    }
+
+    private func selectionConfiguration(theme: SwifTeaTheme) -> ListSelectionConfiguration<Item.ID> {
+        ListSelectionConfiguration.single(
+            $selectedID,
+            focused: $focusedID,
+            selectionStyle: TableRowStyle.selected(
+                foregroundColor: theme.selectionForeground,
+                backgroundColor: theme.selectionBackground ?? theme.success
+            ),
+            focusedStyle: TableRowStyle.focused(accent: theme.accent)
+        )
+    }
+}
+
+struct ListSelectionDemoModel {
+    struct Task: Identifiable {
+        let id: Int
+        let label: String
+    }
+
+    struct Choice: Identifiable {
+        let id: Int
+        let label: String
+    }
+
+    enum Action {
+        case moveTasksFocus(Int)
+        case toggleTask
+        case moveChoiceFocus(Int)
+        case chooseChoice
+    }
+
+    @State private var tasks: [Task] = [
+        .init(id: 1, label: "Compile"),
+        .init(id: 2, label: "Run tests"),
+        .init(id: 3, label: "Record snapshot")
+    ]
+    @State private var selectedTasks: Set<Task.ID> = [1]
+    @State private var focusedTaskID: Task.ID? = 1
+    @State private var choices: [Choice] = [
+        .init(id: 1, label: "Deploy to staging"),
+        .init(id: 2, label: "Deploy to production")
+    ]
+    @State private var selectedChoice: Choice.ID? = 1
+    @State private var focusedChoiceID: Choice.ID? = 1
+
+    init(
+        tasks: [Task] = [
+            .init(id: 1, label: "Compile"),
+            .init(id: 2, label: "Run tests"),
+            .init(id: 3, label: "Record snapshot")
+        ],
+        selectedTasks: Set<Task.ID> = [1],
+        focusedTaskID: Task.ID? = 1,
+        choices: [Choice] = [
+            .init(id: 1, label: "Deploy to staging"),
+            .init(id: 2, label: "Deploy to production")
+        ],
+        selectedChoice: Choice.ID? = 1,
+        focusedChoiceID: Choice.ID? = 1
+    ) {
+        self._tasks = State(wrappedValue: tasks)
+        self._selectedTasks = State(wrappedValue: selectedTasks)
+        self._focusedTaskID = State(wrappedValue: focusedTaskID)
+        self._choices = State(wrappedValue: choices)
+        self._selectedChoice = State(wrappedValue: selectedChoice)
+        self._focusedChoiceID = State(wrappedValue: focusedChoiceID)
+    }
+
+    mutating func update(action: Action) {
+        switch action {
+        case .moveTasksFocus(let delta):
+            moveTasksFocus(delta)
+        case .toggleTask:
+            toggleTask()
+        case .moveChoiceFocus(let delta):
+            moveChoiceFocus(delta)
+        case .chooseChoice:
+            chooseChoice()
+        }
+    }
+
+    var allowsSectionShortcuts: Bool { true }
+
+    func mapKeyToAction(_ key: KeyEvent) -> Action? {
+        switch key {
+        case .upArrow, .char("w"): return .moveTasksFocus(-1)
+        case .downArrow, .char("s"): return .moveTasksFocus(1)
+        case .char(" "): return .toggleTask
+        case .leftArrow, .char("a"): return .moveChoiceFocus(-1)
+        case .rightArrow, .char("d"): return .moveChoiceFocus(1)
+        case .enter: return .chooseChoice
+        default: return nil
+        }
+    }
+
+    func makeView(theme: SwifTeaTheme) -> some TUIView {
+        Border(
+            padding: 1,
+            color: theme.frameBorder,
+            background: theme.background,
+            VStack(spacing: 1, alignment: .leading) {
+                Text("List Selection")
+                    .foregroundColor(theme.accent)
+                    .bold()
+                Text("Checkbox and radio lists with focus styling.")
+                    .foregroundColor(theme.info)
+
+                Text("Checkbox list (w/s to move, space to toggle)")
+                    .foregroundColor(theme.accent)
+                    .bold()
+                List(
+                    tasks,
+                    id: \.id,
+                    rowSpacing: 0,
+                    separator: .none,
+                    selection: .multiple(
+                        $selectedTasks,
+                        focused: $focusedTaskID,
+                        selectionStyle: TableRowStyle.selected(
+                            foregroundColor: theme.selectionForeground,
+                            backgroundColor: theme.selectionBackground ?? theme.success
+                        ),
+                        focusedStyle: TableRowStyle.focused(accent: theme.accent)
+                    )
+                ) { task in
+                    Checkbox(
+                        task.label,
+                        isChecked: selectedTasks.contains(task.id),
+                        isFocused: focusedTaskID == task.id,
+                        accent: theme.accent
+                    )
+                }
+
+                Text("Radio list (a/d to move, enter to choose)")
+                    .foregroundColor(theme.accent)
+                    .bold()
+                List(
+                    choices,
+                    id: \.id,
+                    rowSpacing: 0,
+                    separator: .none,
+                    selection: .single(
+                        $selectedChoice,
+                        focused: $focusedChoiceID,
+                        selectionStyle: TableRowStyle.selected(
+                            foregroundColor: theme.selectionForeground,
+                            backgroundColor: theme.selectionBackground ?? theme.success
+                        ),
+                        focusedStyle: TableRowStyle.focused(accent: theme.accent)
+                    )
+                ) { choice in
+                    RadioButton(
+                        choice.label,
+                        isSelected: selectedChoice == choice.id,
+                        isFocused: focusedChoiceID == choice.id,
+                        accent: theme.accent
+                    )
+                }
+
+                Border(
+                    padding: 0,
+                    color: theme.info,
+                    background: theme.headerPanel.background ?? theme.background,
+                    Text("[w]/[s]/↑/↓ move checkboxes • Space toggles • [a]/[d]/←/→ move radio • Enter picks")
+                        .foregroundColor(theme.info)
+                        .padding(0)
+                )
+            }
+        )
+    }
+
+    private mutating func moveTasksFocus(_ delta: Int) {
+        guard !tasks.isEmpty else { return }
+        guard let currentIndex = tasks.firstIndex(where: { $0.id == focusedTaskID }) ?? tasks.indices.first else {
+            return
+        }
+        let count = tasks.count
+        let offset = ((currentIndex + delta) % count + count) % count
+        let next = tasks[offset].id
+        focusedTaskID = next
+    }
+
+    private mutating func toggleTask() {
+        guard let focusedTaskID else { return }
+        if selectedTasks.contains(focusedTaskID) {
+            selectedTasks.remove(focusedTaskID)
+        } else {
+            selectedTasks.insert(focusedTaskID)
+        }
+    }
+
+    private mutating func moveChoiceFocus(_ delta: Int) {
+        guard !choices.isEmpty else { return }
+        guard let currentIndex = choices.firstIndex(where: { $0.id == focusedChoiceID }) ?? choices.indices.first else {
+            return
+        }
+        let count = choices.count
+        let offset = ((currentIndex + delta) % count + count) % count
+        let next = choices[offset].id
+        focusedChoiceID = next
+    }
+
+    private mutating func chooseChoice() {
+        guard let focusedChoiceID else { return }
+        selectedChoice = focusedChoiceID
     }
 }
 

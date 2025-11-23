@@ -6,6 +6,7 @@ struct GalleryModel {
         case counter
         case form
         case listSearch
+        case listSelection
         case table
         case overlays
 
@@ -14,6 +15,7 @@ struct GalleryModel {
             case .counter: return "Counter"
             case .form: return "Form & Focus"
             case .listSearch: return "List & Search"
+            case .listSelection: return "List Selection"
             case .table: return "Table Snapshot"
             case .overlays: return "Overlays"
             }
@@ -27,6 +29,8 @@ struct GalleryModel {
                 return "Text input, focus, and validation."
             case .listSearch:
                 return "Incremental filtering with selection."
+            case .listSelection:
+                return "Checkbox and radio lists with focus."
             case .table:
                 return "Columns, selection, and focus styling."
             case .overlays:
@@ -39,8 +43,9 @@ struct GalleryModel {
             case .counter: return "1"
             case .form: return "2"
             case .listSearch: return "3"
-            case .table: return "4"
-            case .overlays: return "5"
+            case .listSelection: return "4"
+            case .table: return "5"
+            case .overlays: return "6"
             }
         }
 
@@ -59,6 +64,7 @@ struct GalleryModel {
         case counter(CounterDemoModel.Action)
         case form(FormDemoModel.Action)
         case list(ListSearchDemoModel.Action)
+        case listSelection(ListSelectionDemoModel.Action)
         case table(TableDemoModel.Action)
         case overlayDemo(OverlayDemoModel.Action)
         case nextTheme
@@ -70,6 +76,7 @@ struct GalleryModel {
     private var counter: CounterDemoModel
     private var form: FormDemoModel
     private var list: ListSearchDemoModel
+    private var listSelection: ListSelectionDemoModel
     private var table: TableDemoModel
     private var overlaysDemo: OverlayDemoModel
     @State private var overlays: OverlayPresenter
@@ -81,6 +88,7 @@ struct GalleryModel {
         counter: CounterDemoModel = CounterDemoModel(),
         form: FormDemoModel = FormDemoModel(),
         list: ListSearchDemoModel = ListSearchDemoModel(),
+        listSelection: ListSelectionDemoModel = ListSelectionDemoModel(),
         table: TableDemoModel = TableDemoModel(),
         overlaysDemo: OverlayDemoModel = OverlayDemoModel(),
         overlays: OverlayPresenter = OverlayPresenter(),
@@ -94,6 +102,7 @@ struct GalleryModel {
         self.counter = counter
         self.form = form
         self.list = list
+        self.listSelection = listSelection
         self.table = table
         self.overlaysDemo = overlaysDemo
         self._overlays = State(wrappedValue: overlays)
@@ -115,6 +124,8 @@ struct GalleryModel {
             form.update(action: action)
         case .list(let action):
             list.update(action: action)
+        case .listSelection(let action):
+            listSelection.update(action: action)
         case .table(let action):
             table.update(action: action)
         case .overlayDemo(let action):
@@ -214,6 +225,9 @@ struct GalleryModel {
         case .listSearch:
             guard let action = list.mapKeyToAction(key) else { return nil }
             return .list(action)
+        case .listSelection:
+            guard let action = listSelection.mapKeyToAction(key) else { return nil }
+            return .listSelection(action)
         case .table:
             guard let action = table.mapKeyToAction(key) else { return nil }
             return .table(action)
@@ -231,6 +245,8 @@ struct GalleryModel {
             return AnyTUIView(form.makeView(theme: theme))
         case .listSearch:
             return AnyTUIView(list.makeView(theme: theme))
+        case .listSelection:
+            return AnyTUIView(listSelection.makeView(theme: theme))
         case .table:
             return AnyTUIView(table.makeView(theme: theme))
         case .overlays:
@@ -252,6 +268,8 @@ struct GalleryModel {
             return form.allowsSectionShortcuts
         case .listSearch:
             return list.allowsSectionShortcuts
+        case .listSelection:
+            return listSelection.allowsSectionShortcuts
         case .table:
             return table.allowsSectionShortcuts
         case .overlays:
