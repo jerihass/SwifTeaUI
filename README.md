@@ -2,9 +2,7 @@
 
 A modern, declarative **Terminal UI framework for Swift**, inspired by SwiftUI and Bubble Tea.
 
-### A Tiny SwifTeaUI App
-
-SwifTeaUI mirrors SwiftUI’s DSL.
+### A Tiny SwifTeaUI App (short form)
 
 ```swift
 import SwifTeaUI
@@ -15,35 +13,18 @@ struct TinyCounterApp: TUIApp {
 }
 
 struct TinyCounterScene: TUIScene {
-    typealias Model = TinyCounterModel
-    typealias Action = TinyCounterModel.Action
+    typealias Model = ModelState
+    typealias Action = Model.Action
+    var model = ModelState()
 
-    var model: TinyCounterModel
-
-    init(model: TinyCounterModel = TinyCounterModel()) {
-        self.model = model
-    }
-
-    mutating func update(action: Action) {
-        model.update(action: action)
-    }
-
-    func view(model: TinyCounterModel) -> some TUIView {
-        model.makeView()
-    }
-
-    func mapKeyToAction(_ key: KeyEvent) -> Action? {
-        model.mapKeyToAction(key)
-    }
-
-    func shouldExit(for action: Action) -> Bool {
-        model.shouldExit(for: action)
-    }
+    mutating func update(action: Action) { model.update(action: action) }
+    func view(model: Model) -> some TUIView { CounterView(count: model.count) }
+    func mapKeyToAction(_ key: KeyEvent) -> Action? { model.mapKeyToAction(key) }
+    func shouldExit(for action: Action) -> Bool { model.shouldExit(for: action) }
 }
 
-struct TinyCounterModel {
+struct ModelState {
     enum Action { case increment, decrement, quit }
-
     @State private var count = 0
 
     mutating func update(action: Action) {
@@ -52,10 +33,6 @@ struct TinyCounterModel {
         case .decrement: count -= 1
         case .quit: break
         }
-    }
-
-    func makeView() -> some TUIView {
-        TinyCounterView(count: count)
     }
 
     func mapKeyToAction(_ key: KeyEvent) -> Action? {
@@ -67,31 +44,24 @@ struct TinyCounterModel {
         }
     }
 
-    func shouldExit(for action: Action) -> Bool {
-        if case .quit = action { return true }
-        return false
-    }
+    func shouldExit(for action: Action) -> Bool { action == .quit }
 }
 
-struct TinyCounterView: TUIView {
+struct CounterView: TUIView {
     let count: Int
 
     var body: some TUIView {
-        Border(
-            padding: 1,
-            VStack(spacing: 1, alignment: .leading) {
-                Text("Tiny Counter").foregroundColor(.yellow).bold()
-                Text("Use ←/→ or +/- to change the value, press q to quit.")
-                    .foregroundColor(.cyan)
-                Text("Count: \(count)").foregroundColor(.green)
-            }
-        )
+        VStack(spacing: 1, alignment: .leading) {
+            Text("Tiny Counter").foregroundColor(.yellow).bold()
+            Text("Use ←/→ or +/- to change, q to quit.").foregroundColor(.cyan)
+            Text("Count: \(count)").foregroundColor(.green)
+        }
         .padding(1)
     }
 }
 ```
 
-The scene maps terminal key events to reducer actions, `@State` keeps the counter value live, and the runtime renders the ANSI layout—no manual escape codes required.
+For a fuller walkthrough (setup, model/view split, patterns), see `docs/QUICKSTART.md`.
 
 ### Goals
 

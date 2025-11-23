@@ -34,7 +34,7 @@ struct Scene: TUIScene {
     mutating func update(action: Action) { model.update(action: action) }
     func view(model: ModelState) -> some TUIView { CounterView(count: model.count) }
     func mapKeyToAction(_ key: KeyEvent) -> Action? { model.mapKeyToAction(key) }
-    func shouldExit(for action: action) -> Bool { model.shouldExit(for action) }
+    func shouldExit(for action: Action) -> Bool { model.shouldExit(for: action) }
 }
 
 struct ModelState {
@@ -86,7 +86,15 @@ struct CounterView: TUIView {
 - **Focus**: use `@FocusState` and `FocusRing`/`FocusScope` to manage Tab/Shift+Tab traversal; `.focusRingStyle(_:)` sets visuals.
 - **Effects**: dispatch async work via `Effect` and `SwifTea.dispatch` from reducers; cancel with `SwifTea.cancelEffects(withID:)`.
 
-## 5) Troubleshooting
+## 5) Designing Models & Views
+
+- **Loop like Elm/Bubble Tea**: keep all app state in your scene model, mutate it in `update(action:)`, and derive actions from `mapKeyToAction(_:)`. Effects are explicit and cancelable.
+- **Render like SwiftUI**: views are pure functions of data. Pass only what’s needed (e.g., `CounterView(count:)`), avoid side effects in `render()`, and let the runtime re-render on state changes.
+- **Local vs shared state**: prefer `@State` inside the model for business data; use `@StateObject`/`@ObservedObject` for shared reference types. Keep view-scoped `@State` small and UI-local.
+- **Input flow**: map keys → actions → reducer updates state → views re-render. Do not mutate model state from inside views.
+- **Composition**: build small views that take values/bindings; it keeps re-renders cheap and makes the reducer easy to test.
+
+## 6) Troubleshooting
 
 - If ANSI colors look off, check terminal supports 256 colors/truecolor.
 - On macOS sandboxed shells, SwiftPM may need write access to `~/Library/Caches/org.swift.swiftpm`; rerun commands outside restricted shells.
