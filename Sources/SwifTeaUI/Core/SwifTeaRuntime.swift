@@ -5,7 +5,7 @@ public enum SwifTea {
     public static func brew<App: TUIScene>(_ app: App, fps: Int = 20) {
         var app = app
         let frameDelay = useconds_t(1_000_000 / max(1, fps))
-        let idleRefreshInterval: TimeInterval = 0.5
+        let idleRefreshInterval: TimeInterval = min(0.5, 1.0 / Double(max(1, fps)))
 
         let actionQueue = ActionQueue<App.Action>()
         let effectRuntime = EffectRuntime(actionQueue: actionQueue)
