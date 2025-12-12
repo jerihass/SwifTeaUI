@@ -14,6 +14,7 @@ This document tracks upcoming terminal UI design paradigms for SwifTeaUI. Each e
 | --- | --- | --- | --- |
 | **Status & Command Bar** | Persistent footer for live state, modes, and shortcut hints. | Implemented | Harden `StatusBar` width handling, roll out to additional demos, document customization knobs. |
 | **Focus & Navigation Cues** | Unifies how focused panes, selected rows, and cursor locations render. | Implemented | Roll focus ring helper into future demos, expand snapshot helpers for additional layouts, document cursor customization knobs. |
+| **Input Ergonomics (KeyMap/Router)** | Reduce boilerplate key handling while keeping views pure. | Planned | Introduce `KeyMap` and `KeyRouter` primitives; ship semantic control keymaps; see `docs/InputErgonomicsPlan.md`. |
 | **Activity Indicator** | Animated spinner glyphs for background work and progress. | Implemented | Showcase `Spinner` across demos, offer presets for alternate glyph sets, and document integration with status bars. |
 | **Progress Meter** | Visualises coarse task completion percentages inline with status bars. | Implemented | Expose width/fill customisation, explore stacked meters for multi-task dashboards. |
 | **Async Action Effects** | Allow background tasks (network calls, timers, Task sleep) to emit reducer Actions without manual polling. | Implemented | Document `Effect.run`/`Effect.timer` patterns, add cancellation helpers for grouped work, and roll SwifTea's dispatch APIs into the other demos so long-lived tasks avoid `handleFrame` polling. |
