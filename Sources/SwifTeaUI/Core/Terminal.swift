@@ -118,7 +118,10 @@ func setRawMode() -> termios {
     t.c_lflag &= ~(UInt(ICANON | ECHO))
     // Optional: also disable signals: t.c_lflag &= ~UInt(ISIG)
 
-    tcsetattr(STDIN_FILENO_, TCSANOW, &t)
+    guard tcsetattr(STDIN_FILENO_, TCSANOW, &t) == 0 else {
+        fatalError("No write access to /dev/tty. On macOS build as command line executable or disable app sandbox.")
+    }
+
     _ = setNonBlocking(STDIN_FILENO_, enabled: true)
     return original
 }
