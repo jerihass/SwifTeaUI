@@ -25,7 +25,7 @@ struct TinyCounterScene: TUIScene {
 
 struct ModelState {
     enum Action { case increment, decrement, quit }
-    @State private var count = 0
+    @State private(set) var count = 0
 
     mutating func update(action: Action) {
         switch action {
