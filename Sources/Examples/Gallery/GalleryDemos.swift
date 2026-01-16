@@ -84,8 +84,13 @@ struct FormDemoModel {
     }
 
     enum Action {
-        case focusNext
-        case focusPrevious
+        enum Focus {
+            case clear
+            case next
+            case previous
+        }
+
+        case focus(Focus)
         case submit
         case input(Field, TextFieldEvent)
     }
@@ -111,9 +116,11 @@ struct FormDemoModel {
 
     mutating func update(action: Action) {
         switch action {
-        case .focusNext:
+        case .focus(.clear):
+            focus = nil
+        case .focus(.next):
             focus = ring.move(from: focus, direction: .forward)
-        case .focusPrevious:
+        case .focus(.previous):
             focus = ring.move(from: focus, direction: .backward)
         case .submit:
             showValidation = true
@@ -129,11 +136,13 @@ struct FormDemoModel {
     func mapKeyToAction(_ key: KeyEvent) -> Action? {
         switch key {
         case .tab:
-            return .focusNext
+            return .focus(.next)
         case .backTab:
-            return .focusPrevious
+            return .focus(.previous)
         case .enter:
             return .submit
+        case .escape:
+            return .focus(.clear)
         default:
             break
         }
@@ -142,6 +151,10 @@ struct FormDemoModel {
             return nil
         }
         return .input(focusedField, event)
+    }
+
+    private var stopEditHint: String {
+        focus != nil ? " • [ESC] to stop editing." : ""
     }
 
     func makeView(theme: SwifTeaTheme) -> some TUIView {
@@ -183,7 +196,7 @@ struct FormDemoModel {
                         padding: 0,
                         color: theme.info,
                         background: theme.headerPanel.background ?? theme.background,
-                        Text("[Tab]/[Shift+Tab] Move • [Enter] Validate")
+                        Text("[Tab]/[Shift+Tab] Move • [Enter] Validate" + stopEditHint)
                             .foregroundColor(theme.info)
                             .padding(0)
                     )
@@ -239,6 +252,12 @@ struct ListSearchDemoModel {
     }
 
     enum Action {
+        enum Focus {
+            case clear
+            case filter
+        }
+
+        case focus(Focus)
         case moveSelection(Int)
         case text(TextFieldEvent)
     }
@@ -268,10 +287,15 @@ struct ListSearchDemoModel {
 
     mutating func update(action: Action) {
         switch action {
-        case .moveSelection(let delta):
+        case .focus(.clear):
+            searchFocused = false
+        case .focus(.filter):
+            searchFocused = true
+        case let .moveSelection(delta):
             moveSelection(delta)
         case .text(let event):
             $query.apply(event)
+            maintainSelection()
         }
     }
 
@@ -282,6 +306,7 @@ struct ListSearchDemoModel {
             switch key {
             case .upArrow: return .moveSelection(-1)
             case .downArrow: return .moveSelection(1)
+            case .enter: return .focus(.clear)
             default: break
             }
             if let event = textFieldEvent(from: key) {
@@ -293,13 +318,29 @@ struct ListSearchDemoModel {
         switch key {
         case .upArrow, .char("k"): return .moveSelection(-1)
         case .downArrow, .char("j"): return .moveSelection(1)
+        case .enter: return .focus(.filter)
         default: break
         }
 
-        if let event = textFieldEvent(from: key) {
-            return .text(event)
-        }
         return nil
+    }
+
+    /// Maintains selection after filter changes and selection is still valid.
+    private mutating func maintainSelection() {
+        let filtered = filteredItems()
+        guard !filtered.isEmpty else { return }
+        guard let currentIndex = filtered.firstIndex(where: { $0.id == selectedID }) ?? filtered.indices.first else {
+            return
+        }
+
+        let next = filtered[currentIndex].id
+        selectedID = next
+        focusedID = next
+    }
+
+    private var placeholder: String {
+        let focused = searchFocused ?? false
+        return focused ? "Type to filter (e.g., table)" : "Press [ENTER] to filter"
     }
 
     func makeView(theme: SwifTeaTheme) -> some TUIView {
@@ -315,7 +356,7 @@ struct ListSearchDemoModel {
                 Text("Incremental filter with highlighted matches.")
                     .foregroundColor(theme.info)
 
-                TextField("Type to filter (e.g., table)", text: $query)
+                TextField(placeholder, text: $query)
                     .focusRingStyle(FocusStyle(indicator: "", color: nil, bold: false))
                     .focused($searchFocused.isFocused(true))
                     .blinkingCursor()
@@ -338,12 +379,23 @@ struct ListSearchDemoModel {
                     padding: 0,
                     color: theme.info,
                     background: theme.headerPanel.background ?? theme.background,
-                    Text("[j]/[k]/↑/↓ move • Typing filters")
+                    Text(hints)
                         .foregroundColor(theme.info)
                         .padding(0)
                 )
             }
         )
+    }
+
+    private var hints: String {
+        let focused = searchFocused ?? false
+        let hint = switch (focused, query.isEmpty) {
+        case (true, _):
+            "Type to filter • [ENTER] stop filtering"
+        case (false, _):
+            "[j]/[k]/↑/↓ move • [ENTER] start filtering"
+        }
+        return hint
     }
 
     private func filteredItems() -> [Item] {
