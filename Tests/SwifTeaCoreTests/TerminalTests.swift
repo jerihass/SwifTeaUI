@@ -70,6 +70,25 @@ struct TerminalTests {
         #expect(!regular.isCompact)
     }
 
+    @Test("setRawMode avoids non-tty failures")
+    func testSetRawModeWithPipeInput() {
+        let pipe = Pipe()
+        let originalStdin = dup(STDIN_FILENO)
+        #expect(originalStdin != -1)
+        dup2(pipe.fileHandleForReading.fileDescriptor, STDIN_FILENO)
+        defer {
+            dup2(originalStdin, STDIN_FILENO)
+            close(originalStdin)
+            pipe.fileHandleForReading.closeFile()
+            pipe.fileHandleForWriting.closeFile()
+        }
+
+        _ = setRawMode()
+        let flags = fcntl(STDIN_FILENO, F_GETFL)
+        #expect(flags != -1)
+        #expect((flags & O_NONBLOCK) == 0)
+    }
+
     @Test("Frame padding resets colors before trailing spaces")
     func testFramePaddingResetsColor() {
         let red = "\u{001B}[31m"

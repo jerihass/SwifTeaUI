@@ -60,3 +60,8 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# Local tooling and generated artifacts
+.codex/
+output/
+tmp/

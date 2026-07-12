@@ -111,14 +111,22 @@ func setNonBlocking(_ fd: Int32, enabled: Bool) -> Int32 {
 
 func setRawMode() -> termios {
     var t = termios()
-    tcgetattr(STDIN_FILENO_, &t)
+    guard tcgetattr(STDIN_FILENO_, &t) == 0 else {
+        let message = String(cString: strerror(errno))
+        fputs("Warning: unable to read terminal settings: \(message)\n", stderr)
+        return t
+    }
     let original = t
 
     // Raw-ish: disable canonical mode (ICANON) and echo (ECHO)
     t.c_lflag &= ~(UInt(ICANON | ECHO))
     // Optional: also disable signals: t.c_lflag &= ~UInt(ISIG)
 
-    tcsetattr(STDIN_FILENO_, TCSANOW, &t)
+    guard tcsetattr(STDIN_FILENO_, TCSANOW, &t) == 0 else {
+        let message = String(cString: strerror(errno))
+        fputs("Warning: unable to set raw mode: \(message)\n", stderr)
+        return original
+    }
     _ = setNonBlocking(STDIN_FILENO_, enabled: true)
     return original
 }
