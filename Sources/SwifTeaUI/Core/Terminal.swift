@@ -127,6 +127,7 @@ func setRawMode() -> termios {
         fputs("Warning: unable to set raw mode: \(message)\n", stderr)
         return original
     }
+
     _ = setNonBlocking(STDIN_FILENO_, enabled: true)
     return original
 }
