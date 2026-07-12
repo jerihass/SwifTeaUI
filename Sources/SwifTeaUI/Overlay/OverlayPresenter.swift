@@ -54,36 +54,42 @@ public struct OverlayPresenter {
     }
 
     public struct ModalStyle {
-        public var accentColor: ANSIColor
-        public var borderColor: ANSIColor
-        public var titleColor: ANSIColor
+        public var accentColor: ANSIColor?
+        public var borderColor: ANSIColor?
+        public var titleColor: ANSIColor?
+        public var backgroundColor: ANSIColor?
 
         public init(
-            accentColor: ANSIColor,
-            borderColor: ANSIColor,
-            titleColor: ANSIColor
+            accentColor: ANSIColor?,
+            borderColor: ANSIColor?,
+            titleColor: ANSIColor?,
+            backgroundColor: ANSIColor? = .black
         ) {
             self.accentColor = accentColor
             self.borderColor = borderColor
             self.titleColor = titleColor
+            self.backgroundColor = backgroundColor
         }
 
         public static let info = ModalStyle(
             accentColor: .brightCyan,
             borderColor: .brightBlue,
-            titleColor: .brightWhite
+            titleColor: .brightWhite,
+            backgroundColor: .black
         )
 
         public static let warning = ModalStyle(
             accentColor: .brightYellow,
             borderColor: .brightYellow,
-            titleColor: .brightWhite
+            titleColor: .brightWhite,
+            backgroundColor: .black
         )
 
         public static let critical = ModalStyle(
             accentColor: .brightRed,
             borderColor: .brightRed,
-            titleColor: .brightWhite
+            titleColor: .brightWhite,
+            backgroundColor: .black
         )
     }
 

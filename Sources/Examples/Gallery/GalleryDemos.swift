@@ -763,6 +763,7 @@ struct OverlayDemoModel {
     enum Action {
         case showToast
         case showModal
+        case showNativeModal
     }
 
     var allowsSectionShortcuts: Bool { true }
@@ -771,6 +772,7 @@ struct OverlayDemoModel {
         switch key {
         case .char("t"), .char("T"): return .showToast
         case .char("m"), .char("M"): return .showModal
+        case .char("n"), .char("N"): return .showNativeModal
         default: return nil
         }
     }
@@ -801,6 +803,22 @@ struct OverlayDemoModel {
                         .foregroundColor(theme.info)
                 }
             }
+        case .showNativeModal:
+            overlays.presentModal(
+                priority: 2,
+                title: "Native Overlay",
+                style: OverlayPresenter.ModalStyle(
+                    accentColor: nil,
+                    borderColor: nil,
+                    titleColor: nil,
+                    backgroundColor: nil
+                )
+            ) {
+                VStack(spacing: 1, alignment: .leading) {
+                    Text("This modal preserves the terminal's native colors.")
+                    Text("Press '?' to close or 'Ctrl-C' to quit.")
+                }
+            }
         }
     }
 
@@ -819,7 +837,7 @@ struct OverlayDemoModel {
                     padding: 0,
                     color: theme.info,
                     background: theme.headerPanel.background ?? theme.background,
-                    Text("[T] Toast • [M] Modal")
+                Text("[T] Toast • [M] Colored Modal • [N] Native Modal")
                         .foregroundColor(theme.info)
                         .padding(0)
                 )

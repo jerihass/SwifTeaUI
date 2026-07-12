@@ -137,12 +137,16 @@ private struct ModalOverlay<Base: TUIView>: TUIView {
             Border(
                 padding: 2,
                 color: modal.style.borderColor,
-                background: .black,
+                background: modal.style.backgroundColor,
                 VStack(spacing: 1, alignment: .leading) {
                     if let title = modal.title {
-                        Text(title)
-                            .foregroundColor(modal.style.titleColor)
-                            .bold()
+                        if let titleColor = modal.style.titleColor {
+                            Text(title)
+                                .foregroundColor(titleColor)
+                                .bold()
+                        } else {
+                            Text(title).bold()
+                        }
                     }
                     modal.view
                 }

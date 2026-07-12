@@ -179,3 +179,4 @@ Table(
 - `ProgressMeter` draws lightweight `[########----] 75%` bars sized for status strips, making it easy to surface coarse task progress without leaving the status area.
 - TaskRunner demonstrates a tiny status message queue so transient updates (step started/completed) cycle through the status bar instead of scrolling the primary layout—handy for longer running workflows.
 - `OverlayPresenter` plus `OverlayHost` turns transient notifications and blocking modals into declarative components. Register toasts via `presentToast(duration:style:content:)`, tick them in your scene’s `handleFrame(deltaTime:)`, and wrap the root view in `OverlayHost` so the presenter draws toast stacks and modal dialogs automatically.
+- `OverlayPresenter.ModalStyle` accepts optional accent, border, title, and background colors. Existing presets retain their colored black-backed appearance; pass nil roles to preserve native terminal colors or support monochrome applications.
