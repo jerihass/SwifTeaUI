@@ -1,4 +1,3 @@
-
 public struct Border<Content: TUIView>: TUIView {
     public typealias Body = Never
 
@@ -36,12 +35,22 @@ public struct Border<Content: TUIView>: TUIView {
     }
 
     public func render() -> String {
-        var rendered = resolveRenderedView(for: content)
+        render(in: RenderEnvironment.current)
+    }
+
+    public func render(in context: RenderContext) -> String {
+        let chrome = 2 + padding * 2
+        let childContext = RenderContext(
+            proposedSize: context.proposedSize.inset(horizontal: chrome, vertical: chrome),
+            fillsProposedWidth: context.fillsProposedWidth
+        )
+        var rendered = resolveRenderedView(for: content, in: childContext)
         if rendered.lines.isEmpty {
             rendered = RenderedView(lines: [""])
         }
 
-        let width = rendered.maxWidth
+        let proposedContentWidth = context.fillsProposedWidth ? childContext.proposedSize.width ?? 0 : 0
+        let width = max(rendered.maxWidth, proposedContentWidth)
         let paddingString = String(repeating: " ", count: padding)
         let horizontal = String(repeating: "─", count: width + padding * 2)
         let top = decorateHorizontal("┌" + horizontal + "┐")
@@ -51,7 +60,8 @@ public struct Border<Content: TUIView>: TUIView {
         let rightBorder = decorateVertical("│")
 
         let body = rendered.lines.enumerated().map { index, line -> String in
-            let currentWidth = index < rendered.widths.count ? rendered.widths[index] : HStack.visibleWidth(of: line)
+            let currentWidth =
+                index < rendered.widths.count ? rendered.widths[index] : HStack.visibleWidth(of: line)
             let padded = Self.pad(line, currentWidth: currentWidth, toVisibleWidth: width)
             let interior = paddingString + padded + paddingString
             let filledInterior = applyInteriorBackground(interior)
@@ -132,8 +142,9 @@ public struct Border<Content: TUIView>: TUIView {
     private func classifyInteriorSequence(_ sequence: String) -> InteriorSequenceType {
         if sequence == ANSIColor.reset.rawValue { return .reset }
         guard sequence.hasPrefix("\u{001B}["),
-              let last = sequence.last,
-              last == "m" else { return .other }
+            let last = sequence.last,
+            last == "m"
+        else { return .other }
         let body = sequence.dropFirst(2).dropLast()
         guard let first = body.split(separator: ";").first else { return .other }
 
@@ -186,8 +197,8 @@ public struct FocusRingBorder<Content: TUIView>: TUIView {
     }
 }
 
-public extension TUIView {
-    func border(
+extension TUIView {
+    public func border(
         padding: Int = 1,
         color: ANSIColor? = nil,
         bold: Bool = false,
@@ -196,7 +207,7 @@ public extension TUIView {
         Border(padding: padding, color: color, bold: bold, background: background, self)
     }
 
-    func focusRing(
+    public func focusRing(
         padding: Int = 1,
         isFocused: Bool,
         style: FocusStyle = .default

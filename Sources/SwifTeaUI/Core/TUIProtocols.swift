@@ -4,13 +4,14 @@ public protocol TUIView {
     associatedtype Body: TUIView
     var body: Body { get }
     func render() -> String
+    func render(in context: RenderContext) -> String
 }
 
 /// A lightweight rendering result carrying lines and dimensions, used to avoid
 /// repeated splitting/measuring during layout composition.
 struct RenderedView {
     var lines: [String]
-    var widths: [Int] // visible width per line
+    var widths: [Int]  // visible width per line
 
     init(lines: [String]) {
         self.lines = lines
@@ -31,11 +32,14 @@ protocol RenderedViewProvider {
 }
 
 /// Resolve a view into a measured render, reusing cached snapshots when available.
-func resolveRenderedView(for view: any TUIView) -> RenderedView {
+func resolveRenderedView(
+    for view: any TUIView,
+    in context: RenderContext = RenderEnvironment.current
+) -> RenderedView {
     if let provider = view as? RenderedViewProvider, let cached = provider.renderedViewSnapshot {
         return cached
     }
-    return RenderedView(lines: view.render().splitLinesPreservingEmpty())
+    return RenderedView(lines: view.render(in: context).splitLinesPreservingEmpty())
 }
 
 struct CachedRenderedView: TUIView, RenderedViewProvider {
@@ -54,9 +58,15 @@ struct CachedRenderedView: TUIView, RenderedViewProvider {
     }
 }
 
-public extension TUIView {
-    func render() -> String {
-        body.render()
+extension TUIView {
+    public func render() -> String {
+        body.render(in: RenderEnvironment.current)
+    }
+
+    public func render(in context: RenderContext) -> String {
+        RenderEnvironment.$current.withValue(context) {
+            render()
+        }
     }
 }
 
@@ -68,6 +78,10 @@ extension Never: TUIView {
     }
 
     public func render() -> String {
+        fatalError("Never cannot render")
+    }
+
+    public func render(in context: RenderContext) -> String {
         fatalError("Never cannot render")
     }
 }
@@ -95,8 +109,8 @@ public enum TUISceneBuilder {
     }
 }
 
-public extension TUIScene {
-    mutating func initializeEffects() {}
-    mutating func handleTerminalResize(from oldSize: TerminalSize, to newSize: TerminalSize) {}
-    mutating func handleFrame(deltaTime: TimeInterval) {}
+extension TUIScene {
+    public mutating func initializeEffects() {}
+    public mutating func handleTerminalResize(from oldSize: TerminalSize, to newSize: TerminalSize) {}
+    public mutating func handleFrame(deltaTime: TimeInterval) {}
 }

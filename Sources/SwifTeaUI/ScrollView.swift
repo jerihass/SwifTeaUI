@@ -1,4 +1,3 @@
-
 public struct ScrollView<Content: TUIView>: TUIView {
     public enum Axis {
         case vertical
@@ -117,9 +116,10 @@ public struct ScrollView<Content: TUIView>: TUIView {
         if !isScrollDisabled, pinnedToBottom?.wrappedValue == true {
             resolvedOffset = maxOffset
         } else if !isScrollDisabled,
-                  let shouldFollow = followActiveLine?.wrappedValue,
-                  shouldFollow,
-                  let activeLine = activeLine?.wrappedValue {
+            let shouldFollow = followActiveLine?.wrappedValue,
+            shouldFollow,
+            let activeLine = activeLine?.wrappedValue
+        {
             let clampedActive = max(0, min(activeLine, rendered.height - 1))
             if clampedActive < resolvedOffset {
                 resolvedOffset = clampedActive
@@ -188,59 +188,7 @@ public struct ScrollView<Content: TUIView>: TUIView {
     }
 
     private func sliceLine(_ line: String, offset: Int, width: Int) -> String {
-        guard width > 0 else { return "" }
-
-        var visibleIndex = 0
-        var produced = 0
-        var capturing = false
-        var result = ""
-        var pendingSequences = ""
-        var index = line.startIndex
-        var inEscape = false
-        var currentSequence = ""
-
-        while index < line.endIndex {
-            let character = line[index]
-            if inEscape {
-                currentSequence.append(character)
-                if character.isANSISequenceTerminator {
-                    inEscape = false
-                    if capturing {
-                        result.append(currentSequence)
-                    } else {
-                        pendingSequences.append(currentSequence)
-                    }
-                    currentSequence.removeAll(keepingCapacity: true)
-                }
-            } else if character == "\u{001B}" {
-                inEscape = true
-                currentSequence = "\u{001B}"
-            } else {
-                if visibleIndex >= offset, produced < width {
-                    if !capturing {
-                        capturing = true
-                        if !pendingSequences.isEmpty {
-                            result.append(pendingSequences)
-                            pendingSequences.removeAll(keepingCapacity: true)
-                        }
-                    }
-                    result.append(character)
-                    produced += 1
-                }
-                visibleIndex += 1
-            }
-            index = line.index(after: index)
-        }
-
-        if !capturing {
-            return String(repeating: " ", count: width)
-        }
-
-        let currentWidth = HStack.visibleWidth(of: result)
-        if currentWidth < width {
-            result = insertPadding(result, padding: width - currentWidth)
-        }
-        return result
+        TerminalText.sliceLine(line, offset: offset, width: width)
     }
 
     private func applyVerticalIndicators(
@@ -297,10 +245,12 @@ public struct ScrollView<Content: TUIView>: TUIView {
         let trailingIndicator = padIndicator(symbols.trailing, to: trailingWidth)
 
         return lines.map { line in
-            let prefix = leadingWidth > 0
+            let prefix =
+                leadingWidth > 0
                 ? (offset > 0 ? leadingIndicator : emptyLeading)
                 : ""
-            let suffix = trailingWidth > 0
+            let suffix =
+                trailingWidth > 0
                 ? (offset < maxOffset ? trailingIndicator : emptyTrailing)
                 : ""
             return prefix + line + suffix

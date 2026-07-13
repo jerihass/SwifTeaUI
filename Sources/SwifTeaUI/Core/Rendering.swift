@@ -45,7 +45,7 @@ private final class DiffFrameRenderer {
 
         if lines.count < lastLines.count {
             buffer.append(cursorMove(row: lines.count + 1, column: 1))
-            buffer.append("\u{001B}[J") // clear below cursor
+            buffer.append("\u{001B}[J")  // clear below cursor
         }
 
         guard !buffer.isEmpty else {
@@ -98,7 +98,8 @@ final class FrameLogger {
 
     static func make() -> FrameLogger? {
         guard let path = ProcessInfo.processInfo.environment["SWIFTEA_FRAME_LOG"],
-              !path.isEmpty else { return nil }
+            !path.isEmpty
+        else { return nil }
         return FrameLogger(path: path)
     }
 
@@ -106,8 +107,9 @@ final class FrameLogger {
         frameIndex += 1
         let header = "\n--- frame \(frameIndex) (changed: \(changed) forced: \(forced)) ---\n"
         guard let headerData = header.data(using: .utf8),
-              let frameData = frame.data(using: .utf8),
-              let newline = "\n".data(using: .utf8) else { return }
+            let frameData = frame.data(using: .utf8),
+            let newline = "\n".data(using: .utf8)
+        else { return }
 
         do {
             try handle.seekToEnd()
@@ -150,43 +152,6 @@ extension String {
     }
 
     private func fittedLine(toVisibleWidth width: Int) -> String {
-        var result = String()
-        result.reserveCapacity(min(count, width) + ANSIColor.reset.rawValue.count)
-
-        var visibleWidth = 0
-        var inEscape = false
-        var sawEscape = false
-
-        for character in self {
-            if inEscape {
-                result.append(character)
-                if character.isANSISequenceTerminator {
-                    inEscape = false
-                }
-                continue
-            }
-
-            if character == "\u{001B}" {
-                inEscape = true
-                sawEscape = true
-                result.append(character)
-                continue
-            }
-
-            guard visibleWidth < width else { break }
-            result.append(character)
-            visibleWidth += 1
-        }
-
-        if visibleWidth < width {
-            result.append(ANSIColor.reset.rawValue)
-            result.append(String(repeating: " ", count: width - visibleWidth))
-        } else if sawEscape, !result.hasSuffix(ANSIColor.reset.rawValue) {
-            // Truncation may remove the original reset sequence. Do not leak
-            // presentation state into the next physical terminal line.
-            result.append(ANSIColor.reset.rawValue)
-        }
-
-        return result
+        TerminalText.fittedLine(self, to: width)
     }
 }

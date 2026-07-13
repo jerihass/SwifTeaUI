@@ -23,7 +23,9 @@ public enum SwifTea {
         TerminalDimensions.refresh()
         renderInvalidation.markDirty()
 
-        RuntimeDispatch.install(queue: actionQueue, effectRuntime: effectRuntime, renderInvalidation: renderInvalidation) {
+        RuntimeDispatch.install(
+            queue: actionQueue, effectRuntime: effectRuntime, renderInvalidation: renderInvalidation
+        ) {
             app.initializeEffects()
 
             var running = true
@@ -57,9 +59,14 @@ public enum SwifTea {
                 let shouldRender = renderNeeded || sizeChanged || timeSinceLastRender >= idleRefreshInterval
 
                 if isDrawable && shouldRender {
-                    let frame = app.view(model: app.model).render()
+                    let frame = app.view(model: app.model).render(
+                        in: RenderContext(
+                            proposedSize: ProposedViewSize(width: size.columns, height: size.rows)
+                        )
+                    )
                     let changed = frame != lastFrame
-                    let forceRefresh = sizeChanged || (!changed ? (staticFrameStreak >= maxStaticFrames) : false)
+                    let forceRefresh =
+                        sizeChanged || (!changed ? (staticFrameStreak >= maxStaticFrames) : false)
                     frameLogger?.log(frame, changed: changed, forced: forceRefresh)
                     if changed || forceRefresh {
                         renderFrame(frame)

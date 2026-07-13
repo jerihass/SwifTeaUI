@@ -17,23 +17,33 @@ public struct Text: TUIView {
     public init(_ content: String) { self.content = content }
 
     public func foregroundColor(_ color: ANSIColor) -> Text {
-        var copy = self; copy.color = color; return copy
+        var copy = self
+        copy.color = color
+        return copy
     }
 
     public func bold() -> Text {
-        var copy = self; copy.isBold = true; return copy
+        var copy = self
+        copy.isBold = true
+        return copy
     }
 
     public func italic() -> Text {
-        var copy = self; copy.isItalic = true; return copy
+        var copy = self
+        copy.isItalic = true
+        return copy
     }
 
     public func underline() -> Text {
-        var copy = self; copy.isUnderlined = true; return copy
+        var copy = self
+        copy.isUnderlined = true
+        return copy
     }
 
     public func backgroundColor(_ color: ANSIColor) -> Text {
-        var copy = self; copy.backgroundColor = color; return copy
+        var copy = self
+        copy.backgroundColor = color
+        return copy
     }
 
     @available(*, deprecated, message: "Use foregroundColor(_: ) to mirror SwiftUI naming.")
@@ -134,9 +144,17 @@ public struct VStack: TUIView {
     }
 
     public func render() -> String {
+        render(in: RenderEnvironment.current)
+    }
+
+    public func render(in context: RenderContext) -> String {
         guard !children.isEmpty else { return "" }
 
-        let rendered = children.map { resolveRenderedView(for: $0) }
+        let childContext = RenderContext(
+            proposedSize: ProposedViewSize(width: context.proposedSize.width),
+            fillsProposedWidth: context.fillsProposedWidth
+        )
+        let rendered = children.map { resolveRenderedView(for: $0, in: childContext) }
         let maxWidth = rendered.map { $0.maxWidth }.max() ?? 0
 
         var lines: [String] = []
@@ -183,7 +201,9 @@ public struct VStack: TUIView {
         if alignment == .leading { return rendered }
 
         if rendered.lines.isEmpty {
-            return RenderedView(lines: [Self.paddedLine("", currentWidth: 0, width: width, alignment: alignment)])
+            return RenderedView(lines: [
+                Self.paddedLine("", currentWidth: 0, width: width, alignment: alignment)
+            ])
         }
 
         let padded = rendered.lines.enumerated().map { index, line in
@@ -216,7 +236,6 @@ public struct VStack: TUIView {
         }
     }
 }
-
 
 public struct HStack: TUIView {
     public enum HorizontalAlignment {
@@ -255,9 +274,13 @@ public struct HStack: TUIView {
     }
 
     public func render() -> String {
+        render(in: RenderEnvironment.current)
+    }
+
+    public func render(in context: RenderContext) -> String {
         guard !children.isEmpty else { return "" }
 
-        let renderedColumns = children.map { resolveRenderedView(for: $0) }
+        let renderedColumns = resolvedColumns(in: context)
         let columnWidths = renderedColumns.map { $0.maxWidth }
         let columnHeights = renderedColumns.map { $0.height }
         let maxRows = columnHeights.max() ?? 0
@@ -284,10 +307,12 @@ public struct HStack: TUIView {
 
             for (index, rendered) in renderedColumns.enumerated() {
                 let offsetRow = row - verticalOffsets[index]
-                let line = (offsetRow >= 0 && offsetRow < rendered.lines.count) ? rendered.lines[offsetRow] : ""
+                let line =
+                    (offsetRow >= 0 && offsetRow < rendered.lines.count) ? rendered.lines[offsetRow] : ""
                 let padded = Self.pad(
                     line,
-                    currentWidth: (offsetRow >= 0 && offsetRow < rendered.widths.count) ? rendered.widths[offsetRow] : 0,
+                    currentWidth: (offsetRow >= 0 && offsetRow < rendered.widths.count)
+                        ? rendered.widths[offsetRow] : 0,
                     toVisibleWidth: columnWidths[index],
                     alignment: horizontalAlignment
                 )
@@ -300,28 +325,100 @@ public struct HStack: TUIView {
         return rows.joined(separator: "\n")
     }
 
-    static func visibleWidth(of string: String) -> Int {
-        var width = 0
-        var index = string.startIndex
-        var inEscape = false
-
-        while index < string.endIndex {
-            let character = string[index]
-
-            if inEscape {
-                if character.isANSISequenceTerminator {
-                    inEscape = false
-                }
-            } else if character == "\u{001B}" {
-                inEscape = true
-            } else {
-                width += 1
-            }
-
-            index = string.index(after: index)
+    private func resolvedColumns(in context: RenderContext) -> [RenderedView] {
+        guard let proposedWidth = context.proposedSize.width else {
+            return children.map { resolveRenderedView(for: $0, in: .unspecified) }
         }
 
-        return width
+        let framed = children.map { $0 as? any WidthFrameProviding }
+        let flexibleIndexes = framed.indices.filter { index in
+            guard let provider = framed[index] else { return false }
+            if case .flexible = provider.widthRule { return true }
+            return false
+        }
+        guard !flexibleIndexes.isEmpty else {
+            return children.map { resolveRenderedView(for: $0, in: .unspecified) }
+        }
+
+        var rendered = [RenderedView?](repeating: nil, count: children.count)
+        var allocations = Array(repeating: 0, count: children.count)
+        var fixedWidth = spacing * max(0, children.count - 1)
+
+        for index in children.indices where !flexibleIndexes.contains(index) {
+            let view = resolveRenderedView(for: children[index], in: .unspecified)
+            rendered[index] = view
+            fixedWidth += view.maxWidth
+        }
+
+        for index in flexibleIndexes {
+            guard case .flexible(let minimum, _, _, _) = framed[index]?.widthRule else { continue }
+            allocations[index] = max(0, minimum)
+        }
+
+        var remaining = max(0, proposedWidth - fixedWidth - allocations.reduce(0, +))
+        distribute(
+            remaining: &remaining,
+            allocations: &allocations,
+            indexes: flexibleIndexes,
+            limit: { index in
+                guard case .flexible(let minimum, let ideal, let maximum, _) = framed[index]?.widthRule else {
+                    return 0
+                }
+                let lower = max(0, minimum)
+                let upper = maximum.map { max(lower, $0) } ?? Int.max
+                return ideal.map { min(max(lower, $0), upper) } ?? lower
+            },
+            priority: { index in
+                guard case .flexible(_, _, _, let priority) = framed[index]?.widthRule else { return 0 }
+                return priority
+            }
+        )
+        distribute(
+            remaining: &remaining,
+            allocations: &allocations,
+            indexes: flexibleIndexes,
+            limit: { index in
+                guard case .flexible(let minimum, _, let maximum, _) = framed[index]?.widthRule else {
+                    return 0
+                }
+                return maximum.map { max(max(0, minimum), $0) } ?? Int.max
+            },
+            priority: { index in
+                guard case .flexible(_, _, _, let priority) = framed[index]?.widthRule else { return 0 }
+                return priority
+            }
+        )
+
+        for index in flexibleIndexes {
+            rendered[index] = framed[index]?.render(allocatedWidth: allocations[index], context: context)
+        }
+        return rendered.map { $0 ?? RenderedView(lines: [""]) }
+    }
+
+    private func distribute(
+        remaining: inout Int,
+        allocations: inout [Int],
+        indexes: [Int],
+        limit: (Int) -> Int,
+        priority: (Int) -> Int
+    ) {
+        let priorities = Set(indexes.map(priority)).sorted(by: >)
+        for value in priorities where remaining > 0 {
+            let candidates = indexes.filter { priority($0) == value }
+            var madeProgress = true
+            while remaining > 0 && madeProgress {
+                madeProgress = false
+                for index in candidates where remaining > 0 && allocations[index] < limit(index) {
+                    allocations[index] += 1
+                    remaining -= 1
+                    madeProgress = true
+                }
+            }
+        }
+    }
+
+    static func visibleWidth(of string: String) -> Int {
+        TerminalText.visibleWidth(of: string)
     }
 
     private static func pad(
@@ -474,7 +571,7 @@ public struct RadioButton: TUIView {
     }
 }
 
-fileprivate struct ForEachCacheKey: Hashable {
+private struct ForEachCacheKey: Hashable {
     let file: String
     let line: UInt
     let idType: ObjectIdentifier
@@ -509,6 +606,7 @@ final class ForEachCacheStore {
 private final class ForEachCache<ID: Hashable> {
     struct Entry {
         var fingerprint: AnyHashable?
+        var context: RenderContext
         var renders: [RenderedView]
     }
 
@@ -581,7 +679,8 @@ public struct ForEach<Data: RandomAccessCollection, ID: Hashable>: TUIView {
         self.diffingKey = diffingKey
         self.isDiffingEnabled = isDiffingEnabled
 
-        let cacheKey = ForEachCacheKey(file: String(describing: file), line: line, idType: ObjectIdentifier(ID.self))
+        let cacheKey = ForEachCacheKey(
+            file: String(describing: file), line: line, idType: ObjectIdentifier(ID.self))
         self.cacheKey = cacheKey
         self.cache = ForEachCacheStore.shared.cache(for: cacheKey)
     }
@@ -626,10 +725,12 @@ public struct ForEach<Data: RandomAccessCollection, ID: Hashable>: TUIView {
             let fingerprint = element as? AnyHashable
 
             if let fingerprint,
-               let cached = cache.entries[id],
-               let cachedFingerprint = cached.fingerprint,
-               !invalidateAll,
-               cachedFingerprint == fingerprint {
+                let cached = cache.entries[id],
+                let cachedFingerprint = cached.fingerprint,
+                !invalidateAll,
+                cachedFingerprint == fingerprint,
+                cached.context == RenderEnvironment.current
+            {
                 views.append(contentsOf: cached.renders.map { CachedRenderedView(snapshot: $0) })
                 nextEntries[id] = cached
                 continue
@@ -645,7 +746,11 @@ public struct ForEach<Data: RandomAccessCollection, ID: Hashable>: TUIView {
                 views.append(CachedRenderedView(snapshot: rendered))
             }
 
-            nextEntries[id] = ForEachCache<ID>.Entry(fingerprint: fingerprint, renders: snapshots)
+            nextEntries[id] = ForEachCache<ID>.Entry(
+                fingerprint: fingerprint,
+                context: RenderEnvironment.current,
+                renders: snapshots
+            )
         }
 
         cache.entries = nextEntries
@@ -659,8 +764,8 @@ public struct ForEach<Data: RandomAccessCollection, ID: Hashable>: TUIView {
     public var body: some TUIView { self }
 }
 
-public extension ForEach where Data.Element: Identifiable, Data.Element.ID == ID {
-    init(
+extension ForEach where Data.Element: Identifiable, Data.Element.ID == ID {
+    public init(
         _ data: Data,
         @TUIBuilder content: @escaping (Data.Element) -> [any TUIView],
         file: StaticString = #fileID,

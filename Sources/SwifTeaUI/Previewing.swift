@@ -36,11 +36,16 @@ public struct TUIViewPreview {
     }
 
     public func render(terminalSize: TerminalSize? = nil) -> String {
+        let resolvedSize = terminalSize ?? size
         let renderBlock = {
-            makeView().render()
+            let proposal =
+                resolvedSize.map {
+                    ProposedViewSize(width: $0.columns, height: $0.rows)
+                } ?? .unspecified
+            return makeView().render(in: RenderContext(proposedSize: proposal))
         }
 
-        if let size = terminalSize ?? size {
+        if let size = resolvedSize {
             return TerminalDimensions.withTemporarySize(size, renderBlock)
         } else {
             return renderBlock()

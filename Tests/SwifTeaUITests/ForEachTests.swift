@@ -1,4 +1,5 @@
 import Testing
+
 @testable import SwifTeaUI
 
 private struct CountingView: TUIView {
@@ -49,6 +50,23 @@ struct ForEachTests {
         CountingView.renders = 0
         let updated = initial.diffing(key: "b")
         _ = updated.makeChildViews()
+        #expect(CountingView.renders == 2)
+    }
+
+    @Test("Proposal changes invalidate cached renders")
+    func testProposalInvalidates() {
+        ForEachCacheStore.shared = ForEachCacheStore()
+        CountingView.renders = 0
+        let forEach = ForEach([1, 2], id: \.self) { value in
+            [CountingView(value: value)]
+        }
+        .diffing(key: "stable")
+
+        _ = forEach.render(in: RenderContext(proposedSize: ProposedViewSize(width: 10)))
+        #expect(CountingView.renders == 2)
+
+        CountingView.renders = 0
+        _ = forEach.render(in: RenderContext(proposedSize: ProposedViewSize(width: 12)))
         #expect(CountingView.renders == 2)
     }
 }

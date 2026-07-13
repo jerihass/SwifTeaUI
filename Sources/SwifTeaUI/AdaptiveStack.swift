@@ -22,12 +22,15 @@ public struct AdaptiveStack<Expanded: TUIView, Collapsed: TUIView>: TUIView {
     }
 
     public func render() -> String {
-        // Use the refreshed size so temporary overrides (e.g., tests/previews) are honored.
-        let columns = TerminalDimensions.refresh().columns
+        render(in: RenderEnvironment.current)
+    }
+
+    public func render(in context: RenderContext) -> String {
+        let columns = context.proposedSize.width ?? TerminalDimensions.refresh().columns
         if columns >= breakpoint {
-            return expandedBuilder().render()
+            return expandedBuilder().render(in: context)
         } else {
-            return collapsedBuilder().render()
+            return collapsedBuilder().render(in: context)
         }
     }
 }

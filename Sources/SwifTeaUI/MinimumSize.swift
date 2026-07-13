@@ -1,4 +1,3 @@
-
 public struct MinimumTerminalSize<Content: TUIView, Fallback: TUIView>: TUIView {
     public typealias Body = Never
 
@@ -22,23 +21,30 @@ public struct MinimumTerminalSize<Content: TUIView, Fallback: TUIView>: TUIView 
     }
 
     public func render() -> String {
+        render(in: RenderEnvironment.current)
+    }
+
+    public func render(in context: RenderContext) -> String {
         let size = TerminalDimensions.current
         guard size.columns >= required.columns, size.rows >= required.rows else {
-            return fallback(size).render()
+            return fallback(size).render(in: context)
         }
 
-        return content.render()
+        return content.render(in: context)
     }
 }
 
-public extension TUIView {
-    func minimumTerminalSize<Fallback: TUIView>(
+extension TUIView {
+    public func minimumTerminalSize<Fallback: TUIView>(
         columns: Int,
         rows: Int,
         fallback: @escaping (TerminalSize) -> Fallback
     ) -> some TUIView {
-        MinimumTerminalSize(columns: columns, rows: rows, content: { self }) { size in
-            fallback(size)
-        }
+        MinimumTerminalSize(
+            columns: columns,
+            rows: rows,
+            content: { self },
+            fallback: { size in fallback(size) }
+        )
     }
 }
