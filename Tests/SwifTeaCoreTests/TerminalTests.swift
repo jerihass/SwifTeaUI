@@ -1,11 +1,12 @@
 import Foundation
 import Testing
+
 @testable import SwifTeaUI
 
 #if os(Linux)
-import Glibc
+    import Glibc
 #else
-import Darwin
+    import Darwin
 #endif
 
 @Suite(.serialized)
@@ -83,7 +84,8 @@ struct TerminalTests {
             pipe.fileHandleForWriting.closeFile()
         }
 
-        _ = setRawMode()
+        let state = setRawMode()
+        restoreMode(state)
         let flags = fcntl(STDIN_FILENO, F_GETFL)
         #expect(flags != -1)
         #expect((flags & O_NONBLOCK) == 0)

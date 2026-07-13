@@ -128,11 +128,12 @@ enum RuntimeDispatch {
         )
         lock.unlock()
 
+        defer {
+            lock.lock()
+            box = nil
+            lock.unlock()
+        }
         body()
-
-        lock.lock()
-        box = nil
-        lock.unlock()
     }
 
     static func dispatch<Action>(action: Action) {

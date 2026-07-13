@@ -8,7 +8,8 @@ let package = Package(
         // Users typically `import SwifTeaUI` for the runtime + DSL
         .library(name: "SwifTeaUI", targets: ["SwifTeaUI"]),
         .executable(name: "SwifTeaGalleryExample", targets: ["SwifTeaGalleryExample"]),
-        .executable(name: "SwifTeaPerfHarness", targets: ["SwifTeaPerfHarness"])
+        .executable(name: "SwifTeaPerfHarness", targets: ["SwifTeaPerfHarness"]),
+        .executable(name: "SwifTeaLifecycleFixture", targets: ["SwifTeaLifecycleFixture"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-testing.git", revision: "98430f2d6cb8d817b60ea1489ad18db87cc547aa")
@@ -38,6 +39,11 @@ let package = Package(
             name: "SwifTeaPerfHarness",
             dependencies: ["GalleryExample"],
             path: "Sources/ExampleApps/PerfHarness"
+        ),
+        .executableTarget(
+            name: "SwifTeaLifecycleFixture",
+            dependencies: ["SwifTeaUI"],
+            path: "Sources/ExampleApps/LifecycleFixture"
         ),
         .target(
             name: "SnapshotTestSupport",

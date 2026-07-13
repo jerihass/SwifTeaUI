@@ -10,14 +10,11 @@ public enum SwifTea {
         let actionQueue = ActionQueue<App.Action>()
         let effectRuntime = EffectRuntime(actionQueue: actionQueue)
         let renderInvalidation = RenderInvalidationFlag()
-        let originalMode = setRawMode()
-        hideCursor()
+        let terminalSession = TerminalSession()
         let frameLogger = FrameLogger.make()
-        TerminalDimensions.installResizeSignalHandler()
         defer {
-            showCursor()
-            restoreMode(originalMode)
             effectRuntime.cancelAll()
+            terminalSession.restore()
         }
         clearScreenAndHome()
         TerminalDimensions.refresh()
@@ -35,8 +32,14 @@ public enum SwifTea {
             var lastSize = TerminalDimensions.current
             var lastTime = ProcessInfo.processInfo.systemUptime
             var lastRenderTime = lastTime
+            var terminationSignal: Int32?
 
             while running {
+                if let signal = terminalSession.pendingTerminationSignal {
+                    terminationSignal = signal
+                    break
+                }
+
                 let now = ProcessInfo.processInfo.systemUptime
                 let deltaTime = now - lastTime
                 lastTime = now
@@ -106,6 +109,12 @@ public enum SwifTea {
                 }
 
                 usleep(frameDelay)
+            }
+
+            if let terminationSignal {
+                effectRuntime.cancelAll()
+                terminalSession.restore()
+                _ = raise(terminationSignal)
             }
         }
     }
