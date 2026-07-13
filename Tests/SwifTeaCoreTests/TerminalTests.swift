@@ -104,4 +104,22 @@ struct TerminalTests {
         #expect(processed.contains(expectedPadding + "\n"))
         #expect(processed.hasSuffix(expectedPadding))
     }
+
+    @Test("Frame fitting clips overlong logical lines to terminal width")
+    func testFrameFittingClipsOverlongLines() {
+        let red = "\u{001B}[31m"
+        let reset = ANSIColor.reset.rawValue
+        let input = "\(red)123456789\(reset)\nabcdef"
+
+        let fitted = input.padded(toVisibleWidth: 5)
+        let lines = fitted.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+
+        #expect(lines.count == 2)
+        #expect(HStack.visibleWidth(of: lines[0]) == 5)
+        #expect(HStack.visibleWidth(of: lines[1]) == 5)
+        #expect(lines[0].contains("12345"))
+        #expect(!lines[0].contains("6"))
+        #expect(lines[0].hasSuffix(reset))
+        #expect(lines[1] == "abcde")
+    }
 }

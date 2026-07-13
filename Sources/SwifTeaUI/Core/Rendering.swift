@@ -144,41 +144,47 @@ func writeToStdout(_ string: String) {
 extension String {
     func padded(toVisibleWidth width: Int) -> String {
         guard width > 0 else { return self }
+        return split(separator: "\n", omittingEmptySubsequences: false)
+            .map { String($0).fittedLine(toVisibleWidth: width) }
+            .joined(separator: "\n")
+    }
 
+    private func fittedLine(toVisibleWidth width: Int) -> String {
         var result = String()
-        result.reserveCapacity(count + width)
+        result.reserveCapacity(min(count, width) + ANSIColor.reset.rawValue.count)
 
-        var currentWidth = 0
+        var visibleWidth = 0
         var inEscape = false
+        var sawEscape = false
 
         for character in self {
-            if character == "\n" {
-                if currentWidth < width {
-                    result.append(ANSIColor.reset.rawValue)
-                    result.append(String(repeating: " ", count: width - currentWidth))
-                }
+            if inEscape {
                 result.append(character)
-                currentWidth = 0
-                inEscape = false
+                if character.isANSISequenceTerminator {
+                    inEscape = false
+                }
                 continue
             }
 
             if character == "\u{001B}" {
                 inEscape = true
-            } else if inEscape {
-                if character.isANSISequenceTerminator {
-                    inEscape = false
-                }
-            } else {
-                currentWidth += 1
+                sawEscape = true
+                result.append(character)
+                continue
             }
 
+            guard visibleWidth < width else { break }
             result.append(character)
+            visibleWidth += 1
         }
 
-        if currentWidth < width {
+        if visibleWidth < width {
             result.append(ANSIColor.reset.rawValue)
-            result.append(String(repeating: " ", count: width - currentWidth))
+            result.append(String(repeating: " ", count: width - visibleWidth))
+        } else if sawEscape, !result.hasSuffix(ANSIColor.reset.rawValue) {
+            // Truncation may remove the original reset sequence. Do not leak
+            // presentation state into the next physical terminal line.
+            result.append(ANSIColor.reset.rawValue)
         }
 
         return result
