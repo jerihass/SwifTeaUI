@@ -110,6 +110,27 @@ For a fuller walkthrough (setup, model/view split, patterns), see `docs/QUICKSTA
   }
   ```
 
+### Rich Text
+
+`RichText` lays out differently styled `TextSpan` values as one word-wrapped paragraph. Width flows from
+the parent proposal, while `RichText(width:)` remains available for deterministic table cells and previews.
+Use `InlineGroup` for badges or other fragments that should move to the next line as a unit:
+
+```swift
+RichText {
+    InlineGroup {
+        TextSpan("[").foregroundColor(.yellow)
+        TextSpan("Attack").foregroundColor(.black).backgroundColor(.yellow).bold()
+        TextSpan("]").foregroundColor(.yellow)
+    }
+    TextSpan(" Draw one card, then discard one card.")
+}
+```
+
+Rich text preserves authored newlines, wraps across style boundaries, restores ANSI state on every physical
+line, and measures combining, wide, emoji, and private-use glyphs in terminal cells. See
+`docs/RichText.md` for layout and fallback guidance.
+
 ### Examples
 
 - `swift run SwifTeaGalleryExample` now launches focused demos: counter, form & focus, list/search, list selection, table snapshot, and overlays. Jump with `[1]`…`[6]` or `Tab`/`Shift+Tab` between sections without quitting; hit `[T]` to cycle themes (truecolor Lumen Glass or the basic ANSI palette).
@@ -121,11 +142,12 @@ For a fuller walkthrough (setup, model/view split, patterns), see `docs/QUICKSTA
 ### Layout Primitives
 
 - `VStack` and `HStack` accept `spacing` and alignment arguments that mirror SwiftUI. Need a fixed height? Call `.frame(height:alignment:)` on the stack rather than passing a custom parameter.
+- Use `.frame(width: .fixed(_))` for an exact-width child or `.frame(width: .flexible(minimum:ideal:maximum:priority:))` to let `HStack` allocate the remaining proposed width. Unframed children retain intrinsic sizing.
 - Call `.padding(_:)` on any view to inset the rendered output with ANSI-aware spacing.
 - Wrap any view in `.foregroundColor(_:)` or `.backgroundColor(_:)` to tint entire containers (Stacks, Borders, custom composites) with ANSI colors without re-styling each child manually.
 - Need curated palettes? `SwifTeaTheme` ships with a truecolor `lumenGlass` palette and a `basic` ANSI preset so demos (like Counter) can apply consistent accent/success/info colors and let users toggle between them.
 - `ScrollView(axis:viewport:offset:)` clamps tall content (vertical) or wide buffers (horizontal) without re-rendering children. Bind `contentLength` to capture the total rows or columns, call `.followingActiveLine(_:)` (optionally with an enable binding) to auto-scroll caret positions, flip on `.scrollIndicators(.automatic)` for arrow chrome when content overflows, and use `.scrollDisabled(true)` whenever reducers need to freeze scroll state manually.
-- `HStack(spacing:horizontalAlignment:verticalAlignment:)` measures ANSI widths accurately so mixed-color content still lines up.
+- `HStack(spacing:horizontalAlignment:verticalAlignment:)` measures ANSI and Unicode terminal-cell widths accurately so mixed-color and wide content still lines up.
 - `AdaptiveStack(breakpoint:expanded:collapsed:)` switches entire layouts based on terminal width—use it to collapse dual-column panes into a stacked presentation without re-implementing breakpoint checks.
 - `ZStack` overlays multiple views in z-order so badges/tooltips/overlays can be layered without touching the base content.
 - All `TUIView` conformers expose `var body: some TUIView`; return `VStack`/`HStack` (or any other view) and the runtime calls `render()` for you—no manual `.render()` needed.

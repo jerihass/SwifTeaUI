@@ -17,6 +17,38 @@ public struct HelloWorldPreviewProvider: TUIViewPreviewProvider {
         ) {
             CounterDemoScene(model: .init(title: "Counter", count: 42))
         }
+
+        TUIViewPreview(
+            "Rich Text",
+            category: "Samples",
+            size: TerminalSize(columns: 52, rows: 10)
+        ) {
+            RichTextPreviewView()
+        }
+    }
+}
+
+private struct RichTextPreviewView: TUIView {
+    var body: some TUIView {
+        Border(
+            padding: 1,
+            color: .brightMagenta,
+            HStack(spacing: 2) {
+                Text("Rules").foregroundColor(.brightMagenta).bold()
+                RichText {
+                    InlineGroup {
+                        TextSpan("").foregroundColor(.brightYellow)
+                        TextSpan("Attack")
+                            .foregroundColor(.black)
+                            .backgroundColor(.brightYellow)
+                            .bold()
+                        TextSpan("").foregroundColor(.brightYellow)
+                    }
+                    TextSpan(" Draw one card, then discard one card. Styled text wraps as one paragraph.")
+                }
+                .frame(width: .flexible(minimum: 24))
+            }
+        )
     }
 }
 

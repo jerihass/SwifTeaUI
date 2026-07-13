@@ -1,20 +1,20 @@
 public enum ANSI {
     public static let esc = "\u{001B}"
     public static let clear = "\(esc)[2J"
-    public static let home  = "\(esc)[H"
+    public static let home = "\(esc)[H"
     public static func color(_ code: Int) -> String { "\(esc)[\(code)m" }
     public static let reset = color(0)
 }
 
-public struct ANSIColor: Equatable {
-    private enum Storage: Equatable {
+public struct ANSIColor: Equatable, Sendable {
+    private enum Storage: Equatable, Sendable {
         case reset
         case basic(Basic)
         case indexed(UInt8)
         case trueColor(red: UInt8, green: UInt8, blue: UInt8)
     }
 
-    public enum Basic: Int {
+    public enum Basic: Int, Sendable {
         case black = 30
         case red = 31
         case green = 32
