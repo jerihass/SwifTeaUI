@@ -78,6 +78,13 @@ For a fuller walkthrough (setup, model/view split, patterns), see `docs/QUICKSTA
 - Need a timer? `Effect<Action>.timer(every: 0.5) { .tick }` emits `.tick` every 500 ms until you cancel it (either explicitly via `SwifTea.cancelEffects(withID:)` or when the runtime shuts down).
 - Scenes can override `initializeEffects()` to seed timers or long-lived work as soon as the runtime boots, keeping `handleFrame` free for animation-heavy cases only.
 
+### Terminal Lifecycle
+
+- SwifTeaUI restores terminal input settings, mutable file flags, cursor visibility, and prior catchable-signal dispositions when a scene exits.
+- Typed Ctrl-C is delivered as `.ctrlC`, so each application can map it to quit, cancel, or another deliberate action.
+- External SIGINT, SIGTERM, SIGHUP, and SIGQUIT restore the terminal before conventional signal termination.
+- SIGKILL, SIGSTOP, host loss, and power loss cannot run process cleanup. See `docs/TerminalLifecycle.md` for the complete contract and recovery guidance.
+
 ### Text Input & Focus
 
 - Use `@State` for local data and pass `$property` to `TextField`/`TextEditor`. These views now mirror SwiftUI naming: call `.foregroundColor(_)`, `.bold()`, `.focused(_:)`, `.blinkingCursor()`, and `.focusRingStyle(_)` to customise appearance and focus behaviour.

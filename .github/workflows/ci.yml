@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    name: macOS ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, macos-26]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: swift --version
+      - name: Unit and snapshot tests
+        run: swift test
+      - name: Terminal lifecycle fixture
+        run: |
+          swift build --product SwifTeaLifecycleFixture
+          python3 scripts/test-terminal-lifecycle.py .build/debug/SwifTeaLifecycleFixture
+
+  linux:
+    name: Linux (Swift 6.2.4, Ubuntu 22.04)
+    runs-on: ubuntu-24.04
+    container: swift:6.2.4-jammy
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: swift --version
+      - name: Unit and snapshot tests
+        run: swift test
+      - name: Terminal lifecycle fixture
+        run: |
+          swift build --product SwifTeaLifecycleFixture
+          python3 scripts/test-terminal-lifecycle.py .build/debug/SwifTeaLifecycleFixture
