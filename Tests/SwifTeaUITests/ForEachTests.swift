@@ -5,7 +5,7 @@ import Testing
 private struct CountingView: TUIView {
     typealias Body = Never
 
-    static var renders = 0
+    nonisolated(unsafe) static var renders = 0
     let value: Int
 
     var body: Never { fatalError("CountingView has no body") }
@@ -20,7 +20,7 @@ private struct CountingView: TUIView {
 struct ForEachTests {
     @Test("Diffing reuses cached renders for unchanged elements")
     func testForEachDiffingReuse() {
-        ForEachCacheStore.shared = ForEachCacheStore()
+        ForEachCacheStore.shared.reset()
         CountingView.renders = 0
         let forEach = ForEach([1, 2, 3], id: \.self) { value in
             [CountingView(value: value)]
@@ -37,7 +37,7 @@ struct ForEachTests {
 
     @Test("Diffing key change invalidates cache")
     func testDiffingKeyInvalidates() {
-        ForEachCacheStore.shared = ForEachCacheStore()
+        ForEachCacheStore.shared.reset()
         CountingView.renders = 0
         let initial = ForEach([1, 2], id: \.self) { value in
             [CountingView(value: value)]
@@ -55,7 +55,7 @@ struct ForEachTests {
 
     @Test("Proposal changes invalidate cached renders")
     func testProposalInvalidates() {
-        ForEachCacheStore.shared = ForEachCacheStore()
+        ForEachCacheStore.shared.reset()
         CountingView.renders = 0
         let forEach = ForEach([1, 2], id: \.self) { value in
             [CountingView(value: value)]

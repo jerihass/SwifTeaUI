@@ -34,7 +34,7 @@ struct PackageListScene: TUIScene {
 }
 
 struct PackageListModel {
-    enum Action {
+    enum Action: Sendable {
         case toggleOutdatedFilter
         case focusNextPackage
         case focusPreviousPackage
@@ -95,10 +95,10 @@ struct PackageListModel {
         case .quit:
             return true
         case .toggleOutdatedFilter,
-             .focusNextPackage,
-             .focusPreviousPackage,
-             .toggleSelection,
-             .clearSelection:
+            .focusNextPackage,
+            .focusPreviousPackage,
+            .toggleSelection,
+            .clearSelection:
             return false
         }
     }
@@ -154,7 +154,8 @@ struct PackageListState {
             return
         }
         guard let current = focusedPackageID,
-              let currentIndex = ids.firstIndex(of: current) else {
+            let currentIndex = ids.firstIndex(of: current)
+        else {
             focusedPackageID = ids.first
             return
         }
@@ -169,7 +170,8 @@ struct PackageListState {
             return
         }
         guard let current = focusedPackageID,
-              let currentIndex = ids.firstIndex(of: current) else {
+            let currentIndex = ids.firstIndex(of: current)
+        else {
             focusedPackageID = ids.first
             return
         }
@@ -267,7 +269,7 @@ struct PackageInfo: Identifiable {
             platform: "CI",
             status: .outdated(latestVersion: "3.17.0"),
             lastUpdated: "1 day ago"
-        )
+        ),
     ]
 }
 
@@ -298,7 +300,8 @@ struct PackageListView: TUIView {
                 .foregroundColor(theme.accent)
                 .bold()
                 .underline()
-            let filterText = state.showOnlyOutdated
+            let filterText =
+                state.showOnlyOutdated
                 ? "Showing only outdated or missing packages."
                 : "Showing all tracked packages."
             Text(filterText)
@@ -355,13 +358,14 @@ struct PackageListView: TUIView {
 
     private var statusLeadingSegments: [StatusBar.Segment] {
         let total = state.packages.count
-        let outdated = state.packages.filter { if case .outdated = $0.status { return true } else { return false } }.count
+        let outdated = state.packages.filter { if case .outdated = $0.status { return true } else { return false } }
+            .count
         let missing = state.packages.filter { $0.status == .missing }.count
         var segments: [StatusBar.Segment] = [
             .init("Packages", color: .yellow),
             .init("Total \(total)", color: .cyan),
             .init("Outdated \(outdated)", color: .yellow),
-            .init("Missing \(missing)", color: .cyan)
+            .init("Missing \(missing)", color: .cyan),
         ]
         if state.selectedPackageIDs.count > 0 {
             segments.append(.init("Selected \(state.selectedPackageIDs.count)", color: theme.accent))
@@ -374,7 +378,7 @@ struct PackageListView: TUIView {
             .init("↑/↓ focus", color: .yellow),
             .init("[space] select", color: .yellow),
             .init("[f] filter", color: .yellow),
-            .init("[q] quit", color: .yellow)
+            .init("[q] quit", color: .yellow),
         ]
     }
 
@@ -405,7 +409,8 @@ struct PackageListView: TUIView {
     }
 
     private func rowStyle(for package: PackageInfo, index: Int) -> TableRowStyle? {
-        var baseStyle: TableRowStyle? = index.isMultiple(of: 2)
+        var baseStyle: TableRowStyle? =
+            index.isMultiple(of: 2)
             ? TableRowStyle(backgroundColor: theme.background ?? .brightBlack, isDimmed: true)
             : nil
 

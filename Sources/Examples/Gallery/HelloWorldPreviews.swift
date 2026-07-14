@@ -79,7 +79,7 @@ private struct CounterDemoScene: TUIScene {
         var count: Int
     }
 
-    enum Action {
+    enum Action: Sendable {
         case increment
     }
 

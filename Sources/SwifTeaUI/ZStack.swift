@@ -3,12 +3,12 @@ import Foundation
 public struct ZStack: TUIView {
     public typealias Body = Never
 
-    public struct Alignment {
-        public enum Horizontal {
+    public struct Alignment: Sendable {
+        public enum Horizontal: Sendable {
             case leading, center, trailing
         }
 
-        public enum Vertical {
+        public enum Vertical: Sendable {
             case top, center, bottom
         }
 
@@ -96,12 +96,13 @@ private func pad(rendered: RenderedView, width: Int, height: Int, alignment: ZSt
             horizontal: alignment.horizontal
         )
         let parsed = parseLine(paddedLine)
-        padded.append(PaddedLine(
-            text: paddedLine,
-            coverage: coverage,
-            parsed: parsed,
-            paints: coverage.contains(true) || !parsed.trailing.isEmpty
-        ))
+        padded.append(
+            PaddedLine(
+                text: paddedLine,
+                coverage: coverage,
+                parsed: parsed,
+                paints: coverage.contains(true) || !parsed.trailing.isEmpty
+            ))
     }
 
     let blankLine = String(repeating: " ", count: width)
@@ -109,7 +110,9 @@ private func pad(rendered: RenderedView, width: Int, height: Int, alignment: ZSt
     let blankParsed = parseLine(blankLine)
     let extra = height - padded.count
     if extra > 0 {
-        let blanks = Array(repeating: PaddedLine(text: blankLine, coverage: blankCoverage, parsed: blankParsed, paints: false), count: extra)
+        let blanks = Array(
+            repeating: PaddedLine(text: blankLine, coverage: blankCoverage, parsed: blankParsed, paints: false),
+            count: extra)
         switch alignment.vertical {
         case .top:
             padded.append(contentsOf: blanks)
@@ -155,7 +158,9 @@ private func padLine(
         }
     }()
     let padded = String(repeating: " ", count: spaces.leading) + line + String(repeating: " ", count: spaces.trailing)
-    let coverage = Array(repeating: false, count: spaces.leading) + Array(repeating: true, count: lineWidth) + Array(repeating: false, count: spaces.trailing)
+    let coverage =
+        Array(repeating: false, count: spaces.leading) + Array(repeating: true, count: lineWidth)
+        + Array(repeating: false, count: spaces.trailing)
     return (padded, coverage)
 }
 

@@ -6,7 +6,7 @@ public struct OverlayPresenter {
         case bottom
     }
 
-    public struct ToastStyle {
+    public struct ToastStyle: Sendable {
         public var accentColor: ANSIColor
         public var backgroundColor: ANSIColor
         public var textColor: ANSIColor
@@ -53,7 +53,7 @@ public struct OverlayPresenter {
         )
     }
 
-    public struct ModalStyle {
+    public struct ModalStyle: Sendable {
         public var accentColor: ANSIColor?
         public var borderColor: ANSIColor?
         public var titleColor: ANSIColor?
@@ -118,17 +118,17 @@ public struct OverlayPresenter {
         }
     }
 
-private struct Modal {
-    var id: UUID
-    var priority: Int
-    var title: String?
-    var style: ModalStyle
-    var view: AnyTUIView
+    private struct Modal {
+        var id: UUID
+        var priority: Int
+        var title: String?
+        var style: ModalStyle
+        var view: AnyTUIView
 
-    func snapshot() -> ModalSnapshot {
-        ModalSnapshot(id: id, style: style, title: title, view: view)
+        func snapshot() -> ModalSnapshot {
+            ModalSnapshot(id: id, style: style, title: title, view: view)
+        }
     }
-}
 
     private var toasts: [Toast] = []
     private var modals: [Modal] = []

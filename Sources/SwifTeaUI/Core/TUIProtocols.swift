@@ -88,7 +88,7 @@ extension Never: TUIView {
 
 public protocol TUIScene {
     associatedtype Model = Self
-    associatedtype Action = Never
+    associatedtype Action: Sendable = Never
     associatedtype Content: TUIView
 
     var model: Model { get }

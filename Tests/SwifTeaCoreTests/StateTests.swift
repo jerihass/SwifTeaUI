@@ -1,5 +1,5 @@
 import Testing
-@testable import SwifTeaUI
+
 @testable import SwifTeaUI
 
 struct StateTests {
@@ -9,7 +9,7 @@ struct StateTests {
 
         struct DummyApp: TUIScene {
             @State var count = 0
-            enum Action { case none }
+            enum Action: Sendable { case none }
 
             // Allow test harness to read the whole app as Model
             typealias Model = DummyApp
@@ -35,9 +35,9 @@ struct StateTests {
 }
 
 extension SwifTea {
-        static func testRender<App: TUIScene>(_ app: App) -> String {
-                app.view(model: app.model).render()
-        }
+    static func testRender<App: TUIScene>(_ app: App) -> String {
+        app.view(model: app.model).render()
+    }
 }
 
 extension TUIScene where Model == Self {

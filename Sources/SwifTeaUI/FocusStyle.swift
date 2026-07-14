@@ -1,5 +1,4 @@
-
-public struct FocusStyle {
+public struct FocusStyle: Sendable {
     public var indicator: String
     public var color: ANSIColor?
     public var bold: Bool

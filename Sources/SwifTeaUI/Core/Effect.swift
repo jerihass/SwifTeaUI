@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Effect<Action>: Sendable {
+public struct Effect<Action: Sendable>: Sendable {
     public typealias Send = @Sendable (Action) -> Void
 
     private let priority: TaskPriority?
@@ -25,8 +25,10 @@ public struct Effect<Action>: Sendable {
     }
 }
 
-public extension Effect {
-    func map<NewAction>(_ transform: @escaping (Action) -> NewAction) -> Effect<NewAction> {
+extension Effect {
+    public func map<NewAction: Sendable>(
+        _ transform: @escaping @Sendable (Action) -> NewAction
+    ) -> Effect<NewAction> {
         Effect<NewAction>(priority: taskPriority) { send in
             await run { action in
                 send(transform(action))
@@ -34,13 +36,13 @@ public extension Effect {
         }
     }
 
-    static func fire(_ action: Action) -> Effect<Action> {
+    public static func fire(_ action: Action) -> Effect<Action> {
         Effect { send in
             send(action)
         }
     }
 
-    static func run(
+    public static func run(
         priority: TaskPriority? = nil,
         _ operation: @escaping @Sendable (_ send: @escaping Send) async throws -> Void
     ) -> Effect<Action> {
@@ -58,7 +60,7 @@ public extension Effect {
         }
     }
 
-    static func timer(
+    public static func timer(
         every interval: TimeInterval,
         initialDelay: TimeInterval? = nil,
         repeats: Bool = true,
@@ -95,8 +97,8 @@ public extension Effect {
     }
 }
 
-private extension TimeInterval {
-    func nanosecondsClamped() -> UInt64 {
+extension TimeInterval {
+    fileprivate func nanosecondsClamped() -> UInt64 {
         if self.isNaN || self <= 0 {
             return 0
         }

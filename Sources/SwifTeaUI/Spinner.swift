@@ -1,7 +1,7 @@
 import Foundation
 
 public struct Spinner: TUIView {
-    public struct Style: Equatable {
+    public struct Style: Equatable, Sendable {
         public let frames: [String]
         public let interval: TimeInterval
         public let idle: String
@@ -78,10 +78,15 @@ public struct Spinner: TUIView {
     }
 }
 
-public struct SpinnerTimeline {
-    public static var shared = SpinnerTimeline()
+public struct SpinnerTimeline: Sendable {
+    private static let storage = SpinnerTimelineStorage()
 
-    public var timeProvider: () -> TimeInterval = {
+    public static var shared: SpinnerTimeline {
+        get { storage.get() }
+        set { storage.set(newValue) }
+    }
+
+    public var timeProvider: @Sendable () -> TimeInterval = {
         ProcessInfo.processInfo.systemUptime
     }
 
@@ -97,5 +102,22 @@ public struct SpinnerTimeline {
         let frameIndex = index % style.frames.count
 
         return style.frames[frameIndex]
+    }
+}
+
+private final class SpinnerTimelineStorage: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = SpinnerTimeline()
+
+    func get() -> SpinnerTimeline {
+        lock.lock()
+        defer { lock.unlock() }
+        return value
+    }
+
+    func set(_ value: SpinnerTimeline) {
+        lock.lock()
+        self.value = value
+        lock.unlock()
     }
 }

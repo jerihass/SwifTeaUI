@@ -1,7 +1,7 @@
 import Foundation
 
-public struct ListRowSeparatorStyle {
-    public enum Style {
+public struct ListRowSeparatorStyle: Sendable {
+    public enum Style: Sendable {
         case none
         case dashed
         case line(Character)
@@ -24,7 +24,7 @@ public struct ListRowSeparatorStyle {
 @resultBuilder
 public enum ListRowBuilder {
     public static func buildBlock<T: TUIView>(_ components: T...) -> [AnyTUIView] {
-        components.map(AnyTUIView.init)
+        components.map { AnyTUIView($0) }
     }
 }
 

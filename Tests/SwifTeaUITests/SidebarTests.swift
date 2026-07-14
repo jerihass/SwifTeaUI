@@ -1,10 +1,10 @@
-import Testing
 import SnapshotTestSupport
-@testable import SwifTeaUI
+import Testing
+
 @testable import SwifTeaUI
 
-private extension String {
-    func strippingANSI() -> String {
+extension String {
+    fileprivate func strippingANSI() -> String {
         var result = ""
         var iterator = makeIterator()
         var inEscape = false
@@ -42,15 +42,15 @@ struct SidebarTests {
 
         let rendered = sidebar.render()
         let expected = """
-┌────────┐
-│ Notes  │
-│ >  One │
-│    Two │
-└────────┘
-"""
+            ┌────────┐
+            │ Notes  │
+            │ >  One │
+            │    Two │
+            └────────┘
+            """
         #expect(rendered.strippingANSI() == expected)
         let focusRing = FocusRingSnapshotAsserter()
-        focusRing.expect(in: rendered, excludes: ["┌────────┐", "│"])
+        #expect(focusRing.matches(in: rendered, excludes: ["┌────────┐", "│"]))
     }
 
     @Test("Sidebar highlights selection when focused")
@@ -64,15 +64,15 @@ struct SidebarTests {
 
         let rendered = sidebar.render()
         let expected = """
-┌────────┐
-│ Notes  │
-│    One │
-│ >▌ Two │
-└────────┘
-"""
+            ┌────────┐
+            │ Notes  │
+            │    One │
+            │ >▌ Two │
+            └────────┘
+            """
         let stripped = rendered.strippingANSI()
         #expect(stripped == expected)
         let focusRing = FocusRingSnapshotAsserter()
-        focusRing.expect(in: rendered, contains: ["┌────────┐", "│"])
+        #expect(focusRing.matches(in: rendered, contains: ["┌────────┐", "│"]))
     }
 }

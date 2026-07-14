@@ -25,38 +25,42 @@ public struct TerminalSize: Equatable, Sendable {
     public static let zero = TerminalSize(columns: 0, rows: 0)
 }
 
+private final class TerminalDimensionsState: @unchecked Sendable {
+    let lock = NSRecursiveLock()
+    var currentSize = TerminalSize(columns: 80, rows: 24)
+    var overrideStack: [TerminalSize] = []
+    var needsRefresh = true
+}
+
 public enum TerminalDimensions {
-    private static var currentSize = TerminalSize(columns: 80, rows: 24)
-    private static var overrideStack: [TerminalSize] = []
-    private static let overrideLock = NSRecursiveLock()
-    private static var needsRefresh = true
+    private static let state = TerminalDimensionsState()
 
     public static var current: TerminalSize {
-        overrideLock.lock()
-        let value = overrideStack.last ?? currentSize
-        overrideLock.unlock()
+        state.lock.lock()
+        let value = state.overrideStack.last ?? state.currentSize
+        state.lock.unlock()
         return value
     }
 
     @discardableResult
     public static func refresh() -> TerminalSize {
-        overrideLock.lock()
-        if let override = overrideStack.last {
-            needsRefresh = false
-            overrideLock.unlock()
+        state.lock.lock()
+        if let override = state.overrideStack.last {
+            state.needsRefresh = false
+            state.lock.unlock()
             return override
         }
-        let shouldQuery = needsRefresh
-        let cached = currentSize
-        overrideLock.unlock()
+        let shouldQuery = state.needsRefresh
+        let cached = state.currentSize
+        state.lock.unlock()
 
         guard shouldQuery else { return cached }
 
-        let queried = queryTerminalSize()
-        overrideLock.lock()
-        currentSize = queried
-        needsRefresh = false
-        overrideLock.unlock()
+        let queried = queryTerminalSize() ?? cached
+        state.lock.lock()
+        state.currentSize = queried
+        state.needsRefresh = false
+        state.lock.unlock()
         return queried
     }
 
@@ -64,32 +68,32 @@ public enum TerminalDimensions {
         _ size: TerminalSize,
         _ perform: () throws -> T
     ) rethrows -> T {
-        overrideLock.lock()
-        overrideStack.append(size)
+        state.lock.lock()
+        state.overrideStack.append(size)
         defer {
-            overrideStack.removeLast()
-            if overrideStack.isEmpty {
-                needsRefresh = true
+            state.overrideStack.removeLast()
+            if state.overrideStack.isEmpty {
+                state.needsRefresh = true
             }
-            overrideLock.unlock()
+            state.lock.unlock()
         }
         return try perform()
     }
 
-    private static func queryTerminalSize() -> TerminalSize {
+    private static func queryTerminalSize() -> TerminalSize? {
         var ws = winsize()
         if ioctl(STDIN_FILENO_, UInt(TIOCGWINSZ), &ws) == 0 {
             return TerminalSize(columns: Int(ws.ws_col), rows: Int(ws.ws_row))
         }
-        return currentSize
+        return nil
     }
 
     static func markNeedsRefresh() {
-        overrideLock.lock()
-        if overrideStack.isEmpty {
-            needsRefresh = true
+        state.lock.lock()
+        if state.overrideStack.isEmpty {
+            state.needsRefresh = true
         }
-        overrideLock.unlock()
+        state.lock.unlock()
     }
 }
 
@@ -109,7 +113,7 @@ func setRawMode() -> TerminalState {
     var t = termios()
     guard tcgetattr(STDIN_FILENO_, &t) == 0 else {
         let message = String(cString: strerror(errno))
-        fputs("Warning: unable to read terminal settings: \(message)\n", stderr)
+        writeToStderr("Warning: unable to read terminal settings: \(message)\n")
         return state
     }
     state.attributes = t
@@ -119,7 +123,7 @@ func setRawMode() -> TerminalState {
 
     guard tcsetattr(STDIN_FILENO_, TCSANOW, &t) == 0 else {
         let message = String(cString: strerror(errno))
-        fputs("Warning: unable to set raw mode: \(message)\n", stderr)
+        writeToStderr("Warning: unable to set raw mode: \(message)\n")
         return state
     }
 
@@ -269,20 +273,22 @@ final class TerminalSession {
 @inline(__always)
 func clearScreenAndHome() {
     // ESC[2J = clear screen; ESC[H = cursor home
-    print("\u{001B}[2J\u{001B}[H", terminator: "")
-    fflush(stdout)
+    writeToStdout("\u{001B}[2J\u{001B}[H")
 }
 
 @inline(__always)
 func hideCursor() {
-    print("\u{001B}[?25l", terminator: "")
-    fflush(stdout)
+    writeToStdout("\u{001B}[?25l")
 }
 
 @inline(__always)
 func showCursor() {
-    print("\u{001B}[?25h", terminator: "")
-    fflush(stdout)
+    writeToStdout("\u{001B}[?25h")
+}
+
+private func writeToStderr(_ string: String) {
+    guard let data = string.data(using: .utf8) else { return }
+    try? FileHandle.standardError.write(contentsOf: data)
 }
 
 @inline(__always)

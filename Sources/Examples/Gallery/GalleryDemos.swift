@@ -2,7 +2,7 @@ import Foundation
 import SwifTeaUI
 
 struct CounterDemoModel {
-    enum Action {
+    enum Action: Sendable {
         case increment
         case decrement
         case reset
@@ -83,8 +83,8 @@ struct FormDemoModel {
         case note
     }
 
-    enum Action {
-        enum Focus {
+    enum Action: Sendable {
+        enum Focus: Sendable {
             case clear
             case next
             case previous
@@ -251,8 +251,8 @@ struct ListSearchDemoModel {
         let detail: String
     }
 
-    enum Action {
-        enum Focus {
+    enum Action: Sendable {
+        enum Focus: Sendable {
             case clear
             case filter
         }
@@ -272,7 +272,7 @@ struct ListSearchDemoModel {
         .init(id: 3, title: "Task Runner", detail: "Async effects"),
         .init(id: 4, title: "Notebook", detail: "Basic text editor"),
         .init(id: 5, title: "Table", detail: "Column definitions"),
-        .init(id: 6, title: "Overlay", detail: "Toast + modal host")
+        .init(id: 6, title: "Overlay", detail: "Toast + modal host"),
     ]
 
     init(
@@ -291,7 +291,7 @@ struct ListSearchDemoModel {
             searchFocused = false
         case .focus(.filter):
             searchFocused = true
-        case let .moveSelection(delta):
+        case .moveSelection(let delta):
             moveSelection(delta)
         case .text(let event):
             $query.apply(event)
@@ -389,12 +389,13 @@ struct ListSearchDemoModel {
 
     private var hints: String {
         let focused = searchFocused ?? false
-        let hint = switch (focused, query.isEmpty) {
-        case (true, _):
-            "Type to filter • [ENTER] stop filtering"
-        case (false, _):
-            "[j]/[k]/↑/↓ move • [ENTER] start filtering"
-        }
+        let hint =
+            switch (focused, query.isEmpty) {
+            case (true, _):
+                "Type to filter • [ENTER] stop filtering"
+            case (false, _):
+                "[j]/[k]/↑/↓ move • [ENTER] start filtering"
+            }
         return hint
     }
 
@@ -402,8 +403,8 @@ struct ListSearchDemoModel {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return items }
         return items.filter {
-            $0.title.lowercased().contains(trimmed.lowercased()) ||
-            $0.detail.lowercased().contains(trimmed.lowercased())
+            $0.title.lowercased().contains(trimmed.lowercased())
+                || $0.detail.lowercased().contains(trimmed.lowercased())
         }
     }
 
@@ -466,7 +467,7 @@ struct ListSelectionDemoModel {
         let label: String
     }
 
-    enum Action {
+    enum Action: Sendable {
         case moveTasksFocus(Int)
         case toggleTask
         case moveChoiceFocus(Int)
@@ -476,13 +477,13 @@ struct ListSelectionDemoModel {
     @State private var tasks: [Task] = [
         .init(id: 1, label: "Compile"),
         .init(id: 2, label: "Run tests"),
-        .init(id: 3, label: "Record snapshot")
+        .init(id: 3, label: "Record snapshot"),
     ]
     @State private var selectedTasks: Set<Task.ID> = [1]
     @State private var focusedTaskID: Task.ID? = 1
     @State private var choices: [Choice] = [
         .init(id: 1, label: "Deploy to staging"),
-        .init(id: 2, label: "Deploy to production")
+        .init(id: 2, label: "Deploy to production"),
     ]
     @State private var selectedChoice: Choice.ID? = 1
     @State private var focusedChoiceID: Choice.ID? = 1
@@ -491,13 +492,13 @@ struct ListSelectionDemoModel {
         tasks: [Task] = [
             .init(id: 1, label: "Compile"),
             .init(id: 2, label: "Run tests"),
-            .init(id: 3, label: "Record snapshot")
+            .init(id: 3, label: "Record snapshot"),
         ],
         selectedTasks: Set<Task.ID> = [1],
         focusedTaskID: Task.ID? = 1,
         choices: [Choice] = [
             .init(id: 1, label: "Deploy to staging"),
-            .init(id: 2, label: "Deploy to production")
+            .init(id: 2, label: "Deploy to production"),
         ],
         selectedChoice: Choice.ID? = 1,
         focusedChoiceID: Choice.ID? = 1
@@ -658,7 +659,7 @@ struct TableDemoModel {
         let duration: String
     }
 
-    enum Action {
+    enum Action: Sendable {
         case move(Int)
     }
 
@@ -666,7 +667,7 @@ struct TableDemoModel {
         .init(id: 1, name: "Compile", status: "Running", duration: "8s"),
         .init(id: 2, name: "Tests", status: "Pending", duration: "—"),
         .init(id: 3, name: "Docs", status: "Idle", duration: "0s"),
-        .init(id: 4, name: "Preview", status: "Running", duration: "2s")
+        .init(id: 4, name: "Preview", status: "Running", duration: "2s"),
     ]
     @State private var selectedID: Row.ID? = 1
     @State private var focusedID: Row.ID? = 1
@@ -760,7 +761,7 @@ struct TableDemoModel {
 }
 
 struct OverlayDemoModel {
-    enum Action {
+    enum Action: Sendable {
         case showToast
         case showModal
         case showNativeModal
@@ -837,7 +838,7 @@ struct OverlayDemoModel {
                     padding: 0,
                     color: theme.info,
                     background: theme.headerPanel.background ?? theme.background,
-                Text("[T] Toast • [M] Colored Modal • [N] Native Modal")
+                    Text("[T] Toast • [M] Colored Modal • [N] Native Modal")
                         .foregroundColor(theme.info)
                         .padding(0)
                 )

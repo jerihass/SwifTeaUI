@@ -1,6 +1,5 @@
-
-public struct SwifTeaTheme {
-    public struct PanelColors {
+public struct SwifTeaTheme: Sendable {
+    public struct PanelColors: Sendable {
         public var foreground: ANSIColor
         public var background: ANSIColor?
 
@@ -61,8 +60,8 @@ public struct SwifTeaTheme {
     }
 }
 
-public extension SwifTeaTheme {
-    static let basic = SwifTeaTheme(
+extension SwifTeaTheme {
+    public static let basic = SwifTeaTheme(
         name: "Basic",
         headerPanel: .init(foreground: .brightWhite, background: .blue),
         formPanel: .init(foreground: .white, background: .brightBlack),
@@ -80,7 +79,7 @@ public extension SwifTeaTheme {
         accentGradientSymbol: " "
     )
 
-    static let lumenGlass = SwifTeaTheme(
+    public static let lumenGlass = SwifTeaTheme(
         name: "Lumen Glass (Truecolor)",
         headerPanel: .init(
             foreground: .trueColor(red: 232, green: 240, blue: 246),
@@ -105,7 +104,7 @@ public extension SwifTeaTheme {
             .trueColor(red: 88, green: 200, blue: 255),
             .trueColor(red: 120, green: 220, blue: 220),
             .trueColor(red: 180, green: 212, blue: 236),
-            .trueColor(red: 212, green: 232, blue: 244)
+            .trueColor(red: 212, green: 232, blue: 244),
         ],
         accentGradientSymbol: "█"
     )

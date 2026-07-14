@@ -1,6 +1,6 @@
 import Foundation
-import SwifTeaUI
 import GalleryExample
+import SwifTeaUI
 
 @main
 struct PreviewDemoCLI {
@@ -54,7 +54,8 @@ private struct PreviewCommand {
                 options.previewName = iterator.next()
             case "--size":
                 if let value = iterator.next(),
-                   let size = parseSize(value) {
+                    let size = parseSize(value)
+                {
                     options.overrideSize = size
                 }
             case "--help", "-h":
@@ -80,8 +81,9 @@ private struct PreviewCommand {
     private func parseSize(_ value: String) -> TerminalSize? {
         let parts = value.lowercased().split(separator: "x")
         guard parts.count == 2,
-              let columns = Int(parts[0]),
-              let rows = Int(parts[1]) else { return nil }
+            let columns = Int(parts[0]),
+            let rows = Int(parts[1])
+        else { return nil }
         return TerminalSize(columns: columns, rows: rows)
     }
 
@@ -112,8 +114,10 @@ private struct PreviewCommand {
     }
 
     private func render(previewNamed name: String, overrideSize: TerminalSize?) -> Bool {
-        guard let preview = catalog.previews.first(where: { $0.name.caseInsensitiveCompare(name) == .orderedSame }) else {
-            fputs("Preview named '\(name)' not found. Use --list to see options.\n", stderr)
+        guard let preview = catalog.previews.first(where: { $0.name.caseInsensitiveCompare(name) == .orderedSame })
+        else {
+            let message = "Preview named '\(name)' not found. Use --list to see options.\n"
+            try? FileHandle.standardError.write(contentsOf: Data(message.utf8))
             return false
         }
 
@@ -125,14 +129,14 @@ private struct PreviewCommand {
 
     private func printUsage() {
         let usage = """
-Usage: swift run SwifTeaPreviewDemo [--list] [--preview <name>] [--size <cols>x<rows>]
+            Usage: swift run SwifTeaPreviewDemo [--list] [--preview <name>] [--size <cols>x<rows>]
 
-Options:
-  --list, -l            List all available previews.
-  --preview, -p NAME    Render the preview with the given name.
-  --size COLSxROWS      Override terminal size when rendering.
-  --help, -h            Show this help message.
-"""
+            Options:
+              --list, -l            List all available previews.
+              --preview, -p NAME    Render the preview with the given name.
+              --size COLSxROWS      Override terminal size when rendering.
+              --help, -h            Show this help message.
+            """
         print(usage)
     }
 }

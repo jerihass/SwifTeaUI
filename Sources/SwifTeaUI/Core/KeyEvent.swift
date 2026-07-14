@@ -1,6 +1,6 @@
 import Foundation
 
-public enum KeyEvent: Equatable {
+public enum KeyEvent: Equatable, Sendable {
     case char(Character)
     case enter
     case backspace

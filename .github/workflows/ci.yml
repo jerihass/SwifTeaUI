@@ -9,12 +9,8 @@ permissions:
 
 jobs:
   macos:
-    name: macOS ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-14, macos-26]
+    name: macOS 26
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
       - name: Toolchain

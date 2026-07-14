@@ -119,11 +119,11 @@ public enum SwifTea {
         }
     }
 
-    public static func dispatch<Action>(_ action: Action) {
+    public static func dispatch<Action: Sendable>(_ action: Action) {
         RuntimeDispatch.dispatch(action: action)
     }
 
-    public static func dispatch<Action>(
+    public static func dispatch<Action: Sendable>(
         _ effect: Effect<Action>,
         id: AnyHashable? = nil,
         cancelExisting: Bool = false
@@ -140,7 +140,7 @@ public enum SwifTea {
     }
 }
 
-final class RenderInvalidationFlag {
+final class RenderInvalidationFlag: @unchecked Sendable {
     private let lock = NSLock()
     private var dirty = false
 

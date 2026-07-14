@@ -1,5 +1,4 @@
 import SwifTeaUI
-import Testing
 
 public struct FocusRingSnapshotAsserter {
     private let style: FocusStyle
@@ -24,26 +23,12 @@ public struct FocusRingSnapshotAsserter {
         return prefix + content + suffix
     }
 
-    @discardableResult
-    public func expect(
+    public func matches(
         in snapshot: String,
         contains requiredFragments: [String] = [],
         excludes disallowedFragments: [String] = []
-    ) -> FocusRingSnapshotAsserter {
-        for fragment in requiredFragments {
-            #expect(
-                snapshot.contains(wrapped(fragment)),
-                "Expected focus ring to decorate \"\(fragment)\""
-            )
-        }
-
-        for fragment in disallowedFragments {
-            #expect(
-                !snapshot.contains(wrapped(fragment)),
-                "Focus ring unexpectedly decorated \"\(fragment)\""
-            )
-        }
-
-        return self
+    ) -> Bool {
+        requiredFragments.allSatisfy { snapshot.contains(wrapped($0)) }
+            && disallowedFragments.allSatisfy { !snapshot.contains(wrapped($0)) }
     }
 }

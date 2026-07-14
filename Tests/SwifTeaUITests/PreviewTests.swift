@@ -1,4 +1,5 @@
 import Testing
+
 @testable import SwifTeaUI
 
 struct PreviewTests {
@@ -29,7 +30,7 @@ struct PreviewTests {
     @Test("PreviewBuilder flattens mixed expressions")
     func testPreviewBuilderFlattening() {
         struct BuilderHarness {
-            static var includeExtra = true
+            static let includeExtra = true
 
             @PreviewBuilder
             static var previews: [TUIViewPreview] {
@@ -50,7 +51,7 @@ private struct MockScene: TUIScene {
         var value: Int
     }
 
-    enum Action {
+    enum Action: Sendable {
         case none
     }
     typealias Content = Text

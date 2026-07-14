@@ -1,15 +1,21 @@
 import Foundation
 
-private final class DiffFrameRenderer {
+private final class DiffFrameRenderer: @unchecked Sendable {
+    private let lock = NSLock()
     private var lastLines: [String] = []
     private var needsFullRedraw = true
 
     func reset() {
+        lock.lock()
+        defer { lock.unlock() }
         lastLines = []
         needsFullRedraw = true
     }
 
     func render(frame: String, columns: Int) {
+        lock.lock()
+        defer { lock.unlock() }
+
         let prepared: String
         if columns > 0 {
             prepared = frame.padded(toVisibleWidth: columns)
@@ -23,7 +29,6 @@ private final class DiffFrameRenderer {
             moveCursorHome()
             writeToStdout(prepared)
             clearBelowCursor()
-            fflush(stdout)
             lastLines = lines
             needsFullRedraw = false
             return
@@ -54,7 +59,6 @@ private final class DiffFrameRenderer {
         }
 
         writeToStdout(buffer)
-        fflush(stdout)
         lastLines = lines
     }
 
@@ -83,7 +87,7 @@ final class FrameLogger {
             try? manager.removeItem(atPath: path)
         }
 
-        manager.createFile(atPath: path, contents: nil, attributes: nil)
+        _ = manager.createFile(atPath: path, contents: nil, attributes: nil)
 
         guard let handle = FileHandle(forWritingAtPath: path) else {
             return nil

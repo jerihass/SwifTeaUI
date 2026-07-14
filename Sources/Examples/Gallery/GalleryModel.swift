@@ -58,7 +58,7 @@ struct GalleryModel {
         }
     }
 
-    enum Action {
+    enum Action: Sendable {
         case selectSection(Section)
         case cycleSection(Int)
         case counter(CounterDemoModel.Action)
@@ -94,7 +94,7 @@ struct GalleryModel {
         overlays: OverlayPresenter = OverlayPresenter(),
         themes: [SwifTeaTheme] = [
             .lumenGlass,
-            .basic
+            .basic,
         ],
         themeIndex: Int = 0
     ) {
@@ -191,8 +191,9 @@ struct GalleryModel {
         }
 
         if case .char(let char) = key,
-           let section = section(for: char),
-           sectionShortcutsEnabled {
+            let section = section(for: char),
+            sectionShortcutsEnabled
+        {
             return .selectSection(section)
         }
 

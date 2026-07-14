@@ -43,7 +43,7 @@ struct TaskRunnerScene: TUIScene {
 }
 
 struct TaskRunnerModel {
-    enum Action {
+    enum Action: Sendable {
         case startSelected
         case toggleSelection
         case selectAll
@@ -224,8 +224,8 @@ extension TaskRunnerModel {
     }
 }
 
-private extension TimeInterval {
-    func nanosecondsClamped() -> UInt64 {
+extension TimeInterval {
+    fileprivate func nanosecondsClamped() -> UInt64 {
         if self.isNaN || self <= 0 {
             return 0
         }

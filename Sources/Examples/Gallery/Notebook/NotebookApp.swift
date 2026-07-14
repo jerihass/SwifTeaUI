@@ -34,7 +34,7 @@ struct NotebookScene: TUIScene {
 }
 
 struct NotebookModel {
-    enum Action {
+    enum Action: Sendable {
         case selectNext
         case selectPrevious
         case focusNext

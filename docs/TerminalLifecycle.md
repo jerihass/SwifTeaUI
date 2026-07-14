@@ -64,5 +64,5 @@ Stopping a session cancels that registration and restores the previous dispositi
 - restoration of terminal attributes and mutable file status flags;
 - restoration before SIGINT, SIGTERM, SIGHUP, and SIGQUIT termination.
 
-CI runs unit, snapshot, and pseudo-terminal tests on macOS 14, macOS 26, and the official Swift 6.2.4
-Ubuntu 22.04 container.
+CI runs unit, snapshot, and pseudo-terminal tests on macOS 26 and the official Swift 6.2.4 Ubuntu 22.04
+container.

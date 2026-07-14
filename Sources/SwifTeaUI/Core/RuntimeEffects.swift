@@ -1,6 +1,6 @@
 import Foundation
 
-final class ActionQueue<Action> {
+final class ActionQueue<Action: Sendable>: @unchecked Sendable {
     private var buffer: [Action] = []
     private let lock = NSLock()
 
@@ -19,7 +19,7 @@ final class ActionQueue<Action> {
     }
 }
 
-final class EffectRuntime<Action> {
+final class EffectRuntime<Action: Sendable>: @unchecked Sendable {
     private let actionQueue: ActionQueue<Action>
     private let lock = NSLock()
     private var tasks: [UUID: Task<Void, Never>] = [:]
@@ -93,18 +93,22 @@ private struct RuntimeDispatchBox {
     let requestRender: () -> Void
 }
 
-enum RuntimeDispatch {
-    private static let lock = NSLock()
-    private static var box: RuntimeDispatchBox?
+private final class RuntimeDispatchStorage: @unchecked Sendable {
+    let lock = NSLock()
+    var box: RuntimeDispatchBox?
+}
 
-    static func install<Action>(
+enum RuntimeDispatch {
+    private static let storage = RuntimeDispatchStorage()
+
+    static func install<Action: Sendable>(
         queue: ActionQueue<Action>,
         effectRuntime: EffectRuntime<Action>,
         renderInvalidation: RenderInvalidationFlag,
         body: () -> Void
     ) {
-        lock.lock()
-        box = RuntimeDispatchBox(
+        storage.lock.lock()
+        storage.box = RuntimeDispatchBox(
             sendAction: { anyAction in
                 guard let action = anyAction as? Action else {
                     assertionFailure("Dispatched action does not match active scene Action type.")
@@ -126,43 +130,43 @@ enum RuntimeDispatch {
                 renderInvalidation.markDirty()
             }
         )
-        lock.unlock()
+        storage.lock.unlock()
 
         defer {
-            lock.lock()
-            box = nil
-            lock.unlock()
+            storage.lock.lock()
+            storage.box = nil
+            storage.lock.unlock()
         }
         body()
     }
 
-    static func dispatch<Action>(action: Action) {
-        lock.lock()
-        let current = box
-        lock.unlock()
+    static func dispatch<Action: Sendable>(action: Action) {
+        storage.lock.lock()
+        let current = storage.box
+        storage.lock.unlock()
         guard let current else { return }
         current.sendAction(action)
     }
 
-    static func dispatch<Action>(effect: Effect<Action>, id: AnyHashable?, cancelExisting: Bool) {
-        lock.lock()
-        let current = box
-        lock.unlock()
+    static func dispatch<Action: Sendable>(effect: Effect<Action>, id: AnyHashable?, cancelExisting: Bool) {
+        storage.lock.lock()
+        let current = storage.box
+        storage.lock.unlock()
         guard let current else { return }
         current.runEffect(effect, id, cancelExisting)
     }
 
     static func cancel(id: AnyHashable) {
-        lock.lock()
-        let current = box
-        lock.unlock()
+        storage.lock.lock()
+        let current = storage.box
+        storage.lock.unlock()
         current?.cancelEffects(id)
     }
 
     static func requestRender() {
-        lock.lock()
-        let current = box
-        lock.unlock()
+        storage.lock.lock()
+        let current = storage.box
+        storage.lock.unlock()
         current?.requestRender()
     }
 }

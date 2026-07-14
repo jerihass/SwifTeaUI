@@ -4,7 +4,9 @@ This is the shortest path to render your first terminal UI, wire keyboard input,
 
 ## 1) Install & Build
 
-- Requires Swift 5.9+ (Xcode 15 or recent Swift toolchain on Linux).
+- Requires Swift 6.2+ on macOS 26+ or Linux.
+- During pre-1.0 development, SwifTeaUI intentionally follows the current macOS and Swift releases. Broader
+  compatibility will be reconsidered before 1.0.
 - From the repo root run:
   - `swift package resolve`
   - `swift build`

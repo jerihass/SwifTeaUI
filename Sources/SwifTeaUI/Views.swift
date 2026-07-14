@@ -577,8 +577,8 @@ private struct ForEachCacheKey: Hashable {
     let idType: ObjectIdentifier
 }
 
-final class ForEachCacheStore {
-    static var shared = ForEachCacheStore()
+final class ForEachCacheStore: @unchecked Sendable {
+    static let shared = ForEachCacheStore()
 
     private var storage: [ForEachCacheKey: Any] = [:]
     private let lock = NSLock()

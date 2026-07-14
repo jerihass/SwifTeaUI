@@ -1,18 +1,15 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.2
 import PackageDescription
 
 let package = Package(
     name: "SwifTeaUI",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS(.v26)],
     products: [
         // Users typically `import SwifTeaUI` for the runtime + DSL
         .library(name: "SwifTeaUI", targets: ["SwifTeaUI"]),
         .executable(name: "SwifTeaGalleryExample", targets: ["SwifTeaGalleryExample"]),
         .executable(name: "SwifTeaPerfHarness", targets: ["SwifTeaPerfHarness"]),
-        .executable(name: "SwifTeaLifecycleFixture", targets: ["SwifTeaLifecycleFixture"])
-    ],
-    dependencies: [
-        .package(url: "https://github.com/apple/swift-testing.git", revision: "98430f2d6cb8d817b60ea1489ad18db87cc547aa")
+        .executable(name: "SwifTeaLifecycleFixture", targets: ["SwifTeaLifecycleFixture"]),
     ],
     targets: [
         .target(
@@ -47,34 +44,20 @@ let package = Package(
         ),
         .target(
             name: "SnapshotTestSupport",
-            dependencies: [
-                "SwifTeaUI",
-                .product(name: "Testing", package: "swift-testing")
-            ],
+            dependencies: ["SwifTeaUI"],
             path: "Tests/TestSupport"
         ),
         .testTarget(
             name: "SwifTeaCoreTests",
-            dependencies: [
-                "SwifTeaUI",
-                .product(name: "Testing", package: "swift-testing")
-            ]
+            dependencies: ["SwifTeaUI"]
         ),
         .testTarget(
             name: "SwifTeaUITests",
-            dependencies: [
-                "SwifTeaUI",
-                "SnapshotTestSupport",
-                .product(name:"Testing", package: "swift-testing")
-            ]
+            dependencies: ["SwifTeaUI", "SnapshotTestSupport"]
         ),
         .testTarget(
             name: "SwifTeaGalleryExampleTests",
-            dependencies: [
-                "GalleryExample",
-                "SnapshotTestSupport",
-                .product(name: "Testing", package: "swift-testing")
-            ]
-        )
-    ],
+            dependencies: ["GalleryExample", "SnapshotTestSupport"]
+        ),
+    ]
 )

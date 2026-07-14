@@ -12,7 +12,7 @@ enum LifecycleFixture {
 }
 
 private struct LifecycleScene: TUIScene {
-    enum Action {
+    enum Action: Sendable {
         case quit
     }
 

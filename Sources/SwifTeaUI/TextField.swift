@@ -1,4 +1,3 @@
-
 public struct TextField: TUIView {
     public typealias Body = Never
 
@@ -58,7 +57,8 @@ public struct TextField: TUIView {
         renderText.insert(contentsOf: sentinel, at: index)
 
         let cursorSeed = underlyingChar.map(String.init) ?? cursorSymbol
-        let cursorDisplay = blinkingCursor
+        let cursorDisplay =
+            blinkingCursor
             ? CursorBlinker.shared.cursor(for: cursorSeed)
             : cursorSeed
 
@@ -139,7 +139,7 @@ public struct TextField: TUIView {
     }
 }
 
-public enum TextFieldEvent: Equatable {
+public enum TextFieldEvent: Equatable, Sendable {
     case insert(Character)
     case backspace
     case submit
@@ -163,8 +163,8 @@ public func textFieldEvent(from key: KeyEvent) -> TextFieldEvent? {
     }
 }
 
-public extension Binding where Value == String {
-    func apply(_ event: TextFieldEvent) {
+extension Binding where Value == String {
+    public func apply(_ event: TextFieldEvent) {
         update { value in
             switch event {
             case .insert(let character):

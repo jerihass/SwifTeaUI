@@ -24,7 +24,6 @@ struct TerminalTests {
         hideCursor()
         showCursor()
 
-        fflush(stdout)
         pipe.fileHandleForWriting.closeFile()
 
         dup2(original, STDOUT_FILENO)

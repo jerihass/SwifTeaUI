@@ -1,7 +1,7 @@
 import Foundation
 
 public struct ProgressMeter: TUIView {
-    public struct Style {
+    public struct Style: Sendable {
         public var fill: Character
         public var empty: Character
         public var color: ANSIColor?
