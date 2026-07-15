@@ -55,6 +55,10 @@ private func wrap(_ rendered: String, with prefix: String) -> String {
     if prefix == ANSIColor.reset.rawValue { return rendered }
 
     let reset = ANSIColor.reset.rawValue
-    let reapplying = rendered.replacingOccurrences(of: reset, with: reset + prefix)
-    return prefix + reapplying + reset
+    return rendered.split(separator: "\n", omittingEmptySubsequences: false)
+        .map { line in
+            let reapplying = String(line).replacingOccurrences(of: reset, with: reset + prefix)
+            return prefix + reapplying + reset
+        }
+        .joined(separator: "\n")
 }

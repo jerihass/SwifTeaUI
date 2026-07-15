@@ -39,4 +39,19 @@ struct ViewColorModifierTests {
         #expect(output.hasPrefix(ANSIColor.cyan.backgroundCode + ANSIColor.green.rawValue))
         #expect(output.hasSuffix(ANSIColor.reset.rawValue))
     }
+
+    @Test("View color modifiers make every rendered line self-contained")
+    func testMultilineViewColors() {
+        let rendered = VStack(alignment: .leading) {
+            Text("First").foregroundColor(.red)
+            Text("Second")
+        }
+        .backgroundColor(.cyan)
+        .render()
+
+        #expect(
+            rendered
+                == "\u{001B}[46m\u{001B}[31mFirst\u{001B}[0m\u{001B}[46m\u{001B}[0m\n"
+                + "\u{001B}[46mSecond\u{001B}[0m")
+    }
 }
