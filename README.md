@@ -87,6 +87,8 @@ For a fuller walkthrough (setup, model/view split, patterns), see `docs/QUICKSTA
 
 ### Text Input & Focus
 
+- Enable safe paste boundaries with `SwifTea.brew(scene, inputOptions: TerminalInputOptions(bracketedPaste: true))`. Scenes can implement `mapInputToAction(_:)` to receive a complete `.paste(String)` event; the existing `mapKeyToAction(_:)` adapter remains the default for keyboard-only applications. Paste payloads are UTF-8 validated and bounded by `maximumPasteBytes` (1 MiB by default).
+
 - Use `@State` for local data and pass `$property` to `TextField`/`TextEditor`. These views now mirror SwiftUI naming: call `.foregroundColor(_)`, `.bold()`, `.focused(_:)`, `.blinkingCursor()`, and `.focusRingStyle(_)` to customise appearance and focus behaviour.
 - Reach for `@StateObject`/`@ObservedObject` when you need shared reference models (e.g., a long-lived view model or async fetcher). SwifTeaUI keeps those objects alive across re-renders, mirroring SwiftUI’s ownership semantics.
 - Declare `@FocusState` for whichever enum identifies focusable elements. `$focused.isFocused(.tag)` returns a `Binding<Bool>` that plugs straight into `.focused(_:)`, while `$focused.moveForward(in:)` / `.moveBackward(in:)` walk a `FocusRing`.

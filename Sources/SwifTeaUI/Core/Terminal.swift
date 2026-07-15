@@ -225,10 +225,11 @@ final class TerminalSession {
     private let resizeRegistration: SignalRegistration
     private let state: TerminalState
     private let managesCursor: Bool
+    private let managesBracketedPaste: Bool
     private let lock = NSLock()
     private var isRestored = false
 
-    init() {
+    init(inputOptions: TerminalInputOptions = TerminalInputOptions()) {
         terminationMonitor = TerminationSignalMonitor()
         resizeRegistration = SignalRegistration(
             signal: SIGWINCH,
@@ -239,8 +240,15 @@ final class TerminalSession {
         }
         state = setRawMode()
         managesCursor = isatty(STDOUT_FILENO_) == 1
+        managesBracketedPaste =
+            inputOptions.bracketedPaste
+            && isatty(STDIN_FILENO_) == 1
+            && isatty(STDOUT_FILENO_) == 1
         if managesCursor {
             hideCursor()
+        }
+        if managesBracketedPaste {
+            enableBracketedPaste()
         }
     }
 
@@ -257,6 +265,9 @@ final class TerminalSession {
         isRestored = true
         lock.unlock()
 
+        if managesBracketedPaste {
+            disableBracketedPaste()
+        }
         if managesCursor {
             showCursor()
         }
@@ -286,53 +297,34 @@ func showCursor() {
     writeToStdout("\u{001B}[?25h")
 }
 
+@inline(__always)
+func enableBracketedPaste() {
+    writeToStdout("\u{001B}[?2004h")
+}
+
+@inline(__always)
+func disableBracketedPaste() {
+    writeToStdout("\u{001B}[?2004l")
+}
+
 private func writeToStderr(_ string: String) {
     guard let data = string.data(using: .utf8) else { return }
     try? FileHandle.standardError.write(contentsOf: data)
 }
 
-@inline(__always)
-func readByte() -> UInt8? {
-    var b: UInt8 = 0
-    let n = read(STDIN_FILENO_, &b, 1)
-    return (n == 1) ? b : nil
-}
+func readAvailableInputBytes(maximumCount: Int = 65_536) -> [UInt8] {
+    guard maximumCount > 0 else { return [] }
+    var result: [UInt8] = []
+    result.reserveCapacity(min(maximumCount, 4_096))
+    var chunk = [UInt8](repeating: 0, count: min(maximumCount, 4_096))
 
-/// Non-blocking key decoder.
-/// Handles printable chars, Enter, Backspace, Tab, Ctrl-C, Escape, Arrow keys (ESC [ A/B/C/D).
-func readKeyEvent() -> KeyEvent? {
-    guard let first = readByte() else { return nil }
-
-    switch first {
-    case 0x03: return .ctrlC  // ^C
-    case 0x09: return .tab  // Tab
-    case 0x0A, 0x0D: return .enter  // LF/CR
-    case 0x7F: return .backspace  // Backspace (DEL)
-
-    case 0x1B:  // ESC or start of sequence
-        // Attempt to read two more bytes for common CSI sequences.
-        // Tiny coalescing delay to allow non-blocking reads to gather.
-        usleep(2000)
-        let b1 = readByte()
-        let b2 = readByte()
-
-        if b1 == 0x5B {  // '['
-            switch b2 {
-            case 0x41: return .upArrow  // 'A'
-            case 0x42: return .downArrow  // 'B'
-            case 0x43: return .rightArrow  // 'C'
-            case 0x44: return .leftArrow  // 'D'
-            case 0x5A: return .backTab  // 'Z' (Shift+Tab)
-            default: return .escape
-            }
-        } else {
-            return .escape
+    while result.count < maximumCount {
+        let requested = min(chunk.count, maximumCount - result.count)
+        let count = chunk.withUnsafeMutableBytes { pointer in
+            read(STDIN_FILENO_, pointer.baseAddress, requested)
         }
-
-    default:
-        if first >= 0x20 && first <= 0x7E {  // printable ASCII
-            return .char(Character(UnicodeScalar(first)))
-        }
-        return nil
+        guard count > 0 else { break }
+        result.append(contentsOf: chunk.prefix(Int(count)))
     }
+    return result
 }

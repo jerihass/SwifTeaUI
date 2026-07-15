@@ -2,7 +2,11 @@ import Foundation
 
 public enum SwifTea {
     /// Bubble Tea–style runtime loop. Owns terminal, input routing, rendering.
-    public static func brew<App: TUIScene>(_ app: App, fps: Int = 20) {
+    public static func brew<App: TUIScene>(
+        _ app: App,
+        fps: Int = 20,
+        inputOptions: TerminalInputOptions = TerminalInputOptions()
+    ) {
         var app = app
         let frameDelay = useconds_t(1_000_000 / max(1, fps))
         let idleRefreshInterval: TimeInterval = min(0.5, 1.0 / Double(max(1, fps)))
@@ -10,7 +14,8 @@ public enum SwifTea {
         let actionQueue = ActionQueue<App.Action>()
         let effectRuntime = EffectRuntime(actionQueue: actionQueue)
         let renderInvalidation = RenderInvalidationFlag()
-        let terminalSession = TerminalSession()
+        let terminalSession = TerminalSession(inputOptions: inputOptions)
+        var inputParser = TerminalInputParser(maximumPasteBytes: inputOptions.maximumPasteBytes)
         let frameLogger = FrameLogger.make()
         defer {
             effectRuntime.cancelAll()
@@ -85,13 +90,16 @@ public enum SwifTea {
                 }
                 lastSize = size
 
-                if let ke = readKeyEvent(), let action = app.mapKeyToAction(ke) {
+                let inputBytes = readAvailableInputBytes()
+                inputParser.append(inputBytes)
+                while let input = inputParser.nextEvent(flushIncompleteEscape: inputBytes.isEmpty) {
+                    guard let action = app.mapInputToAction(input) else { continue }
                     if app.shouldExit(for: action) {
                         running = false
-                    } else {
-                        app.update(action: action)
-                        renderInvalidation.markDirty()
+                        break
                     }
+                    app.update(action: action)
+                    renderInvalidation.markDirty()
                 }
 
                 if running {

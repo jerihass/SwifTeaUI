@@ -6,7 +6,11 @@ enum LifecycleFixture {
     static func main() {
         let sessionCount = ProcessInfo.processInfo.environment["SWIFTEA_LIFECYCLE_SESSIONS"] == "2" ? 2 : 1
         for session in 1...sessionCount {
-            SwifTea.brew(LifecycleScene(session: session), fps: 60)
+            SwifTea.brew(
+                LifecycleScene(session: session),
+                fps: 60,
+                inputOptions: TerminalInputOptions(bracketedPaste: true)
+            )
         }
     }
 }
@@ -51,6 +55,14 @@ private struct LifecycleScene: TUIScene {
             return .quit
         default:
             return nil
+        }
+    }
+
+    func mapInputToAction(_ input: TerminalInputEvent) -> Action? {
+        switch input {
+        case .key(let key): mapKeyToAction(key)
+        case .paste("quit"): .quit
+        case .paste: nil
         }
     }
 

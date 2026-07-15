@@ -23,6 +23,8 @@ struct TerminalTests {
 
         hideCursor()
         showCursor()
+        enableBracketedPaste()
+        disableBracketedPaste()
 
         pipe.fileHandleForWriting.closeFile()
 
@@ -32,7 +34,7 @@ struct TerminalTests {
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         let output = String(decoding: data, as: UTF8.self)
 
-        #expect(output == "\u{001B}[?25l\u{001B}[?25h")
+        #expect(output == "\u{001B}[?25l\u{001B}[?25h\u{001B}[?2004h\u{001B}[?2004l")
     }
 
     @Test("TerminalDimensions override temporary size within closure")

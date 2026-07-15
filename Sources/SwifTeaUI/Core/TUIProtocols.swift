@@ -97,6 +97,7 @@ public protocol TUIScene {
     mutating func update(action: Action)
     mutating func initializeEffects()
     mutating func handleTerminalResize(from oldSize: TerminalSize, to newSize: TerminalSize)
+    func mapInputToAction(_ input: TerminalInputEvent) -> Action?
     func mapKeyToAction(_ key: KeyEvent) -> Action?
     func shouldExit(for action: Action) -> Bool
     mutating func handleFrame(deltaTime: TimeInterval)
@@ -113,4 +114,9 @@ extension TUIScene {
     public mutating func initializeEffects() {}
     public mutating func handleTerminalResize(from oldSize: TerminalSize, to newSize: TerminalSize) {}
     public mutating func handleFrame(deltaTime: TimeInterval) {}
+
+    public func mapInputToAction(_ input: TerminalInputEvent) -> Action? {
+        guard case .key(let key) = input else { return nil }
+        return mapKeyToAction(key)
+    }
 }

@@ -15,6 +15,8 @@ import time
 
 HIDE_CURSOR = b"\x1b[?25l"
 SHOW_CURSOR = b"\x1b[?25h"
+ENABLE_BRACKETED_PASTE = b"\x1b[?2004h"
+DISABLE_BRACKETED_PASTE = b"\x1b[?2004l"
 
 
 def read_until(master: int, process: subprocess.Popen[bytes], marker: bytes, timeout: float = 5.0) -> bytes:
@@ -136,6 +138,8 @@ def run_case(
         )
         assert output.count(HIDE_CURSOR) == sessions, bytes(output)
         assert output.count(SHOW_CURSOR) == sessions, bytes(output)
+        assert output.count(ENABLE_BRACKETED_PASTE) == sessions, bytes(output)
+        assert output.count(DISABLE_BRACKETED_PASTE) == sessions, bytes(output)
         return bytes(output)
     finally:
         if process.poll() is None:
@@ -154,6 +158,7 @@ def main() -> None:
     run_case(binary, key=b"q")
     run_case(binary, key=b"q", initially_nonblocking=True)
     run_case(binary, key=b"\x03")
+    run_case(binary, key=b"\x1b[200~quit\x1b[201~")
     run_case(binary, key=b"q", environment={"SWIFTEA_LIFECYCLE_THROW": "1"})
     run_case(binary, key=b"q", resize=(101, 33))
     run_case(binary, key=b"q", sessions=2)

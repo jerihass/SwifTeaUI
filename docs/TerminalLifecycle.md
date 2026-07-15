@@ -14,6 +14,7 @@ The internal `TerminalSession` is the single owner of process-level terminal cha
 - disables canonical input, echo, and terminal-generated signals;
 - enables nonblocking input while retaining all pre-existing status flags;
 - hides the cursor when standard output is a terminal;
+- enables bracketed-paste mode when requested and disables it during every restore path;
 - owns resize and termination signal registrations;
 - restores each resource exactly once, even if cleanup is requested repeatedly.
 
@@ -63,6 +64,7 @@ Stopping a session cancels that registration and restores the previous dispositi
 - cursor hide/show pairing;
 - restoration of terminal attributes and mutable file status flags;
 - restoration before SIGINT, SIGTERM, SIGHUP, and SIGQUIT termination.
+- bracketed-paste enable/disable pairing and delivery as one input event.
 
 CI runs unit, snapshot, and pseudo-terminal tests on macOS 26 and the official Swift 6.2.4 Ubuntu 22.04
 container.
