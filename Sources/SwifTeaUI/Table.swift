@@ -1,5 +1,10 @@
 import Foundation
 
+public enum TableLayout: Sendable, Equatable {
+    case intrinsic
+    case fitProposal
+}
+
 public struct TableColumn<Row> {
     public enum Width {
         case fixed(Int)
@@ -13,8 +18,22 @@ public struct TableColumn<Row> {
         case trailing
     }
 
+    public enum Visibility: Sendable, Equatable {
+        case always
+        case whenSpaceAllows(priority: Int = 0)
+    }
+
+    public enum Overflow: Sendable, Equatable {
+        case visible
+        case clip
+        case ellipsis
+    }
+
     let width: Width
     let alignment: Alignment
+    let visibility: Visibility
+    let overflow: Overflow
+    let layoutPriority: Int
     let headerBuilder: () -> [any TUIView]
     let cellBuilder: (Row) -> [any TUIView]
 
@@ -22,11 +41,17 @@ public struct TableColumn<Row> {
         _ title: String? = nil,
         width: Width = .fitContent,
         alignment: Alignment = .leading,
+        visibility: Visibility = .always,
+        overflow: Overflow = .visible,
+        layoutPriority: Int = 0,
         @TUIBuilder _ content: @escaping (Row) -> [any TUIView]
     ) {
         self.init(
             width: width,
             alignment: alignment,
+            visibility: visibility,
+            overflow: overflow,
+            layoutPriority: layoutPriority,
             header: {
                 guard let title else { return [] }
                 return [Text(title).bold()]
@@ -38,22 +63,31 @@ public struct TableColumn<Row> {
     public init(
         width: Width = .fitContent,
         alignment: Alignment = .leading,
+        visibility: Visibility = .always,
+        overflow: Overflow = .visible,
+        layoutPriority: Int = 0,
         @TUIBuilder header: @escaping () -> [any TUIView] = { [] },
         @TUIBuilder _ content: @escaping (Row) -> [any TUIView]
     ) {
         self.width = width
         self.alignment = alignment
+        self.visibility = visibility
+        self.overflow = overflow
+        self.layoutPriority = layoutPriority
         self.headerBuilder = header
         self.cellBuilder = content
     }
 }
 
-public extension TableColumn {
-    init<Value>(
+extension TableColumn {
+    public init<Value>(
         _ title: String? = nil,
         value keyPath: KeyPath<Row, Value>,
         width: Width = .fitContent,
         alignment: Alignment = .leading,
+        visibility: Visibility = .always,
+        overflow: Overflow = .visible,
+        layoutPriority: Int = 0,
         format: @escaping (Value) -> String = { value in
             String(describing: value)
         }
@@ -61,7 +95,10 @@ public extension TableColumn {
         self.init(
             title,
             width: width,
-            alignment: alignment
+            alignment: alignment,
+            visibility: visibility,
+            overflow: overflow,
+            layoutPriority: layoutPriority
         ) { row in
             Text(format(row[keyPath: keyPath]))
         }
@@ -108,8 +145,8 @@ public struct TableRowStyle {
     }
 }
 
-public extension TableRowStyle {
-    func merging(_ style: TableRowStyle) -> TableRowStyle {
+extension TableRowStyle {
+    public func merging(_ style: TableRowStyle) -> TableRowStyle {
         TableRowStyle(
             foregroundColor: style.foregroundColor ?? self.foregroundColor,
             backgroundColor: style.backgroundColor ?? self.backgroundColor,
@@ -121,7 +158,7 @@ public extension TableRowStyle {
         )
     }
 
-    static func focused(
+    public static func focused(
         accent: ANSIColor = .cyan,
         border: Border? = Border(leading: "▌ ", trailing: " ▐", reserveSpace: true)
     ) -> TableRowStyle {
@@ -133,14 +170,14 @@ public extension TableRowStyle {
     }
 
     /// Focused style with explicit gutter markers that reserve space so content remains aligned.
-    static func focusedWithMarkers(
+    public static func focusedWithMarkers(
         accent: ANSIColor = .cyan,
         border: Border = Border(leading: "▌ ", trailing: " ▐", reserveSpace: true)
     ) -> TableRowStyle {
         focused(accent: accent, border: border)
     }
 
-    static func selected(
+    public static func selected(
         foregroundColor: ANSIColor? = nil,
         backgroundColor: ANSIColor = .blue,
         isBold: Bool = true,
@@ -154,7 +191,7 @@ public extension TableRowStyle {
         )
     }
 
-    static func stripe(
+    public static func stripe(
         foregroundColor: ANSIColor? = nil,
         backgroundColor: ANSIColor? = .brightBlack,
         isBold: Bool = false
@@ -166,7 +203,7 @@ public extension TableRowStyle {
         )
     }
 
-    static func stripedRows<Row>(
+    public static func stripedRows<Row>(
         evenStyle: TableRowStyle? = TableRowStyle.stripe(),
         oddStyle: TableRowStyle? = nil
     ) -> (Row, Int) -> TableRowStyle? {
@@ -197,7 +234,7 @@ public struct TableColumnBuilder<Row> {
         components
     }
 
-    public static func buildOptional(_ component: [TableColumn<Row>]? ) -> [TableColumn<Row>] {
+    public static func buildOptional(_ component: [TableColumn<Row>]?) -> [TableColumn<Row>] {
         component ?? []
     }
 
@@ -285,6 +322,7 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
 
     private let data: Data
     private let columns: [TableColumn<Row>]
+    private let layout: TableLayout
     private let columnSpacing: Int
     private let rowSpacing: Int
     private let divider: TableDividerStyle
@@ -297,6 +335,7 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
     public init(
         _ data: Data,
         id: KeyPath<Row, ID>,
+        layout: TableLayout = .intrinsic,
         columnSpacing: Int = 2,
         rowSpacing: Int = 0,
         divider: TableDividerStyle = .none,
@@ -309,6 +348,7 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
         self.init(
             data,
             id: { $0[keyPath: id] },
+            layout: layout,
             columnSpacing: columnSpacing,
             rowSpacing: rowSpacing,
             divider: divider,
@@ -323,6 +363,7 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
     public init(
         _ data: Data,
         id: @escaping (Row) -> ID,
+        layout: TableLayout = .intrinsic,
         columnSpacing: Int = 2,
         rowSpacing: Int = 0,
         divider: TableDividerStyle = .none,
@@ -333,6 +374,7 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
         @TableColumnBuilder<Row> columns: () -> [TableColumn<Row>]
     ) {
         self.data = data
+        self.layout = layout
         self.columnSpacing = max(0, columnSpacing)
         self.rowSpacing = max(0, rowSpacing)
         self.divider = divider
@@ -347,48 +389,69 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
     public var body: some TUIView { self }
 
     public func render() -> String {
+        render(in: RenderEnvironment.current)
+    }
+
+    public func render(in context: RenderContext) -> String {
         guard !columns.isEmpty else {
-            let headerLines = renderViews(headerBuilder())
-            let footerLines = renderViews(footerBuilder())
+            let headerLines = renderViews(headerBuilder(), in: context)
+            let footerLines = renderViews(footerBuilder(), in: context)
             return (headerLines + footerLines).joined(separator: "\n")
         }
 
-        let renderedHeaderCells = columns.map { column -> RenderedCell in
-            RenderedCell(rendered: RenderedView(lines: renderViews(column.headerBuilder())))
+        let allHeaderCells = columns.map { column -> RenderedCell in
+            RenderedCell(rendered: RenderedView(lines: renderViews(column.headerBuilder(), in: .unspecified)))
         }
 
-        var renderedRows: [RenderedRow] = []
-        renderedRows.reserveCapacity(data.count)
+        var allRows: [RenderedRow] = []
+        allRows.reserveCapacity(data.count)
 
-        var measuredWidths = renderedHeaderCells.map(\.maxWidth)
+        var measuredWidths = allHeaderCells.map(\.maxWidth)
 
         for (index, element) in data.enumerated() {
             let id = idResolver(element)
             var rowCells: [RenderedCell] = []
             rowCells.reserveCapacity(columns.count)
             for column in columns {
-                let cell = RenderedCell(rendered: RenderedView(lines: renderViews(column.cellBuilder(element))))
+                let cell = RenderedCell(
+                    rendered: RenderedView(
+                        lines: renderViews(column.cellBuilder(element), in: .unspecified)
+                    )
+                )
                 measuredWidths[rowCells.count] = max(measuredWidths[rowCells.count], cell.maxWidth)
                 rowCells.append(cell)
             }
             let style = rowStyle?(element, index)
-            renderedRows.append(RenderedRow(id: id, cells: rowCells, style: style))
+            allRows.append(RenderedRow(id: id, cells: rowCells, style: style))
         }
 
-        let resolvedWidths = zip(columns, measuredWidths).map { column, measured in
-            Self.resolveWidth(measured: measured, rule: column.width)
-        }
-
-        // Resolve styles so we can compute shared gutter reservations.
-        let resolvedRows: [ResolvedRow] = renderedRows.map { row in
+        let styledRows: [ResolvedRow] = allRows.map { row in
             ResolvedRow(row: row, style: resolvedStyle(for: row))
         }
-        let reservedLeading = resolvedRows.map { $0.gutterLeading }.max() ?? 0
-        let reservedTrailing = resolvedRows.map { $0.gutterTrailing }.max() ?? 0
+        let reservedLeading = styledRows.map { $0.gutterLeading }.max() ?? 0
+        let reservedTrailing = styledRows.map { $0.gutterTrailing }.max() ?? 0
+        let columnBudget = context.proposedSize.width.map {
+            max(0, $0 - reservedLeading - reservedTrailing)
+        }
+        let resolution = resolveColumns(measuredWidths: measuredWidths, budget: columnBudget)
+        let activeColumns = resolution.indices.map { columns[$0] }
+        let renderedHeaderCells = resolution.indices.map { allHeaderCells[$0] }
+        let resolvedRows = styledRows.map { resolved in
+            ResolvedRow(
+                row: RenderedRow(
+                    id: resolved.row.id,
+                    cells: resolution.indices.map { resolved.row.cells[$0] },
+                    style: resolved.row.style
+                ),
+                style: resolved.style
+            )
+        }
+        let resolvedWidths = resolution.widths
         let rowWidth = totalWidth(using: resolvedWidths) + reservedLeading + reservedTrailing
 
         let headerLines = renderHeader(
             renderedCells: renderedHeaderCells,
+            columns: activeColumns,
             columnWidths: resolvedWidths,
             reservedLeading: reservedLeading,
             reservedTrailing: reservedTrailing,
@@ -396,6 +459,7 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
         )
         let bodyLines = renderBody(
             rows: resolvedRows,
+            columns: activeColumns,
             columnWidths: resolvedWidths,
             reservedLeading: reservedLeading,
             reservedTrailing: reservedTrailing,
@@ -412,8 +476,8 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
 
         tableLines.append(contentsOf: bodyLines)
 
-        let headerBlock = renderViews(headerBuilder())
-        let footerBlock = renderViews(footerBuilder())
+        let headerBlock = renderViews(headerBuilder(), in: context)
+        let footerBlock = renderViews(footerBuilder(), in: context)
 
         var lines: [String] = []
         lines.reserveCapacity(
@@ -427,6 +491,7 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
 
     private func renderHeader(
         renderedCells: [RenderedCell],
+        columns: [TableColumn<Row>],
         columnWidths: [Int],
         reservedLeading: Int,
         reservedTrailing: Int,
@@ -437,6 +502,7 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
         }
         return renderRow(
             cells: renderedCells,
+            columns: columns,
             columnWidths: columnWidths,
             style: nil,
             reservedLeading: reservedLeading,
@@ -447,6 +513,7 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
 
     private func renderBody(
         rows: [ResolvedRow],
+        columns: [TableColumn<Row>],
         columnWidths: [Int],
         reservedLeading: Int,
         reservedTrailing: Int,
@@ -459,6 +526,7 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
             lines.append(
                 contentsOf: renderRow(
                     cells: row.row.cells,
+                    columns: columns,
                     columnWidths: columnWidths,
                     style: row.style,
                     reservedLeading: reservedLeading,
@@ -477,6 +545,7 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
 
     private func renderRow(
         cells: [RenderedCell],
+        columns: [TableColumn<Row>],
         columnWidths: [Int],
         style: TableRowStyle?,
         reservedLeading: Int,
@@ -495,9 +564,14 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
             pieces.reserveCapacity(cells.count)
             for (columnIndex, cell) in cells.enumerated() {
                 let line = lineIndex < cell.lines.count ? cell.lines[lineIndex] : ""
-                let padded = Self.pad(
+                let fitted = fit(
                     line,
-                    currentWidth: cell.width(at: lineIndex),
+                    to: columnWidths[columnIndex],
+                    overflow: columns[columnIndex].overflow
+                )
+                let padded = Self.pad(
+                    fitted,
+                    currentWidth: TerminalText.visibleWidth(of: fitted),
                     to: columnWidths[columnIndex],
                     alignment: columns[columnIndex].alignment
                 )
@@ -547,10 +621,189 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
         return columnWidths.reduce(0, +) + spacingWidth
     }
 
-    private func renderViews(_ views: [any TUIView]) -> [String] {
+    private func renderViews(
+        _ views: [any TUIView],
+        in context: RenderContext = RenderEnvironment.current
+    ) -> [String] {
         guard !views.isEmpty else { return [] }
-        let rendered = views.map { resolveRenderedView(for: $0) }
+        let rendered = views.map { resolveRenderedView(for: $0, in: context) }
         return rendered.flatMap { $0.lines }
+    }
+
+    private func resolveColumns(measuredWidths: [Int], budget: Int?) -> ColumnResolution {
+        guard layout == .fitProposal, let budget else {
+            return ColumnResolution(
+                indices: Array(columns.indices),
+                widths: zip(measuredWidths, columns).map {
+                    Self.resolveWidth(measured: $0.0, rule: $0.1.width)
+                }
+            )
+        }
+
+        var activeIndices = Array(columns.indices)
+        let optionalIndices =
+            activeIndices
+            .compactMap { index -> (index: Int, priority: Int)? in
+                guard case .whenSpaceAllows(let priority) = columns[index].visibility else {
+                    return nil
+                }
+                return (index, priority)
+            }
+            .sorted {
+                if $0.priority == $1.priority {
+                    return $0.index > $1.index
+                }
+                return $0.priority < $1.priority
+            }
+
+        for optional in optionalIndices {
+            guard minimumTableWidth(for: activeIndices, measuredWidths: measuredWidths) > budget else {
+                break
+            }
+            activeIndices.removeAll { $0 == optional.index }
+        }
+
+        let spacing = columnSpacing * max(activeIndices.count - 1, 0)
+        let availableContentWidth = max(0, budget - spacing)
+        var widths = activeIndices.map { index in
+            Self.minimumWidth(for: columns[index], measured: measuredWidths[index])
+        }
+
+        var deficit = max(0, widths.reduce(0, +) - availableContentWidth)
+        let shrinkOrder = activeIndices.indices.sorted { lhs, rhs in
+            let left = columns[activeIndices[lhs]]
+            let right = columns[activeIndices[rhs]]
+            if left.layoutPriority == right.layoutPriority {
+                return lhs > rhs
+            }
+            return left.layoutPriority < right.layoutPriority
+        }
+        for position in shrinkOrder where deficit > 0 {
+            let column = columns[activeIndices[position]]
+            guard column.overflow != .visible else { continue }
+            let reduction = min(deficit, max(0, widths[position] - 1))
+            widths[position] -= reduction
+            deficit -= reduction
+        }
+
+        var remaining = max(0, availableContentWidth - widths.reduce(0, +))
+        growFlexColumns(
+            widths: &widths,
+            activeIndices: activeIndices,
+            measuredWidths: measuredWidths,
+            remaining: &remaining,
+            towardPreferredWidth: true
+        )
+        growFlexColumns(
+            widths: &widths,
+            activeIndices: activeIndices,
+            measuredWidths: measuredWidths,
+            remaining: &remaining,
+            towardPreferredWidth: false
+        )
+
+        return ColumnResolution(indices: activeIndices, widths: widths)
+    }
+
+    private func minimumTableWidth(for indices: [Int], measuredWidths: [Int]) -> Int {
+        let contentWidth = indices.reduce(into: 0) { result, index in
+            result += Self.minimumWidth(for: columns[index], measured: measuredWidths[index])
+        }
+        return contentWidth + columnSpacing * max(indices.count - 1, 0)
+    }
+
+    private func growFlexColumns(
+        widths: inout [Int],
+        activeIndices: [Int],
+        measuredWidths: [Int],
+        remaining: inout Int,
+        towardPreferredWidth: Bool
+    ) {
+        guard remaining > 0 else { return }
+        let positions = activeIndices.indices
+            .filter {
+                if case .flex = columns[activeIndices[$0]].width { return true }
+                return false
+            }
+            .sorted {
+                let left = columns[activeIndices[$0]].layoutPriority
+                let right = columns[activeIndices[$1]].layoutPriority
+                if left == right { return $0 < $1 }
+                return left > right
+            }
+        guard !positions.isEmpty else { return }
+
+        var madeProgress = true
+        while remaining > 0, madeProgress {
+            madeProgress = false
+            for position in positions where remaining > 0 {
+                let index = activeIndices[position]
+                let limit: Int
+                if towardPreferredWidth {
+                    limit = Self.preferredWidth(for: columns[index], measured: measuredWidths[index])
+                } else {
+                    limit = Self.maximumWidth(for: columns[index])
+                }
+                guard widths[position] < limit else { continue }
+                widths[position] += 1
+                remaining -= 1
+                madeProgress = true
+            }
+        }
+    }
+
+    private static func minimumWidth(for column: TableColumn<Row>, measured: Int) -> Int {
+        switch column.width {
+        case .fixed(let value):
+            return max(0, value)
+        case .fitContent:
+            return measured
+        case .flex(let minimum, let maximum):
+            return min(max(0, minimum), maximum.map { max(0, $0) } ?? Int.max)
+        }
+    }
+
+    private static func preferredWidth(for column: TableColumn<Row>, measured: Int) -> Int {
+        switch column.width {
+        case .fixed(let value):
+            return max(0, value)
+        case .fitContent:
+            return measured
+        case .flex(let minimum, let maximum):
+            let preferred = max(measured, max(0, minimum))
+            return min(preferred, maximum.map { max(0, $0) } ?? Int.max)
+        }
+    }
+
+    private static func maximumWidth(for column: TableColumn<Row>) -> Int {
+        switch column.width {
+        case .fixed(let value):
+            return max(0, value)
+        case .fitContent:
+            return Int.max
+        case .flex(_, let maximum):
+            return maximum.map { max(0, $0) } ?? Int.max
+        }
+    }
+
+    private func fit(
+        _ line: String,
+        to width: Int,
+        overflow: TableColumn<Row>.Overflow
+    ) -> String {
+        guard width > 0 else { return "" }
+        guard TerminalText.visibleWidth(of: line) > width else { return line }
+        switch overflow {
+        case .visible:
+            return line
+        case .clip:
+            return TerminalText.fittedLine(line, to: width, padded: false)
+        case .ellipsis:
+            guard width > 1 else { return "…" }
+            let prefix = TerminalText.fittedLine(line, to: width - 1, padded: false)
+            let padding = max(0, width - 1 - TerminalText.visibleWidth(of: prefix))
+            return prefix + String(repeating: " ", count: padding) + "…"
+        }
     }
 
     private static func resolveWidth(measured: Int, rule: TableColumn<Row>.Width) -> Int {
@@ -595,13 +848,11 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
 
         var lines: [String] { rendered.lines }
         var maxWidth: Int { rendered.maxWidth }
+    }
 
-        func width(at line: Int) -> Int {
-            if line >= 0 && line < rendered.widths.count {
-                return rendered.widths[line]
-            }
-            return -1
-        }
+    private struct ColumnResolution {
+        let indices: [Int]
+        let widths: [Int]
     }
 
     private func resolvedStyle(for row: RenderedRow) -> TableRowStyle? {
@@ -635,9 +886,10 @@ public struct Table<Data: RandomAccessCollection, ID: Hashable>: TUIView {
     }
 }
 
-public extension Table where Data.Element: Identifiable, Data.Element.ID == ID {
-    init(
+extension Table where Data.Element: Identifiable, Data.Element.ID == ID {
+    public init(
         _ data: Data,
+        layout: TableLayout = .intrinsic,
         columnSpacing: Int = 2,
         rowSpacing: Int = 0,
         divider: TableDividerStyle = .none,
@@ -650,6 +902,7 @@ public extension Table where Data.Element: Identifiable, Data.Element.ID == ID {
         self.init(
             data,
             id: { $0.id },
+            layout: layout,
             columnSpacing: columnSpacing,
             rowSpacing: rowSpacing,
             divider: divider,

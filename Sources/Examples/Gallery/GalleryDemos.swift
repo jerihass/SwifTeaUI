@@ -703,6 +703,7 @@ struct TableDemoModel {
 
                 Table(
                     rows,
+                    layout: .fitProposal,
                     divider: .line(color: theme.frameBorder, isBold: false),
                     selection: selectionConfiguration(theme: theme),
                     rowStyle: { row, _ in
@@ -710,9 +711,21 @@ struct TableDemoModel {
                         return TableRowStyle.focused(accent: theme.accent)
                     }
                 ) {
-                    TableColumn("Task", value: \TableDemoModel.Row.name, width: .flex(min: 10))
+                    TableColumn(
+                        "Task",
+                        value: \TableDemoModel.Row.name,
+                        width: .flex(min: 10),
+                        overflow: .ellipsis,
+                        layoutPriority: 100
+                    )
                     TableColumn("Status", value: \TableDemoModel.Row.status, width: .fixed(10))
-                    TableColumn("Duration", value: \TableDemoModel.Row.duration, width: .fixed(8), alignment: .trailing)
+                    TableColumn(
+                        "Duration",
+                        value: \TableDemoModel.Row.duration,
+                        width: .fixed(8),
+                        alignment: .trailing,
+                        visibility: .whenSpaceAllows(priority: 10)
+                    )
                 }
 
                 Border(

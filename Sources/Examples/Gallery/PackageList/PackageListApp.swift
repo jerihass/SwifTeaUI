@@ -318,29 +318,48 @@ struct PackageListView: TUIView {
     private var tableView: some TUIView {
         Table(
             state.visiblePackages,
+            layout: .fitProposal,
             columnSpacing: 3,
             rowSpacing: 0,
             divider: .line(character: "─", color: theme.frameBorder, isBold: true),
             selection: selectionConfiguration,
             rowStyle: rowStyle(for:index:)
         ) {
-            TableColumn("Package", width: .flex(min: 16)) { (package: PackageInfo) in
+            TableColumn(
+                "Package",
+                width: .flex(min: 16),
+                overflow: .ellipsis,
+                layoutPriority: 100
+            ) { (package: PackageInfo) in
                 Text(package.name)
                     .foregroundColor(theme.primaryText)
                     .bold()
             }
-            TableColumn("Version", width: .flex(min: 14)) { (package: PackageInfo) in
+            TableColumn("Version", width: .flex(min: 12), overflow: .ellipsis, layoutPriority: 80) {
+                (package: PackageInfo) in
                 versionText(for: package)
             }
-            TableColumn("Platform", width: .flex(min: 14)) { (package: PackageInfo) in
+            TableColumn(
+                "Platform",
+                width: .flex(min: 10),
+                visibility: .whenSpaceAllows(priority: 30),
+                overflow: .ellipsis,
+                layoutPriority: 30
+            ) { (package: PackageInfo) in
                 Text(package.platform)
                     .foregroundColor(theme.info)
             }
-            TableColumn("Status", width: .flex(min: 16)) { (package: PackageInfo) in
+            TableColumn("Status", width: .flex(min: 10), overflow: .ellipsis, layoutPriority: 70) {
+                (package: PackageInfo) in
                 Text(package.status.label)
                     .foregroundColor(package.status.color)
             }
-            TableColumn("Last Updated", width: .fitContent, alignment: .trailing) { (package: PackageInfo) in
+            TableColumn(
+                "Last Updated",
+                width: .fitContent,
+                alignment: .trailing,
+                visibility: .whenSpaceAllows(priority: 10)
+            ) { (package: PackageInfo) in
                 Text(package.lastUpdated)
                     .foregroundColor(theme.mutedText)
             }

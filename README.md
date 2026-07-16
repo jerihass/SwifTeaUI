@@ -163,7 +163,7 @@ line, and measures combining, wide, emoji, and private-use glyphs in terminal ce
 
 ### Table Layouts
 
-`Table` brings SwiftUI-style column definitions to the terminal. Pick from `.fixed`, `.fitContent`, or `.flex(min:max:)` widths, opt into headers/footers, and let SwifTeaUI handle ANSI-aware measurement for multi-line cells. Row styling is opt-in per index so you can emphasize focus, selections, or zebra striping:
+`Table` brings SwiftUI-style column definitions to the terminal. Pick from `.fixed`, `.fitContent`, or `.flex(min:max:)` widths, opt into headers/footers, and let SwifTeaUI handle ANSI-aware measurement for multi-line cells. Use `layout: .fitProposal` when a table should fill its proposed width, hide optional columns as space contracts, and fit long values with clipping or an ellipsis. The default `.intrinsic` layout preserves content-sized rendering. Row styling is opt-in per index so you can emphasize focus, selections, or zebra striping:
 
 ```swift
 @State private var selectedProcessIDs = Set<Process.ID>()
@@ -171,6 +171,7 @@ line, and measures combining, wide, emoji, and private-use glyphs in terminal ce
 
 Table(
     processes,
+    layout: .fitProposal,
     divider: .line(color: .brightBlack, isBold: true),
     selection: .multiple($selectedProcessIDs, focused: $focusedProcess),
     rowStyle: TableRowStyle.stripedRows(
@@ -178,11 +179,21 @@ Table(
         oddStyle: TableRowStyle.focused(accent: .cyan)
     ),
     columns: {
-        TableColumn("Name", value: \Process.name, width: .flex(min: 12)) { name in
+        TableColumn(
+            "Name",
+            value: \Process.name,
+            width: .flex(min: 12),
+            overflow: .ellipsis,
+            layoutPriority: 100
+        ) { name in
             name.uppercased()
         }
         TableColumn("State", value: \Process.state, width: .fixed(12), alignment: .trailing)
-        TableColumn("Duration", value: \Process.duration) { duration in
+        TableColumn(
+            "Duration",
+            value: \Process.duration,
+            visibility: .whenSpaceAllows(priority: 10)
+        ) { duration in
             "\(duration)s"
         }
     }
