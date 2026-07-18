@@ -1,6 +1,42 @@
 import Foundation
 
 public enum TerminalText {
+    /// Returns terminal-safe literal text by replacing control scalars with U+FFFD.
+    ///
+    /// This transform intentionally operates on Unicode scalars rather than
+    /// graphemes so every rejected C0, DEL, or C1 scalar has one visible
+    /// replacement. Line feeds are retained only for multiline renderers.
+    static func literal(_ string: String, preservingLineFeeds: Bool) -> String {
+        var result = ""
+        result.reserveCapacity(string.utf8.count)
+
+        for scalar in string.unicodeScalars {
+            let value = scalar.value
+            if value == 0x0A, preservingLineFeeds {
+                result.unicodeScalars.append(scalar)
+            } else if value < 0x20 || (0x7F...0x9F).contains(value) {
+                result.unicodeScalars.append("\u{FFFD}")
+            } else {
+                result.unicodeScalars.append(scalar)
+            }
+        }
+
+        return result
+    }
+
+    /// Maps a cursor expressed in authored grapheme offsets into a literal-safe
+    /// rendered string. Scalar replacement can expand a single grapheme (for
+    /// example CRLF), so editors must not reuse the authored offset directly.
+    static func literalCursorOffset(
+        in string: String,
+        characterOffset: Int,
+        preservingLineFeeds: Bool
+    ) -> Int {
+        let clampedOffset = max(0, min(characterOffset, string.count))
+        let boundary = string.index(string.startIndex, offsetBy: clampedOffset)
+        return literal(String(string[..<boundary]), preservingLineFeeds: preservingLineFeeds).count
+    }
+
     public static func visibleWidth(of string: String) -> Int {
         tokens(in: string).reduce(into: 0) { width, token in
             if case .grapheme(_, let cells) = token { width += cells }

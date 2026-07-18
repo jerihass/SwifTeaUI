@@ -17,6 +17,9 @@ HIDE_CURSOR = b"\x1b[?25l"
 SHOW_CURSOR = b"\x1b[?25h"
 ENABLE_BRACKETED_PASTE = b"\x1b[?2004h"
 DISABLE_BRACKETED_PASTE = b"\x1b[?2004l"
+AUTHORED_CLEAR_SCREEN = b"\x1b[2J"
+AUTHORED_COLOR = b"\x1b[38;5;196m"
+AUTHORED_TITLE = b"\x1b]0;swiftea-injection\x07"
 
 
 def read_until(master: int, process: subprocess.Popen[bytes], marker: bytes, timeout: float = 5.0) -> bytes:
@@ -155,7 +158,12 @@ def main() -> None:
     args = parser.parse_args()
     binary = os.path.abspath(args.binary)
 
-    run_case(binary, key=b"q")
+    baseline = run_case(binary, key=b"q")
+    literal_output = run_case(binary, key=b"q", environment={"SWIFTEA_LITERAL_PAYLOAD": "1"})
+    assert literal_output.count(AUTHORED_CLEAR_SCREEN) == baseline.count(AUTHORED_CLEAR_SCREEN), literal_output
+    assert AUTHORED_COLOR not in literal_output, literal_output
+    assert AUTHORED_TITLE not in literal_output, literal_output
+    assert "Literal payload �[2J�[38;5;196m�]0;swiftea-injection�".encode() in literal_output, literal_output
     run_case(binary, key=b"q", initially_nonblocking=True)
     run_case(binary, key=b"\x03")
     run_case(binary, key=b"\x1b[200~quit\x1b[201~")

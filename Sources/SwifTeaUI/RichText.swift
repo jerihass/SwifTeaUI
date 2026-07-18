@@ -286,7 +286,8 @@ public struct RichText: TUIView {
         }
 
         func append(span: TextSpan) {
-            for character in span.content {
+            let literalContent = TerminalText.literal(span.content, preservingLineFeeds: true)
+            for character in literalContent {
                 if character == "\n" {
                     flushWord()
                     flushWhitespace()
@@ -310,7 +311,8 @@ public struct RichText: TUIView {
                 flushWhitespace()
                 var cells: [Cell] = []
                 for span in group.spans {
-                    for character in span.content {
+                    let literalContent = TerminalText.literal(span.content, preservingLineFeeds: true)
+                    for character in literalContent {
                         if character == "\n" {
                             if !cells.isEmpty { result.append(.chunk(cells)) }
                             result.append(.newline)

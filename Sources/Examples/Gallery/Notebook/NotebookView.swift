@@ -187,7 +187,7 @@ struct NotebookView: TUIView {
 
     private var editorTitleView: some TUIView {
         if focus == .editorTitle || focus == .editorBody {
-            return Text(FocusStyle.default.apply(to: "Editor"))
+            return Text(trustedANSI: FocusStyle.default.apply(to: "Editor"))
         } else {
             return Text("Editor").foregroundColor(theme.mutedText)
         }

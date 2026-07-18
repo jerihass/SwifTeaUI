@@ -41,6 +41,8 @@ public struct TextEditor: TUIView {
     public func render() -> String {
         let value = text.wrappedValue
         let isFocused = focus?.wrappedValue ?? true
+        // Literal sanitization guarantees authored NUL values cannot collide
+        // with this private marker.
         let sentinel = "\u{0000}"
 
         var cursorIndex = cursorPositionBinding?.wrappedValue ?? value.count
@@ -52,24 +54,34 @@ public struct TextEditor: TUIView {
         var renderText: String
         var underlyingChar: Character?
         if value.isEmpty {
-            renderText = placeholder
+            renderText = TerminalText.literal(placeholder, preservingLineFeeds: true)
         } else {
-            renderText = value
-            if cursorIndex < renderText.count {
-                let idx = renderText.index(renderText.startIndex, offsetBy: cursorIndex)
+            renderText = TerminalText.literal(value, preservingLineFeeds: true)
+            let renderedCursorIndex = TerminalText.literalCursorOffset(
+                in: value,
+                characterOffset: cursorIndex,
+                preservingLineFeeds: true
+            )
+            if renderedCursorIndex < renderText.count {
+                let idx = renderText.index(renderText.startIndex, offsetBy: renderedCursorIndex)
                 underlyingChar = renderText[idx]
                 renderText.remove(at: idx)
             }
+
+            let insertionIndex = min(renderedCursorIndex, renderText.count)
+            let index = renderText.index(renderText.startIndex, offsetBy: insertionIndex)
+            renderText.insert(contentsOf: sentinel, at: index)
         }
 
-        let insertionIndex = min(cursorIndex, renderText.count)
-        let index = renderText.index(renderText.startIndex, offsetBy: insertionIndex)
-        renderText.insert(contentsOf: sentinel, at: index)
+        if value.isEmpty {
+            renderText.insert(contentsOf: sentinel, at: renderText.startIndex)
+        }
 
         var lines = wrap(renderText, width: wrapWidth)
 
         let targetWidth = wrapWidth + 1
-        let cursorDisplay = blinkingCursor
+        let cursorDisplay =
+            blinkingCursor
             ? CursorBlinker.shared.cursor(for: String(underlyingChar ?? " "))
             : String(underlyingChar ?? " ")
 

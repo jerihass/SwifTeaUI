@@ -71,9 +71,13 @@ public struct Sidebar<Item>: TUIView {
     public func render() -> String {
         let coloredLines = items.enumerated().map { index, element -> String in
             let isSelected = index == selection
-            let indicator = isSelected ? style.selectedIndicator : style.unselectedIndicator
-            let focusMarker = (isSelected && isFocused) ? style.focusIndicator : style.unfocusedIndicator
-            let line = "\(indicator)\(focusMarker) \(label(element))"
+            let authoredIndicator = isSelected ? style.selectedIndicator : style.unselectedIndicator
+            let authoredFocusMarker =
+                (isSelected && isFocused) ? style.focusIndicator : style.unfocusedIndicator
+            let indicator = TerminalText.literal(authoredIndicator, preservingLineFeeds: false)
+            let focusMarker = TerminalText.literal(authoredFocusMarker, preservingLineFeeds: false)
+            let itemLabel = TerminalText.literal(label(element), preservingLineFeeds: false)
+            let line = "\(indicator)\(focusMarker) \(itemLabel)"
             let color = color(forSelected: isSelected, focused: isFocused && isSelected)
             let base = color.rawValue + line + ANSIColor.reset.rawValue
             if isSelected && isFocused {
@@ -86,7 +90,8 @@ public struct Sidebar<Item>: TUIView {
 
         let titleView: Text = {
             if isFocused {
-                return Text(style.focusStyle.apply(to: title))
+                let literalTitle = TerminalText.literal(title, preservingLineFeeds: false)
+                return Text(trustedANSI: style.focusStyle.apply(to: literalTitle))
             } else {
                 return Text(title).foregroundColor(style.titleColor)
             }
@@ -94,7 +99,7 @@ public struct Sidebar<Item>: TUIView {
 
         let content = VStack(alignment: .leading) {
             titleView
-            Text(listBlock)
+            Text(trustedANSI: listBlock)
         }
 
         if style.showsBorder {

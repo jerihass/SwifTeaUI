@@ -34,29 +34,39 @@ public struct TextField: TUIView {
     public func render() -> String {
         let value = text.wrappedValue
         let isPlaceholder = value.isEmpty
-        let body = isPlaceholder ? placeholder : value
+        let authoredBody = isPlaceholder ? placeholder : value
+        let body = TerminalText.literal(authoredBody, preservingLineFeeds: false)
         let isFocused = focus?.wrappedValue ?? true
         guard isFocused else { return body }
 
         var cursorIndex = cursorPosition?.wrappedValue ?? value.count
-        cursorIndex = max(0, min(cursorIndex, body.count))
+        cursorIndex = max(0, min(cursorIndex, authoredBody.count))
         if let cursorPosition, cursorPosition.wrappedValue != cursorIndex {
             cursorPosition.wrappedValue = cursorIndex
         }
 
+        let renderedCursorIndex = TerminalText.literalCursorOffset(
+            in: authoredBody,
+            characterOffset: cursorIndex,
+            preservingLineFeeds: false
+        )
+
+        // Literal sanitization guarantees authored NUL values cannot collide
+        // with this private marker.
         let sentinel = "\u{0000}"
         var renderText = body
         var underlyingChar: Character? = nil
-        if cursorIndex < renderText.count {
-            let idx = renderText.index(renderText.startIndex, offsetBy: cursorIndex)
+        if renderedCursorIndex < renderText.count {
+            let idx = renderText.index(renderText.startIndex, offsetBy: renderedCursorIndex)
             underlyingChar = renderText[idx]
             renderText.remove(at: idx)
         }
-        let insertionIndex = min(cursorIndex, renderText.count)
+        let insertionIndex = min(renderedCursorIndex, renderText.count)
         let index = renderText.index(renderText.startIndex, offsetBy: insertionIndex)
         renderText.insert(contentsOf: sentinel, at: index)
 
-        let cursorSeed = underlyingChar.map(String.init) ?? cursorSymbol
+        let safeCursorSymbol = TerminalText.literal(cursorSymbol, preservingLineFeeds: false)
+        let cursorSeed = underlyingChar.map(String.init) ?? safeCursorSymbol
         let cursorDisplay =
             blinkingCursor
             ? CursorBlinker.shared.cursor(for: cursorSeed)

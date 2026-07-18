@@ -8,13 +8,28 @@ public struct Text: TUIView {
     }
 
     let content: String
+    private let isTrustedANSI: Bool
     var color: ANSIColor? = nil
     var backgroundColor: ANSIColor? = nil
     var isBold: Bool = false
     var isItalic: Bool = false
     var isUnderlined: Bool = false
 
-    public init(_ content: String) { self.content = content }
+    /// Creates literal terminal text. C0/C1 controls and DEL are rendered as
+    /// visible replacement characters; authored line feeds are preserved.
+    public init(_ content: String) {
+        self.content = content
+        self.isTrustedANSI = false
+    }
+
+    /// Creates text containing framework-owned ANSI presentation sequences.
+    ///
+    /// Never pass imported, user-authored, or otherwise untrusted content to
+    /// this initializer. Ordinary `Text(_:)` is literal-safe by default.
+    public init(trustedANSI content: String) {
+        self.content = content
+        self.isTrustedANSI = true
+    }
 
     public func foregroundColor(_ color: ANSIColor) -> Text {
         var copy = self
@@ -57,6 +72,10 @@ public struct Text: TUIView {
     }
 
     public func render() -> String {
+        let renderedContent =
+            isTrustedANSI
+            ? content
+            : TerminalText.literal(content, preservingLineFeeds: true)
         var prefix = ""
         if let color = color {
             prefix += color.rawValue
@@ -73,8 +92,8 @@ public struct Text: TUIView {
         if isUnderlined {
             prefix += "\u{001B}[4m"
         }
-        guard !prefix.isEmpty else { return content }
-        return prefix + content + ANSIColor.reset.rawValue
+        guard !prefix.isEmpty else { return renderedContent }
+        return prefix + renderedContent + ANSIColor.reset.rawValue
     }
 }
 
